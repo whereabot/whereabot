@@ -37,6 +37,16 @@ sequenceDiagram
 
 The relay keeps one phone connection per user. If the user has no connected phone, the agent gets an offline answer. Status codes and message shapes: [protocol.md](protocol.md).
 
+## Consent on the phone
+
+Each ping carries the agent's OAuth client id and an `expires_ms` deadline. The phone shows a consent prompt for that agent. The user can allow once, deny, or choose always-allow for that agent, which skips the prompt next time. The phone then answers with one of:
+
+- a location;
+- `denied`: the user declined, or did not respond before `expires_ms`;
+- `unavailable`: location permission is off, or no fix.
+
+The relay turns each answer into a distinct agent-facing error. If the phone is offline, the error names the signed-in account, so the user can spot a mismatch with the phone. Wire format: [protocol.md](protocol.md).
+
 ## Security
 
 - **Two credentials.** The agent credential may ask for a location. The phone access token may answer one. Neither works for the other side.
@@ -45,11 +55,11 @@ The relay keeps one phone connection per user. If the user has no connected phon
 - **Hashed agent keys.** The database stores a hash of each agent key, never the plaintext. The plaintext is shown once. Algorithm and schema: [`supabase/migrations/`](../supabase/migrations).
 - **Row-level security.** Supabase RLS limits each user to their own agent keys. Writes go through functions.
 - **TLS.** Clients reach the relay over HTTPS and WSS. The container host terminates TLS.
-- **No user-managed tokens.** Users never create or paste tokens. Agent sign-in moves to OAuth. Agent keys remain a headless fallback; see [protocol](protocol.md#agent-keys-headless-fallback).
+- **No user-managed tokens.** Users never create or paste tokens. Agents sign in with OAuth. Agent keys remain a headless fallback; see [protocol](protocol.md#agent-keys-headless-fallback).
 
 ## Limits today
 
 - **One relay instance.** Phone connections live in memory, so the relay runs as exactly one instance.
-- **The app must be open.** The phone answers only while the app runs. See [roadmap.md](roadmap.md) for push wake-up.
+- **The app must be open.** The phone answers only while the app runs. Push wake-up: [roadmap.md](roadmap.md).
 - **One phone per user.** A new phone connection replaces the old one. See [protocol](protocol.md#phone-to-relay).
 - **Timeouts.** Ping waits are bounded. See [protocol](protocol.md#http-post-v1locate).

@@ -17,6 +17,7 @@ function fail(message) {
   $('status').textContent = message;
   for (const name of SECTIONS) $(name).hidden = true;
   document.body.dataset.state = 'error';
+  $('restart').hidden = false;
 }
 
 function busy(on) {

@@ -54,11 +54,16 @@ Early MVP. The phone answers pings **while the app is open**. Waking a closed ap
 
 ## Connect your agent
 
-Coming next: sign-in through the browser (OAuth). See [roadmap](docs/roadmap.md). Once live, you add the relay to your MCP client and sign in once. You never create or paste a token.
+1. Install the app: join the beta. <!-- TODO(user): add the public TestFlight / Play link. -->
+2. Sign in with Google on the phone.
+3. Add the relay to your agent:
 
-```bash
-claude mcp add --transport http whereabouts <prod-relay-url>/mcp
-```
+   ```bash
+   claude mcp add --transport http whereabot <prod-relay-url>/mcp
+   ```
+
+4. In Claude Code run `/mcp` and sign in with the **same Google account** as on the phone. You never paste a token.
+5. Keep the app open while the agent asks, until push notifications ship.
 
 Relay URLs: [live URLs](infra/README.md#live-urls). The tool and its arguments: [protocol](docs/protocol.md).
 

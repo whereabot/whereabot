@@ -25,3 +25,8 @@ body[data-state="error"] #status {
 @media (max-width: 359px) {
   .actions { grid-template-columns: 1fr; }
 }
+.account { display: block; }
+.account .who { margin: 0.5rem 0 0; font-size: 1.1rem; }
+.account .who strong { overflow-wrap: anywhere; }
+.account .hint { margin: 0.15rem 0 0.5rem; color: var(--muted); font-size: 0.95rem; }
+#restart { margin: 0 0 1rem; font-size: 0.95rem; }

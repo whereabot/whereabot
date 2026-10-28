@@ -20,6 +20,7 @@
 <main id="main" class="card">
   <h1>Approve access</h1>
   <p id="status" role="status" aria-live="polite">Loading…</p>
+  <p id="restart" hidden>Start over: see <a href="https://github.com/whereabot/whereabot#connect-your-agent">the setup steps</a>.</p>
 
   <section id="signin" aria-labelledby="signin-title" hidden>
     <h2 id="signin-title">Sign in to continue</h2>
@@ -48,7 +49,8 @@
     <code class="host" id="redirect-host"></code>
 
     <div class="account">
-      <p class="label">Signed in as <strong id="user-email"></strong></p>
+      <p class="who">Signed in as <strong id="user-email"></strong></p>
+      <p class="hint">Use the same Google account as on your phone.</p>
       <button type="button" id="signout" class="link">Not you? Sign out</button>
     </div>
 

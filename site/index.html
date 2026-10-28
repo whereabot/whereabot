@@ -39,16 +39,17 @@
   <section id="how" aria-labelledby="how-title">
     <h2 id="how-title">How it works</h2>
     <ol class="steps">
-      <li><span class="num" aria-hidden="true">1</span><h3>Add the relay URL</h3><p>Add the relay URL to your MCP client. See <a href="#agent">Add to your agent</a>.</p></li>
-      <li><span class="num" aria-hidden="true">2</span><h3>Sign in once</h3><p>Your client opens a browser. Sign in with Google and approve the request. No token to copy.</p></li>
-      <li><span class="num" aria-hidden="true">3</span><h3>Ask</h3><p>Your agent calls <code>get_phone_location</code>. Your phone reads its GPS fix now and sends it back.</p></li>
+      <li><span class="num" aria-hidden="true">1</span><h3>Install the app</h3><p>Join the beta. <!-- TODO(user): link the public TestFlight / Play beta here when it exists. --></p></li>
+      <li><span class="num" aria-hidden="true">2</span><h3>Sign in on your phone</h3><p>Open the app and sign in with Google. Keep it open while your agent asks.</p></li>
+      <li><span class="num" aria-hidden="true">3</span><h3>Add the relay</h3><p>Add the relay URL to your agent. See <a href="#agent">Add to your agent</a>.</p></li>
+      <li><span class="num" aria-hidden="true">4</span><h3>Ask</h3><p>Your agent calls <code>get_phone_location</code>. You approve on your phone, and it sends its GPS fix back.</p></li>
     </ol>
     <div class="flow" role="img" aria-label="Your agent sends a request to the relay. The relay pings your phone. Your phone reads its location and sends the fix back through the relay to your agent.">
       <span class="box">Your agent</span><span class="arrow" aria-hidden="true"></span>
       <span class="box">Relay</span><span class="arrow" aria-hidden="true"></span>
       <span class="box">Your phone reads GPS</span>
     </div>
-    <p class="note">The answer returns the same way. For now, the app must be open to answer.</p>
+    <p class="note">The answer returns the same way. Until push notifications ship, keep the app open to answer.</p>
   </section>
 
   <section id="uses" aria-labelledby="uses-title">
@@ -62,12 +63,12 @@
 
   <section id="agent" aria-labelledby="agent-title">
     <h2 id="agent-title">Add to your agent</h2>
-    <p>Run this in Claude Code. Your client opens a browser and asks you to sign in once.</p>
+    <p>Run this in Claude Code, then run <code>/mcp</code> and sign in. Use the <strong>same Google account</strong> as on your phone.</p>
     <figure class="codecard">
       <figcaption>Claude Code</figcaption>
       <pre><code>claude mcp add --transport http whereabot https://whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app/mcp</code></pre>
     </figure>
-    <p class="note">Other MCP clients: add <code>https://whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app/mcp</code> as an HTTP server. Sign in when asked.</p>
+    <p class="note">Other MCP clients: add <code>https://whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app/mcp</code> as an HTTP server. Sign in with the same Google account as on your phone.</p>
   </section>
 
   <section id="privacy" aria-labelledby="privacy-title">
