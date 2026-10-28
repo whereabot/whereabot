@@ -18,6 +18,7 @@ mod locate;
 mod mcp;
 mod oauth;
 mod protocol;
+pub mod push;
 mod shutdown;
 mod supabase;
 

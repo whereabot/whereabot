@@ -26,6 +26,7 @@ tauri-plugin-websocket = "2"
 tauri-plugin-opener = "2"
 tauri-plugin-deep-link = "2"
 tauri-plugin-notification = "2"
+tauri-plugin-mobile-push = "0.1.4"
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

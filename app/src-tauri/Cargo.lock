@@ -57,6 +57,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-deep-link",
  "tauri-plugin-geolocation",
+ "tauri-plugin-mobile-push",
  "tauri-plugin-notification",
  "tauri-plugin-opener",
  "tauri-plugin-websocket",
@@ -3763,6 +3764,20 @@ name = "tauri-plugin-geolocation"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "240085699dfda0556e20ae95f10db8050a9bb158702e8fdd927d217e49d90757"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "tauri-plugin-mobile-push"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9ab15008b7d1b350e7021d8afe434b17d670cb54e9ff1baa0e4b55392d265aa3"
 dependencies = [
  "log",
  "serde",

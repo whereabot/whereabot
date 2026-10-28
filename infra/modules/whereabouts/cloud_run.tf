@@ -43,6 +43,32 @@ resource "google_cloud_run_v2_service" "relay" {
         name  = "RUST_LOG"
         value = "info"
       }
+      # Push (see push.tf). The relay skips push while the APNS_KEY secret has no version.
+      env {
+        name = "APNS_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.apns_key.secret_id
+            version = "latest"
+          }
+        }
+      }
+      env {
+        name = "SUPABASE_ANON_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.relay["SUPABASE_ANON_KEY"].secret_id
+            version = "latest"
+          }
+        }
+      }
+      dynamic "env" {
+        for_each = local.apns_env
+        content {
+          name  = env.key
+          value = env.value
+        }
+      }
 
       startup_probe {
         http_get {

@@ -63,3 +63,7 @@ The relay turns each answer into a distinct agent-facing error. If the phone is 
 - **The app must be open.** The phone answers only while the app runs. Push wake-up: [roadmap.md](roadmap.md).
 - **One phone per user.** A new phone connection replaces the old one. See [protocol](protocol.md#phone-to-relay).
 - **Timeouts.** Ping waits are bounded. See [protocol](protocol.md#http-post-v1locate).
+
+## Push wake-up
+
+The phone stores its APNs token in `push_tokens` (Supabase, RLS: own rows only) after sign-in and notification permission, and deletes it on sign-out. If a location request finds no live phone, the relay pushes through APNs. The user taps the notification, the app opens and connects, and the waiting request reaches the consent prompt. Setup: [infra/README.md](../infra/README.md). Wire details: [protocol.md](protocol.md#push-wake-up).

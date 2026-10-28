@@ -13,6 +13,7 @@
     "geolocation:allow-get-current-position",
     "websocket:default",
     "notification:default",
+    "mobile-push:default",
     "opener:default",
     "deep-link:default"
   ]

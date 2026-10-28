@@ -70,3 +70,12 @@ Each install has a stable random `device_id` (uuid, kept across sign-out). It is
 
 - **Fan-out:** a locate request goes to every connected device of the user, and to each device that connects before it expires. The first answer (`location`, `denied` or `unavailable`) settles it. The relay then sends `{"type":"cancel","id"}` to every other device that got the ping; the app closes that prompt and records "answered on another device". The relay also sends `cancel` when the request times out. Offline (`503`) means no device is connected.
 - **Revocation:** on `hello` the relay reads the device row with the phone's own bearer (PostgREST, `apikey` = `SUPABASE_ANON_KEY` when set). If `revoked_at` is set, it closes the socket with Close `4000 "revoked"`. The app then forgets its `device_id` and signs out. An unreachable Supabase counts as not revoked. A device removed while connected is closed at its next connect (or when its own heartbeat sees the row).
+
+## Push wake-up
+
+iOS suspends the app in the background, so a waiting request needs a nudge. When a request starts and no phone answers within about 2 s (or none is connected), the relay sends one APNs alert push per request to each token in `push_tokens`. Retries and reconnect resends send no more pushes.
+
+- **Alert:** title `Whereabot`, body `Your agent wants to know your location`, sound default, `thread-id`, and custom key `request_id`. `apns-push-type` is `alert`, priority `10`, and `apns-expiration` is the request deadline.
+- **Tap:** opens the app. The app reconnects on return to the foreground, and the relay resends the waiting `locate` to the new socket. The app needs no handling for `request_id`.
+- **Tokens:** the relay reads them with the agent's own user JWT (RLS limits it to that user's rows). It deletes a token when APNs answers `410` or `BadDeviceToken`.
+- **Off:** without the `APNS_*` settings the relay logs once and sends no push.
