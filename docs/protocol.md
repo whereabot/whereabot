@@ -5,11 +5,13 @@ The code is the source of truth. This page explains intent. Exact shapes live in
 - Relay routes: [`server/src/lib.rs`](../server/src/lib.rs)
 - Messages between relay and phone: [`server/src/protocol.rs`](../server/src/protocol.rs) and [`app/src/protocol.ts`](../app/src/protocol.ts)
 - MCP tool: [`server/src/mcp.rs`](../server/src/mcp.rs)
-- Agent key checks: [`supabase/migrations/`](../supabase/migrations)
+- Credential checks: [`supabase/migrations/`](../supabase/migrations)
 
 ## Agent to relay
 
-Every agent call sends an agent key as a bearer token: `Authorization: Bearer wb_…`. An unknown or revoked key gets `401`.
+Target: OAuth 2.1, as in the MCP authorization spec. The MCP client signs in through the browser and sends a short-lived access token as a bearer token. Not live yet: see [roadmap](roadmap.md). The relay also accepts agent keys as a headless fallback (below).
+
+Every agent call sends a bearer credential: `Authorization: Bearer <token>`. An unknown, expired or revoked credential gets `401`.
 
 ### HTTP: `POST /v1/locate`
 
@@ -18,7 +20,7 @@ Pings the user's phone and waits for the fix. Query: `timeout_secs`, default 30,
 | Status | Meaning |
 |--------|---------|
 | `200` | The fix. The body is a JSON location. |
-| `401` | Missing, unknown or revoked agent key. |
+| `401` | Missing, unknown, expired or revoked credential. |
 | `503` | No phone is connected for this user. |
 | `504` | The phone did not answer before the timeout. |
 
@@ -31,7 +33,15 @@ Streamable HTTP, with JSON responses and no session. The same bearer header gate
 - One tool: `get_phone_location`. Optional `timeout_secs`, 1 to 120, default 30.
 - A fix returns as text: the JSON location.
 - Offline or timeout returns a tool error with a short message. The HTTP status stays `200`.
-- A bad key returns `401` before any tool runs.
+- A bad credential returns `401` before any tool runs.
+
+## Agent keys (headless fallback)
+
+For headless or CI use only. Users do not onboard agents this way.
+
+- **Create:** in the app. The key starts with `wb_`. The app shows it once.
+- **Rotate:** create a new key, update the headless config, then revoke the old key in the app.
+- **Leak:** revoke the key in the app. A revoked key gets `401`.
 
 ## Phone to relay
 

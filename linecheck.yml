@@ -20,6 +20,7 @@ exclude:
   - "**/*.ico"
   - "**/*.icns"
   - "supabase/config.toml"
+  - "site/oauth/consent/supabase.esm.mjs"
   - "**/.terraform/**"
   - "**/.terraform.lock.hcl"
   - "LICENSE"
