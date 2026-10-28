@@ -15,6 +15,8 @@ use subtle::ConstantTimeEq;
 use tokio::sync::{Mutex, mpsc, oneshot};
 use uuid::Uuid;
 
+mod mcp;
+
 /// Fix sent by the phone in answer to a `locate` ping.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -60,6 +62,7 @@ pub fn app(config: Config) -> Router {
     Router::new()
         .route("/v1/locate", post(locate))
         .route("/v1/device", any(device))
+        .nest("/mcp", mcp::router(state.clone()))
         .with_state(state)
 }
 
@@ -76,6 +79,31 @@ struct LocateParams {
     timeout_secs: Option<u64>,
 }
 
+enum LocateError {
+    Offline,
+    Timeout,
+}
+
+async fn request_location(state: &AppState, timeout: Duration) -> Result<Location, LocateError> {
+    let Some(device) = state.device.lock().await.clone() else {
+        return Err(LocateError::Offline);
+    };
+    let id = Uuid::new_v4();
+    let (tx, rx) = oneshot::channel();
+    state.pending.lock().await.insert(id, tx);
+    if device.send(ToDevice::Locate { id }).await.is_err() {
+        state.pending.lock().await.remove(&id);
+        return Err(LocateError::Offline);
+    }
+    match tokio::time::timeout(timeout, rx).await {
+        Ok(Ok(location)) => Ok(location),
+        _ => {
+            state.pending.lock().await.remove(&id);
+            Err(LocateError::Timeout)
+        }
+    }
+}
+
 async fn locate(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
@@ -84,21 +112,13 @@ async fn locate(
     if !authorized(&headers, &state.config.agent_token) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
-    let Some(device) = state.device.lock().await.clone() else {
-        return (StatusCode::SERVICE_UNAVAILABLE, "device offline").into_response();
-    };
-    let id = Uuid::new_v4();
-    let (tx, rx) = oneshot::channel();
-    state.pending.lock().await.insert(id, tx);
-    if device.send(ToDevice::Locate { id }).await.is_err() {
-        state.pending.lock().await.remove(&id);
-        return (StatusCode::SERVICE_UNAVAILABLE, "device offline").into_response();
-    }
     let timeout = Duration::from_secs(params.timeout_secs.unwrap_or(30).min(120));
-    match tokio::time::timeout(timeout, rx).await {
-        Ok(Ok(location)) => Json(location).into_response(),
-        _ => {
-            state.pending.lock().await.remove(&id);
+    match request_location(&state, timeout).await {
+        Ok(location) => Json(location).into_response(),
+        Err(LocateError::Offline) => {
+            (StatusCode::SERVICE_UNAVAILABLE, "device offline").into_response()
+        }
+        Err(LocateError::Timeout) => {
             (StatusCode::GATEWAY_TIMEOUT, "device did not answer").into_response()
         }
     }
@@ -143,7 +163,10 @@ async fn serve_device(state: Arc<AppState>, mut socket: WebSocket) {
         }
     }
     let mut device = state.device.lock().await;
-    if device.as_ref().is_some_and(|current| current.same_channel(&tx)) {
+    if device
+        .as_ref()
+        .is_some_and(|current| current.same_channel(&tx))
+    {
         *device = None;
     }
 }

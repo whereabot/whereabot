@@ -14,7 +14,9 @@ async fn start() -> String {
 }
 
 async fn connect_device(addr: &str) {
-    let mut req = format!("ws://{addr}/v1/device").into_client_request().unwrap();
+    let mut req = format!("ws://{addr}/v1/device")
+        .into_client_request()
+        .unwrap();
     req.headers_mut()
         .insert("authorization", "Bearer device".parse().unwrap());
     let (mut ws, _) = tokio_tungstenite::connect_async(req).await.unwrap();
@@ -27,7 +29,9 @@ async fn connect_device(addr: &str) {
                 "type": "location", "id": ping["id"],
                 "latitude": 32.08, "longitude": 34.78, "accuracy_m": 5.0, "captured_at_ms": 1
             });
-            ws.send(Message::Text(reply.to_string().into())).await.unwrap();
+            ws.send(Message::Text(reply.to_string().into()))
+                .await
+                .unwrap();
         }
     });
 }
