@@ -4,6 +4,7 @@ import { listenForAuthRedirect, signInWithGoogle, signInWithPassword, signOut } 
 import { devLogin } from "./config";
 import { initHistory } from "./ui/history";
 import { initHome } from "./ui/home";
+import { initPermissions } from "./ui/permissions";
 import { clearLocalData } from "./history";
 import { getAccessToken, supabase } from "./supabase";
 
@@ -33,6 +34,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
   initHistory();
   initHome();
+  initPermissions();
   void listenForAuthRedirect();
 
   supabase.auth.onAuthStateChange((event, session) => {

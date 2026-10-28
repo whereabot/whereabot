@@ -1,6 +1,6 @@
 import { $ } from "../dom";
 
-export type Screen = "home" | "history" | "request";
+export type Screen = "home" | "history" | "request" | "permissions";
 
 /** CSS shows the section that matches body[data-screen]. */
 export function setScreen(screen: Screen) {

@@ -1,27 +1,10 @@
 import {
   checkPermissions,
   getCurrentPosition,
-  requestPermissions,
   type Position,
 } from "@tauri-apps/plugin-geolocation";
-import { requestNotificationPermission } from "./notify";
 
 export type Fix = { pos: Position } | { fail: "permission" | "no_fix" };
-
-const asking = (s: string) => s === "prompt" || s === "prompt-with-rationale";
-
-/** Onboarding: ask for location and notification permission once, before any request. */
-export async function requestPermissionsUpFront(): Promise<{ location: string; notifications: string }> {
-  let location = "denied";
-  try {
-    let perms = await checkPermissions();
-    if (asking(perms.location)) perms = await requestPermissions(["location"]);
-    location = perms.location;
-  } catch {
-    // Reported as denied.
-  }
-  return { location, notifications: await requestNotificationPermission() };
-}
 
 /** One fix. Cold GPS can be slow, so a failed precise fix retries once with lower accuracy. */
 export async function getFix(): Promise<Fix> {

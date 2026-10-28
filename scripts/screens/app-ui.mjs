@@ -31,3 +31,11 @@ export const UI_CASES = [
   { name: 'history', session: true, desc: 'Request history with items and always allowed agents.', run: (p) => history(p, SEED, [AGENT, { clientId: 'c3', name: 'Cron agent' }]) },
   { name: 'history-empty', session: true, desc: 'Request history with no items.', run: (p) => history(p, [], []) },
 ];
+
+// Permission step flow. `wait` is the selector that shows when the state is ready.
+export const PERM_CASES = [
+  { session: true, name: 'perm-location', tauri: { permission: 'prompt', notifications: 'prompt' }, wait: '#perms', desc: 'First launch, step 1 of 2. Asks for location with one button.' },
+  { session: true, name: 'perm-location-denied', tauri: { permission: 'denied', notifications: 'prompt' }, wait: '#perm-how', desc: 'Location refused. Numbered steps and an Open Settings button.' },
+  { session: true, name: 'perm-notifications', tauri: { notifications: 'prompt' }, wait: '#perms', desc: 'Step 2 of 2. Asks for notifications. Skip for now is allowed.' },
+  { session: true, name: 'perm-notifications-banner', tauri: { notifications: 'prompt' }, click: '#perm-skip', wait: '#notif-banner:not([hidden])', desc: 'Notifications skipped. Home shows a banner with a Fix button.' },
+];

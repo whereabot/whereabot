@@ -13,7 +13,10 @@ Fake data only: every network call is stubbed. Light colour scheme, reduced moti
 | [app-history-empty-mobile.png](app-history-empty-mobile.png) | Request history with no items. |
 | [app-history-mobile.png](app-history-mobile.png) | Request history with items and always allowed agents. |
 | [app-location-failed-mobile.png](app-location-failed-mobile.png) | Location read failed for a ping. No reply is sent. |
-| [app-permission-denied-mobile.png](app-permission-denied-mobile.png) | Location permission refused. Shows the reason. No connection. |
+| [app-perm-location-denied-mobile.png](app-perm-location-denied-mobile.png) | Location refused. Numbered steps and an Open Settings button. |
+| [app-perm-location-mobile.png](app-perm-location-mobile.png) | First launch, step 1 of 2. Asks for location with one button. |
+| [app-perm-notifications-banner-mobile.png](app-perm-notifications-banner-mobile.png) | Notifications skipped. Home shows a banner with a Fix button. |
+| [app-perm-notifications-mobile.png](app-perm-notifications-mobile.png) | Step 2 of 2. Asks for notifications. Skip for now is allowed. |
 | [app-ping-answered-mobile.png](app-ping-answered-mobile.png) | A locate ping was answered. Shows the time of the reply. |
 | [app-relay-url-invalid-mobile.png](app-relay-url-invalid-mobile.png) | Relay URL is not secure. Connect is refused. |
 | [app-request-dragging-mobile.png](app-request-dragging-mobile.png) | Allow is being dragged. Reject turns into the dashed Always allow drop zone. |

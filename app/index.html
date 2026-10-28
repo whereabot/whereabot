@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <link rel="stylesheet" href="/src/styles.css" /><link rel="stylesheet" href="/src/layout.css" /><link rel="stylesheet" href="/src/buttons.css" />
-    <link rel="stylesheet" href="/src/components.css" /><link rel="stylesheet" href="/src/request.css" /><link rel="stylesheet" href="/src/history.css" /><link rel="stylesheet" href="/src/home.css" />
+    <link rel="stylesheet" href="/src/components.css" /><link rel="stylesheet" href="/src/request.css" /><link rel="stylesheet" href="/src/history.css" /><link rel="stylesheet" href="/src/home.css" /><link rel="stylesheet" href="/src/permissions.css" />
     <title>Whereabot</title>
     <script type="module" src="/src/main.ts" defer></script>
   </head>
@@ -41,23 +41,27 @@
       </section>
 
       <section id="signed-in" class="stack" hidden>
+        <section id="perms" class="stack" aria-labelledby="perm-title">
+          <p id="perm-step" class="perm-step"></p><div class="perm-icon" aria-hidden="true">
+            <svg id="perm-ico-location" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12Z" /><circle cx="12" cy="10" r="2.5" /></svg>
+            <svg id="perm-ico-notifications" viewBox="0 0 24 24" hidden><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2Z" /><path d="M10 21h4" /></svg></div>
+          <h2 id="perm-title" tabindex="-1"></h2><p id="perm-why"></p><p id="perm-status" class="perm-status" role="status" aria-live="polite"></p><ol id="perm-how" hidden></ol>
+          <button id="perm-allow" class="btn btn-big btn-primary" type="button"></button><button id="perm-settings" class="btn btn-big btn-primary" type="button" hidden>Open Settings</button><button id="perm-skip" class="btn btn-ghost" type="button" hidden>Skip for now</button>
+        </section>
         <div id="home" class="stack">
           <div class="actions">
             <button id="connect" class="btn btn-primary" type="button">Connect</button><button id="disconnect" class="btn btn-secondary" type="button" hidden>Disconnect</button>
           </div>
           <button id="open-history" class="btn btn-secondary" type="button">Request history</button>
           <p id="last-ping" class="muted"></p>
-          <section id="perm-card" class="help warn" aria-labelledby="perm-title" hidden>
-            <p id="perm-title" class="help-title">Location is off</p>
-            <p>Your agent cannot find you until you allow location for Whereabot.</p>
-            <button id="open-settings" class="btn btn-secondary" type="button">Open Settings</button>
+          <section id="notif-banner" class="help warn" aria-labelledby="notif-title" hidden>
+            <p id="notif-title" class="help-title">Notifications are off &mdash; you may miss requests</p><button id="notif-fix" class="btn btn-secondary" type="button">Fix</button>
           </section>
           <section id="onboarding" class="help" aria-labelledby="onb-title" hidden>
             <p id="onb-title" class="help-title">Get started</p>
-            <ol><li>Signed in &#10003;</li><li>Allow location and notifications, so the first request is fast.</li><li>Connect your agent (steps below).</li></ol>
+            <ol><li>Signed in &#10003;</li><li>Connect your agent (steps below).</li></ol>
             <div class="actions">
-              <button id="allow-perms" class="btn btn-primary" type="button">Allow</button>
-              <button id="onb-done" class="btn btn-secondary" type="button">Done</button>
+              <button id="onb-done" class="btn btn-primary" type="button">Done</button>
             </div>
           </section>
           <aside class="help" aria-labelledby="help-title">

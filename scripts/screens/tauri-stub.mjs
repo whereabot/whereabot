@@ -1,7 +1,7 @@
 /**
  * Runs in the page before app scripts. Fakes the Tauri IPC bridge for the plugins the app calls.
  * Self-contained on purpose: Playwright serialises this function into the page.
- * cfg: { permission, connect: 'ok' | 'hang' | 'reject', connectError, locationError }
+ * cfg: { permission, notifications ('granted' by default), connect: 'ok' | 'hang' | 'reject', connectError, locationError }
  */
 export function installTauri(cfg) {
   const callbacks = {};
@@ -17,6 +17,7 @@ export function installTauri(cfg) {
     if (cmd === 'plugin:geolocation|check_permissions' || cmd === 'plugin:geolocation|request_permissions') {
       return { location: cfg.permission, coarseLocation: cfg.permission };
     }
+    if (cmd === 'plugin:notification|is_permission_granted') return (cfg.notifications ?? 'granted') === 'granted';
     if (cmd === 'plugin:geolocation|get_current_position') {
       if (cfg.locationError) throw cfg.locationError;
       return position;
@@ -31,6 +32,8 @@ export function installTauri(cfg) {
     }
     return null;
   };
+  // The notification plugin reads window.Notification first.
+  window.Notification = { permission: (cfg.notifications ?? 'granted') === 'granted' ? 'granted' : 'default', requestPermission: async () => 'default' };
   window.__TAURI_INTERNALS__ = {
     metadata: { currentWindow: { label: 'main' }, currentWebview: { windowLabel: 'main', label: 'main' } },
     transformCallback(cb) {
