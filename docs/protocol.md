@@ -1,44 +1,44 @@
 # Protocol
 
-The source of truth is the code: [`server/src/lib.rs`](../server/src/lib.rs) (relay) and [`app/src/protocol.ts`](../app/src/protocol.ts) (phone). This page explains intent.
+The code is the source of truth. This page explains intent. Exact shapes live in code:
 
-## Agent → relay (HTTP)
+- Relay routes: [`server/src/lib.rs`](../server/src/lib.rs)
+- Messages between relay and phone: [`server/src/protocol.rs`](../server/src/protocol.rs) and [`app/src/protocol.ts`](../app/src/protocol.ts)
+- MCP tool: [`server/src/mcp.rs`](../server/src/mcp.rs)
+- Agent key checks: [`supabase/migrations/`](../supabase/migrations)
 
-`POST /v1/locate?timeout_secs=30` with `Authorization: Bearer <agent token>`.
+## Agent to relay
+
+Every agent call sends an agent key as a bearer token: `Authorization: Bearer wb_…`. An unknown or revoked key gets `401`.
+
+### HTTP: `POST /v1/locate`
+
+Pings the user's phone and waits for the fix. Query: `timeout_secs`, default 30, capped at 120.
 
 | Status | Meaning |
 |--------|---------|
-| `200` | JSON location (below). |
-| `401` | Wrong or missing agent token. |
-| `503` | No phone connected. |
-| `504` | The phone did not answer before the timeout (max 120 s, default 30 s). |
+| `200` | The fix. The body is a JSON location. |
+| `401` | Missing, unknown or revoked agent key. |
+| `503` | No phone is connected for this user. |
+| `504` | The phone did not answer before the timeout. |
 
-```json
-{
-  "id": "6f1c…",
-  "latitude": 32.08,
-  "longitude": 34.78,
-  "accuracy_m": 5.0,
-  "captured_at_ms": 1793180000000
-}
-```
+Check the fix time. An OS can return a cached position. The fix carries the phone's capture time.
 
-`captured_at_ms` is the phone's fix time (Unix ms). Check it: an OS can return a cached fix.
+### MCP: `/mcp`
 
-## Phone ↔ relay (WebSocket)
+Streamable HTTP, with JSON responses and no session. The same bearer header gates it.
 
-The phone connects to `GET /v1/device` with `Authorization: Bearer <device token>`. A new connection replaces the old one.
+- One tool: `get_phone_location`. Optional `timeout_secs`, 1 to 120, default 30.
+- A fix returns as text: the JSON location.
+- Offline or timeout returns a tool error with a short message. The HTTP status stays `200`.
+- A bad key returns `401` before any tool runs.
 
-Relay → phone:
+## Phone to relay
 
-```json
-{ "type": "locate", "id": "6f1c…" }
-```
+The phone opens a WebSocket to `/v1/device` with its Supabase access token as a bearer token. A bad token gets `401` before the upgrade.
 
-Phone → relay — same `id`, so the relay can match the answer to the waiting agent:
+A new connection replaces the user's old one. The relay sends keep-alive pings, so idle sockets survive mobile networks.
 
-```json
-{ "type": "location", "id": "6f1c…", "latitude": 32.08, "longitude": 34.78, "accuracy_m": 5.0, "captured_at_ms": 1793180000000 }
-```
-
-The relay ignores messages it does not understand and answers with an unknown `id`.
+- **Relay to phone:** a ping with a new id. The phone answers it.
+- **Phone to relay:** a fix with the same id, so the relay matches it to the waiting agent.
+- **Unknown messages:** the relay ignores them. A fix with an unknown id is dropped.
