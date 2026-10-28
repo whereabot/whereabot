@@ -59,3 +59,26 @@ input {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* One screen at a time: body[data-screen] picks it. */
+#request,
+#history {
+  display: none;
+}
+[data-screen="request"] #request,
+[data-screen="history"] #history {
+  display: flex;
+}
+[data-screen="request"] :is(#home, #state-card, .lede),
+[data-screen="history"] :is(#home, #state-card, .lede) {
+  display: none;
+}

@@ -10,10 +10,15 @@ Fake data only: every network call is stubbed. Light colour scheme, reduced moti
 | [app-connecting-mobile.png](app-connecting-mobile.png) | Signed in. Opening the connection to the relay. |
 | [app-connection-lost-mobile.png](app-connection-lost-mobile.png) | The socket closed. Status shows a retry. |
 | [app-disconnected-mobile.png](app-disconnected-mobile.png) | Disconnect pressed. Shows Disconnected. |
+| [app-history-empty-mobile.png](app-history-empty-mobile.png) | Request history with no items. |
+| [app-history-mobile.png](app-history-mobile.png) | Request history with items and always allowed agents. |
 | [app-location-failed-mobile.png](app-location-failed-mobile.png) | Location read failed for a ping. No reply is sent. |
 | [app-permission-denied-mobile.png](app-permission-denied-mobile.png) | Location permission refused. Shows the reason. No connection. |
 | [app-ping-answered-mobile.png](app-ping-answered-mobile.png) | A locate ping was answered. Shows the time of the reply. |
 | [app-relay-url-invalid-mobile.png](app-relay-url-invalid-mobile.png) | Relay URL is not secure. Connect is refused. |
+| [app-request-dragging-mobile.png](app-request-dragging-mobile.png) | Allow is being dragged. Reject turns into the dashed Always allow drop zone. |
+| [app-request-mobile.png](app-request-mobile.png) | An agent asks for the location. Two big buttons: Allow and Reject. |
+| [app-request-over-mobile.png](app-request-over-mobile.png) | Allow is over the drop zone. Releasing now always allows the agent. |
 | [app-signed-out-mobile.png](app-signed-out-mobile.png) | Signed out. Shows the Google sign-in button. |
 | [consent-approving-desktop.png](consent-approving-desktop.png) | Approve pressed. Both buttons are disabled while the answer is sent. (desktop) |
 | [consent-approving-mobile.png](consent-approving-mobile.png) | Approve pressed. Both buttons are disabled while the answer is sent. (mobile) |

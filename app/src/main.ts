@@ -2,6 +2,7 @@ import { $, setState, setStatus, showView } from "./dom";
 import { disconnect, start } from "./connection";
 import { listenForAuthRedirect, signInWithGoogle, signInWithPassword, signOut } from "./auth";
 import { devLogin } from "./config";
+import { initHistory } from "./ui/history";
 import { getAccessToken, supabase } from "./supabase";
 
 /** Read on every (re)connect. No session means the sign-in screen shows. */
@@ -27,6 +28,7 @@ window.addEventListener("DOMContentLoaded", () => {
     disconnect();
     await signOut();
   });
+  initHistory();
   void listenForAuthRedirect();
 
   supabase.auth.onAuthStateChange((_event, session) => {
@@ -44,3 +46,10 @@ window.addEventListener("DOMContentLoaded", () => {
   setStatus("Signed out.");
   setState("disconnected");
 });
+
+// Screenshot builds only: lets scripts/screens drive the UI without a relay.
+if (import.meta.env.VITE_SCREENS) {
+  void Promise.all([import("./ui/request"), import("./ui/history"), import("./ui/view")]).then(([r, h, v]) => {
+    Object.assign(window, { __ui: { ...r, ...h, ...v } });
+  });
+}

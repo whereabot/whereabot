@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { FAKE, OUT_DIR, ROOT, shoot } from './browser.mjs';
 import { sessionInit, withScene } from './scene.mjs';
 import { installTauri } from './tauri-stub.mjs';
+import { UI_CASES } from './app-ui.mjs';
 
 const APP = join(ROOT, 'app');
 const VITE = join(APP, 'node_modules', 'vite', 'bin', 'vite.js');
@@ -27,6 +28,7 @@ function buildApp(relayUrl) {
         VITE_SUPABASE_ANON_KEY: FAKE.anonKey,
         VITE_RELAY_URL: relayUrl,
         VITE_DEV_LOGIN: 'false',
+        VITE_SCREENS: 'true',
       },
     });
     builds.set(relayUrl, outDir);
@@ -47,19 +49,24 @@ const CASES = [
   { name: 'disconnected', session: true, click: '#disconnect', status: 'Disconnected.', desc: 'Disconnect pressed. Shows Disconnected.' },
 ];
 
+CASES.push(...UI_CASES.map((c) => ({ ...c, status: CONNECTED })));
+
 async function waitStatus(page, text) {
   await page.waitForFunction((t) => document.getElementById('status').textContent === t, text);
 }
 
 /** Moves the app from its start state to the state the case shows. */
 async function drive(page, c) {
-  if (c.ping || c.close || c.click) await waitStatus(page, CONNECTED);
+  if (c.ping || c.close || c.click || c.run) await waitStatus(page, CONNECTED);
   if (c.ping) {
     await page.evaluate(() => window.__screensEmit({ type: 'Text', data: JSON.stringify({ type: 'locate', id: 'ping-1' }) }));
   }
   if (c.close) await page.evaluate(() => window.__screensEmit({ type: 'Close' }));
   if (c.click) await page.click(c.click);
-  if (c.lastPing) {
+  if (c.run) {
+    await page.waitForFunction(() => window.__ui);
+    await c.run(page);
+  } else if (c.lastPing) {
     await page.waitForFunction(() => document.getElementById('last-ping').textContent !== '');
   } else {
     await waitStatus(page, c.status);

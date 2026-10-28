@@ -1,0 +1,100 @@
+.request-title {
+  margin: 8px 0 0;
+  font-size: 1.6rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.request-title:focus {
+  outline: none;
+}
+.request-title strong {
+  color: var(--primary);
+}
+
+#request {
+  gap: 20px;
+}
+.choices {
+  display: grid;
+  grid-auto-rows: minmax(72px, auto);
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.btn-big {
+  min-height: 72px;
+  padding: 12px 8px;
+  font-size: 1.25rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+#allow {
+  position: relative;
+  z-index: 1;
+  touch-action: pan-y;
+  user-select: none;
+  transition: transform 0.18s ease;
+}
+#allow.dragging {
+  transition: none;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.3);
+}
+
+.btn-reject {
+  background: var(--card);
+  color: var(--off);
+  border: 2px solid var(--off);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.lbl-always {
+  display: none;
+}
+/* The zone sits above the dragged Allow, so its label stays readable. */
+[data-slide="drag"] .btn-reject,
+[data-slide="over"] .btn-reject {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+  border-style: dashed;
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  color: var(--primary);
+}
+[data-slide="over"] .btn-reject {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-style: solid;
+}
+[data-slide="drag"] .lbl-reject,
+[data-slide="over"] .lbl-reject {
+  display: none;
+}
+[data-slide="drag"] .lbl-always,
+[data-slide="over"] .lbl-always {
+  display: inline;
+}
+
+.slide-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  text-align: center;
+}
+.hint-drag,
+[data-slide="drag"] .hint-idle,
+[data-slide="over"] .hint-idle {
+  display: none;
+}
+[data-slide="drag"] .hint-drag,
+[data-slide="over"] .hint-drag {
+  display: inline;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #allow,
+  .btn-reject {
+    transition: none;
+  }
+}

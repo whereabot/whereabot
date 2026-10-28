@@ -16,9 +16,12 @@ export function setStatus(text: string) {
 export function setState(state: ConnState) {
   $("state-card").dataset.state = state;
   $("state-label").textContent = LABELS[state];
+  $("connect").hidden = state !== "disconnected";
+  $("disconnect").hidden = state === "disconnected";
 }
 
 export function showView(view: "signed-in" | "signed-out") {
+  document.body.dataset.screen = "home";
   $("signed-in").hidden = view !== "signed-in";
   $("signed-out").hidden = view !== "signed-out";
 }
