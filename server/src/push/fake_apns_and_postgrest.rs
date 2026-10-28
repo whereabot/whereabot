@@ -1,11 +1,12 @@
 //! Test double: one server plays PostgREST (two tokens, `bb22` is dead; `trusted-agent` is
-//! always allowed), the grants list, and APNs.
+//! always allowed; sharing RPCs in `fake_share_rpcs`), the grants list, and APNs.
 
 use std::{
     sync::{Arc, Mutex},
     time::Duration,
 };
 
+use super::{Push, PushConfig};
 use axum::{
     Json, Router,
     extract::{Path, RawQuery, State},
@@ -19,8 +20,6 @@ use p256::{
     pkcs8::{EncodePrivateKey, LineEnding},
 };
 use serde_json::{Value, json};
-
-use super::{Push, PushConfig};
 
 #[derive(Default)]
 pub struct Fake {
@@ -77,6 +76,7 @@ pub async fn start() -> (Push, Arc<Fake>) {
         .route("/rest/v1/always_allowed_agents", get(always))
         .route("/auth/v1/user/oauth/grants", get(grants))
         .route("/3/device/{token}", post(apns))
+        .merge(super::fake_share_rpcs::routes())
         .with_state(fake.clone());
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let url = format!("http://{}", listener.local_addr().unwrap());

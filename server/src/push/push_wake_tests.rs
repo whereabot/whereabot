@@ -4,13 +4,15 @@ use uuid::Uuid;
 
 use super::{fake_apns_and_postgrest::start, location_request_push_payload::Alert};
 
-const EXPIRES_MS: u64 = 1_800_000_000_000;
+pub const EXPIRES_MS: u64 = 1_800_000_000_000;
 
-fn alert(request_id: Uuid, client_id: &str) -> Alert<'_> {
+pub fn alert(request_id: Uuid, client_id: &str) -> Alert<'_> {
     Alert {
         request_id,
         client_id,
         expires_ms: EXPIRES_MS,
+        owner: None,
+        requester: None,
     }
 }
 
@@ -63,7 +65,7 @@ async fn aborted_wake_sends_nothing_and_late_wake_sends_once() {
         let push = push.clone();
         async move {
             let delay = Duration::from_millis(300);
-            push.wake_after(delay, "jwt", Uuid::new_v4(), "c", EXPIRES_MS)
+            push.wake_after(delay, "jwt", &alert(Uuid::new_v4(), "c"))
                 .await
         }
     });
@@ -73,7 +75,7 @@ async fn aborted_wake_sends_nothing_and_late_wake_sends_once() {
     assert!(fake.pushes.lock().unwrap().is_empty());
 
     let delay = Duration::from_millis(10);
-    push.wake_after(delay, "jwt", Uuid::new_v4(), "c", EXPIRES_MS)
+    push.wake_after(delay, "jwt", &alert(Uuid::new_v4(), "c"))
         .await;
     assert_eq!(fake.pushes.lock().unwrap().len(), 2);
 }

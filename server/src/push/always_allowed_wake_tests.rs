@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use super::fake_apns_and_postgrest::{Fake, start};
 
-const EXPIRES_MS: u64 = 1_800_000_000_000;
+use super::push_wake_tests::{EXPIRES_MS, alert};
 
 /// (apns-push-type, apns-priority, body) per push to the live token `aa11`.
 fn sent(fake: &Fake) -> Vec<(String, String, Value)> {
@@ -26,7 +26,7 @@ fn sent(fake: &Fake) -> Vec<(String, String, Value)> {
 async fn always_allowed_gets_silent_push_then_checking_alert_when_unanswered() {
     let (push, fake) = start().await;
     let id = Uuid::new_v4();
-    push.wake_after(Duration::ZERO, "jwt", id, "trusted-agent", EXPIRES_MS)
+    push.wake_after(Duration::ZERO, "jwt", &alert(id, "trusted-agent"))
         .await;
     let pushes = sent(&fake);
     assert_eq!(pushes.len(), 2);
@@ -53,7 +53,7 @@ async fn always_allowed_answered_after_silent_push_gets_no_alert() {
         let push = push.clone();
         async move {
             let id = Uuid::new_v4();
-            push.wake_after(Duration::ZERO, "jwt", id, "trusted-agent", EXPIRES_MS)
+            push.wake_after(Duration::ZERO, "jwt", &alert(id, "trusted-agent"))
                 .await
         }
     });
@@ -69,14 +69,8 @@ async fn always_allowed_answered_after_silent_push_gets_no_alert() {
 #[tokio::test]
 async fn other_agents_get_the_consent_alert_at_once() {
     let (push, fake) = start().await;
-    push.wake_after(
-        Duration::ZERO,
-        "jwt",
-        Uuid::new_v4(),
-        "claude-code",
-        EXPIRES_MS,
-    )
-    .await;
+    push.wake_after(Duration::ZERO, "jwt", &alert(Uuid::new_v4(), "claude-code"))
+        .await;
     let pushes = sent(&fake);
     assert_eq!(pushes.len(), 1);
     let (kind, _, alert) = &pushes[0];

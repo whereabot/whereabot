@@ -4,8 +4,6 @@
 
 use std::time::Duration;
 
-use uuid::Uuid;
-
 use super::{
     Push,
     apns_sender::Kind,
@@ -14,30 +12,22 @@ use super::{
 
 impl Push {
     /// The wake-up after `delay`. Abort the task to cancel it (the request was answered).
-    pub async fn wake_after(
-        &self,
-        delay: Duration,
-        bearer: &str,
-        request_id: Uuid,
-        client_id: &str,
-        expires_ms: u64,
-    ) {
+    pub async fn wake_after(&self, delay: Duration, bearer: &str, alert: &Alert<'_>) {
         tokio::time::sleep(delay).await;
-        let alert = Alert {
-            request_id,
-            client_id,
-            expires_ms,
-        };
-        if !self.always.contains(bearer, client_id).await {
-            self.wake(bearer, &alert).await;
+        if !self
+            .always
+            .contains(bearer, alert.client_id, alert.owner)
+            .await
+        {
+            self.wake(bearer, alert).await;
             return;
         }
-        self.send_all(bearer, &alert, &silent(&alert), Kind::Background)
+        self.send_all(bearer, alert, &silent(alert), Kind::Background)
             .await;
         // iOS skips silent pushes for force-quit apps and in Low Power Mode, and throttles them.
         tokio::time::sleep(self.silent_window).await;
-        let name = self.names.name(bearer, client_id).await;
-        let body = checking(&alert, name.as_deref());
-        self.send_all(bearer, &alert, &body, Kind::Alert).await;
+        let name = self.names.name(bearer, alert.client_id).await;
+        let body = checking(alert, name.as_deref());
+        self.send_all(bearer, alert, &body, Kind::Alert).await;
     }
 }

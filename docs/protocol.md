@@ -36,7 +36,7 @@ Check the fix time. An OS can return a cached position. The fix carries the phon
 
 Streamable HTTP, with JSON responses and no session. The same bearer header gates it.
 
-- One tool: `get_phone_location`. Optional `timeout_secs`, 1 to 120, default 60.
+- Tools: `get_phone_location` (optional `timeout_secs`, 1 to 120, default 60; optional `person`) and `list_people_sharing_with_me`. `person` locates someone who shares with the user: see [location sharing](location-sharing.md).
 - A fix returns as text: the JSON location.
 - Every other outcome returns a tool error with the agent text above. The HTTP status stays `200`.
 - A bad credential returns `401` before any tool runs.
@@ -56,7 +56,7 @@ The phone opens a WebSocket to `/v1/device` with its Supabase access token as a 
 A user can have several devices connected at once, each named by its `device_id` (see Devices below). A new connection with the same `device_id` replaces that device only: the relay closes the old socket with Close `4000 "replaced"`. The app must not reconnect on its own after that. On SIGTERM the relay closes every device socket with Close `1012 "restart"`; the app reconnects at once. The relay sends keep-alive pings, so idle sockets survive mobile networks.
 
 - **Phone to relay, first:** `{"type":"hello","app_version","device_id","device_name","platform"}`. `device_id` is the install's uuid, `platform` is `ios`, `android` or `desktop`. Until `hello` arrives the socket has no identity; an old app that sends no `device_id` still works, but is never replaced by its own reconnect.
-- **Relay to phone:** `{"type":"locate","id","client_id","expires_ms"}`. `client_id` comes from the token (agent keys use `agent-key`). The relay sends no name: the app maps `client_id` to the client name with `supabase.auth.oauth.listGrants()`. `expires_ms` is the epoch time when the relay stops waiting; the app aborts the prompt then. The relay resends the ping to a new socket after a reconnect, so the app handles each id once.
+- **Relay to phone:** `{"type":"locate","id","client_id","expires_ms","requester"}`. `requester` is `null` for the user's own agent, else `{user_id,name,email}` of the person who asks ([location sharing](location-sharing.md)). `client_id` comes from the token (agent keys use `agent-key`). The relay sends no name: the app maps `client_id` to the client name with `supabase.auth.oauth.listGrants()`. `expires_ms` is the epoch time when the relay stops waiting; the app aborts the prompt then. The relay resends the ping to a new socket after a reconnect, so the app handles each id once.
 - **Phone to relay, answers** (all carry the ping `id`):
   - `location`: the fix.
   - `denied`, optional `reason`: `user` (default) or `no_answer`.
@@ -75,7 +75,7 @@ Each install has a stable random `device_id` (uuid, kept across sign-out; on iOS
 
 iOS suspends the app in the background, so a waiting request needs a nudge. When a request starts and no phone answers within about 2 s (or none is connected), the relay sends one APNs alert push per request to each token in `push_tokens`. Retries and reconnect resends send no more pushes. An always-allowed agent gets a silent push instead, and a "checking" alert only if that gets no answer: see [Always allow](always-allow.md#what-the-relay-sends).
 
-- **Alert** (other agents): title `Whereabot`, body `Your agent NAME wants to know your location` (or `An agent wants to know your location` when the name lookup fails), sound default, `thread-id`, and `category` `LOCATION_REQUEST`. Custom keys: `request_id`, `client_id`, `agent_name`, `expires_ms` (same meaning as in `locate`). `apns-push-type` is `alert`, priority `10`, and `apns-expiration` is the request deadline. Shape: [`server/src/push/apns_sender.rs`](../server/src/push/apns_sender.rs).
+- **Alert** (other agents): title `Whereabot`, body `Your agent NAME wants to know your location` (or `An agent wants to know your location` when the name lookup fails), sound default, `thread-id`, and `category` `LOCATION_REQUEST`. Custom keys: `request_id`, `client_id`, `agent_name`, `expires_ms`, `requester` (same meaning as in `locate`; shared-request copy: [location sharing](location-sharing.md#push-copy-owners-phone)). `apns-push-type` is `alert`, priority `10`, and `apns-expiration` is the request deadline. Shape: [`server/src/push/apns_sender.rs`](../server/src/push/apns_sender.rs).
 - **Name:** the relay reads the user's OAuth grants (`GET /auth/v1/user/oauth/grants`) with the agent's user JWT and takes the client name, as the app does.
 - **Actions:** the app registers the `LOCATION_REQUEST` category with Reject, Allow and Always allow. None opens the app: the phone answers in the background with `POST /v1/device/answer` (below). See [architecture](architecture.md#background-answer).
 - **Tap:** opens the app. The app reconnects on return to the foreground, and the relay resends the waiting `locate` to the new socket. The app needs no handling for `request_id`.

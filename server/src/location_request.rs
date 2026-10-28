@@ -1,37 +1,25 @@
-use std::{
-    sync::Arc,
-    time::{Duration, SystemTime, UNIX_EPOCH},
-};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use axum::{
-    Json,
-    extract::{Query, State},
-    http::{HeaderMap, StatusCode},
-    response::{IntoResponse, Response},
-};
-use serde::Deserialize;
 use tokio::{sync::oneshot, task::JoinHandle};
 use uuid::Uuid;
 
 use crate::{
-    Agent, AppState, agent_bearer_auth,
+    Agent, AppState,
     devices::location_request_fanout::Fanout,
     location_request_error::LocateError,
-    push::location_request_wake,
-    relay_wire_protocol::{Answer, Location},
+    location_target::Target,
+    push::location_request_wake::{self, Request},
+    relay_wire_protocol::{Answer, DeniedReason, Location},
 };
 
-#[derive(Deserialize)]
-pub struct LocateParams {
-    timeout_secs: Option<u64>,
-}
-
-/// Pings one user's phone and waits for its fix.
+/// Pings the target owner's phones for `agent` and waits for the fix.
 pub async fn request_location(
     state: &AppState,
     agent: &Agent,
+    target: Target,
     timeout: Duration,
 ) -> Result<Location, LocateError> {
+    let owner = target.owner;
     // iOS drops the socket in the background: wait for the app, and resend the
     // ping to each new socket so a reconnect does not lose it.
     let deadline = tokio::time::Instant::now() + timeout;
@@ -40,17 +28,27 @@ pub async fn request_location(
         .map_or(0, |since| since.as_millis() as u64);
     let id = Uuid::new_v4();
     let (tx, mut rx) = oneshot::channel();
-    state.pending.lock().await.insert(id, (agent.user_id, tx));
-    let connected = !state.devices.senders(agent.user_id).await.is_empty();
+    // Keyed by the owner: only the owner's phones may answer.
+    state.pending.lock().await.insert(id, (owner, tx));
+    let connected = !state.devices.senders(owner).await.is_empty();
     let wake = location_request_wake::start(
         state.push.as_ref(),
         agent.bearer.as_deref(),
         connected,
-        id,
-        &agent.client_id,
-        expires_ms,
+        Request {
+            id,
+            client_id: agent.client_id.clone(),
+            expires_ms,
+            shared: target.requester.clone().map(|r| (owner, r)),
+        },
     );
-    let mut fanout = Fanout::new(agent.user_id, id, agent.client_id.clone(), expires_ms);
+    let mut fanout = Fanout::new(
+        owner,
+        id,
+        agent.client_id.clone(),
+        expires_ms,
+        target.requester,
+    );
     let mut winner = Uuid::nil();
     let result = loop {
         fanout.send_new(&state.devices).await;
@@ -59,7 +57,7 @@ pub async fn request_location(
                 LocateError::Timeout
             } else {
                 LocateError::Offline {
-                    email: agent.email.clone(),
+                    email: target.email.clone(),
                 }
             });
         }
@@ -69,7 +67,10 @@ pub async fn request_location(
                     winner = from;
                     match answer {
                         Answer::Fix(location) => Ok(location),
-                        Answer::Denied(reason) => Err(LocateError::Denied(reason)),
+                        Answer::Denied(reason) => Err(match (reason, &target.name) {
+                            (DeniedReason::User, Some(name)) => LocateError::DeniedBy(name.clone()),
+                            _ => LocateError::Denied(reason),
+                        }),
                         Answer::Unavailable(reason) => Err(LocateError::Unavailable(reason)),
                     }
                 }
@@ -81,19 +82,4 @@ pub async fn request_location(
     wake.inspect(JoinHandle::abort);
     fanout.cancel_others(&state.devices, winner).await;
     result
-}
-
-pub async fn locate(
-    State(state): State<Arc<AppState>>,
-    headers: HeaderMap,
-    Query(params): Query<LocateParams>,
-) -> Response {
-    let Some(agent) = agent_bearer_auth::agent_user(&state, &headers).await else {
-        return StatusCode::UNAUTHORIZED.into_response();
-    };
-    let timeout = Duration::from_secs(params.timeout_secs.unwrap_or(60).min(120));
-    match request_location(&state, &agent, timeout).await {
-        Ok(location) => Json(location).into_response(),
-        Err(error) => (error.status(), error.message()).into_response(),
-    }
 }

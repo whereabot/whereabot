@@ -18,11 +18,15 @@ mod apns_provider_token;
 mod apns_sender;
 #[cfg(test)]
 mod fake_apns_and_postgrest;
+#[cfg(test)]
+mod fake_share_rpcs;
 mod location_request_push_payload;
 pub mod location_request_wake;
 mod push_token_store;
 #[cfg(test)]
 mod push_wake_tests;
+#[cfg(test)]
+mod shared_request_push_tests;
 
 use agent_grant_name::AgentNames;
 use always_allowed_store::AlwaysAllowed;
@@ -68,7 +72,7 @@ impl Push {
 
     /// Pushes `body` to every token of the bearer's user once, and drops tokens APNs says are gone.
     async fn send_all(&self, bearer: &str, alert: &Alert<'_>, body: &Value, kind: Kind) -> usize {
-        let tokens = self.tokens.list(bearer).await;
+        let tokens = self.tokens.list(bearer, alert.owner).await;
         if tokens.is_empty() {
             tracing::info!(request_id = %alert.request_id, "push skipped: no push token for this user");
             return 0;
@@ -82,7 +86,9 @@ impl Push {
                 .await
             {
                 Sent::Ok => accepted += 1,
-                Sent::Gone => self.tokens.delete(bearer, &token).await,
+                // shortcut: a requester's JWT cannot delete the owner's token; the owner's own next request does.
+                Sent::Gone if alert.owner.is_none() => self.tokens.delete(bearer, &token).await,
+                Sent::Gone => {}
                 Sent::Failed => {}
             }
         }

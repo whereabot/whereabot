@@ -9,6 +9,15 @@ struct Claims {
     sub: Uuid,
     client_id: Option<String>,
     email: Option<String>,
+    #[serde(default)]
+    user_metadata: Metadata,
+}
+
+/// The profile Supabase copies into the token; Google sign-in fills `full_name` and `name`.
+#[derive(Deserialize, Default)]
+struct Metadata {
+    full_name: Option<String>,
+    name: Option<String>,
 }
 
 /// A token that passed every C3 rule.
@@ -16,6 +25,7 @@ pub struct Verified {
     pub user_id: Uuid,
     pub client_id: Option<String>,
     pub email: Option<String>,
+    pub name: Option<String>,
 }
 
 /// Who the token names when every C3 rule passes. `client_id` is required for MCP, not for the phone.
@@ -42,5 +52,9 @@ pub fn check(
         user_id: claims.sub,
         client_id,
         email: claims.email.filter(|email| !email.is_empty()),
+        name: [claims.user_metadata.full_name, claims.user_metadata.name]
+            .into_iter()
+            .flatten()
+            .find(|name| !name.trim().is_empty()),
     })
 }

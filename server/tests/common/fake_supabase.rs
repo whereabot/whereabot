@@ -20,6 +20,7 @@ use tokio::net::TcpListener;
 
 use super::{
     agent_key_rpc_fake::{agent_key_user, key_hashes},
+    fake_location_shares::{self, Shares},
     test_token_signer,
 };
 
@@ -35,10 +36,12 @@ pub struct Fake {
     pub jwks_fail: Arc<AtomicBool>,
     /// Device ids whose `devices` row has `revoked_at` set.
     pub revoked: Arc<Mutex<HashSet<String>>>,
+    pub shares: Shares,
 }
 
 pub struct Shared {
     pub revoked: Arc<Mutex<HashSet<String>>>,
+    pub shares: Shares,
     pub keys: HashMap<String, &'static str>,
     pub jwks_hits: Arc<AtomicUsize>,
     pub jwks_fail: Arc<AtomicBool>,
@@ -49,8 +52,10 @@ pub async fn start() -> Fake {
     let jwks_hits = Arc::new(AtomicUsize::new(0));
     let jwks_fail = Arc::new(AtomicBool::new(false));
     let revoked = Arc::new(Mutex::new(HashSet::new()));
+    let shares = Shares::default();
     let shared = Arc::new(Shared {
         revoked: revoked.clone(),
+        shares: shares.clone(),
         keys: key_hashes(),
         jwks_hits: jwks_hits.clone(),
         jwks_fail: jwks_fail.clone(),
@@ -58,6 +63,10 @@ pub async fn start() -> Fake {
     let app = Router::new()
         .route("/rest/v1/rpc/agent_key_user", post(agent_key_user))
         .route("/rest/v1/devices", get(device_row))
+        .route(
+            "/rest/v1/location_shares",
+            get(fake_location_shares::select),
+        )
         .route("/auth/v1/.well-known/jwks.json", get(jwks))
         .with_state(shared);
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -68,6 +77,7 @@ pub async fn start() -> Fake {
         jwks_hits,
         jwks_fail,
         revoked,
+        shares,
     }
 }
 

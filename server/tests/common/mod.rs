@@ -2,11 +2,13 @@
 //! Shared fixtures: relay start-up, OAuth tokens, and the agent-side HTTP helpers.
 
 pub mod agent_key_rpc_fake;
+pub mod fake_location_shares;
 pub mod fake_phone;
 pub mod fake_supabase;
 pub mod locate_http_client;
 pub mod mcp_client;
 pub mod scripted_fake_phone;
+pub mod sharing_mcp_client;
 pub mod test_token_signer;
 
 #[allow(unused_imports)]
@@ -33,6 +35,8 @@ pub struct Relay {
     pub jwks_fail: Arc<AtomicBool>,
     /// Device ids the fake `devices` table marks revoked.
     pub revoked: Arc<std::sync::Mutex<std::collections::HashSet<String>>>,
+    /// Rows of the fake `location_shares` table.
+    pub shares: fake_location_shares::Shares,
     /// Closes device sockets, as SIGTERM does.
     pub shutdown: Shutdown,
 }
@@ -83,5 +87,6 @@ pub async fn spawn(agent_keys: bool) -> Relay {
         jwks_hits: fake.jwks_hits,
         jwks_fail: fake.jwks_fail,
         revoked: fake.revoked,
+        shares: fake.shares,
     }
 }

@@ -36,6 +36,7 @@ pub async fn agent_user(state: &AppState, headers: &HeaderMap) -> Option<Agent> 
             user_id: token.user_id,
             client_id: token.client_id?,
             email: token.email,
+            name: token.name,
             bearer: bearer(headers).map(str::to_owned),
         });
     }
@@ -49,6 +50,7 @@ pub async fn agent_user(state: &AppState, headers: &HeaderMap) -> Option<Agent> 
         user_id,
         client_id: "agent-key".into(),
         email: None,
+        name: None,
         bearer: None,
     })
 }

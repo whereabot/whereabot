@@ -39,6 +39,14 @@ pub enum Answer {
     Unavailable(UnavailableReason),
 }
 
+/// The person whose agent asks, when it is not the phone's owner (a location share).
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+pub struct Requester {
+    pub user_id: Uuid,
+    pub name: String,
+    pub email: Option<String>,
+}
+
 /// Server -> device. `client_id` names the asking agent; the app maps it to a display name.
 #[derive(Serialize, JsonSchema)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -48,6 +56,8 @@ pub enum ToDevice {
         id: Uuid,
         client_id: String,
         expires_ms: u64,
+        /// Null for the owner's own agent.
+        requester: Option<Requester>,
     },
     /// Another device answered `id`: close the prompt.
     Cancel { id: Uuid },
