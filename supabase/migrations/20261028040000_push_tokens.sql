@@ -5,8 +5,8 @@ create table public.push_tokens (
   token text not null check (char_length(token) between 1 and 512),
   platform text not null default 'ios',
   updated_at timestamptz not null default now(),
-  -- Per-install id from the devices table; its migration adds the foreign key.
-  device_id uuid,
+  -- Per-install id; the token goes away with its device.
+  device_id uuid references public.devices (id) on delete cascade,
   primary key (user_id, token)
 );
 
