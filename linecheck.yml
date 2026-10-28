@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tupe12334/linecheck/main/schema/linecheck.schema.json
+
+rules:
+  # Ratchet: lower error step by step (186 -> 150 -> 120 -> 100). Never raise it.
+  - pattern: "**/*"
+    warn: 100
+    error: 186
+    error_message: "Split this file by responsibility. Target is 100 lines (ratchet: see linecheck.yml)"
+
+exclude:
+  - "**/target/**"
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/*.lock"
+  - "**/package-lock.json"
+  - "**/Cargo.lock"
+  - "app/src-tauri/gen/**"
+  - "app/src-tauri/icons/**"
+  - "**/*.png"
+  - "**/*.ico"
+  - "**/*.icns"
+  - "supabase/config.toml"
+  - "**/.terraform/**"
+  - "**/.terraform.lock.hcl"
+  - "LICENSE"
+  - ".claude/**"
