@@ -15,7 +15,7 @@ const history = (page, entries, always) =>
   page.evaluate(([e, al]) => { window.__ui.renderHistory(e, al, () => {}); window.__ui.setScreen('history'); }, [entries, always]);
 
 export const UI_CASES = [
-  { name: 'request', session: true, desc: 'An agent asks for the location. Three tiles: Reject, Once, Always.', run: ask },
+  { name: 'request', session: true, desc: 'An agent asks for the location. Three tiles: Reject, Allow, Always allow.', run: ask },
   { name: 'history', session: true, desc: 'Request history with items and always allowed agents.', run: (p) => history(p, SEED, [AGENT, { clientId: 'c3', name: 'Cron agent' }]) },
   { name: 'history-empty', session: true, desc: 'Request history with no items.', run: (p) => history(p, [], []) },
 ];

@@ -19,7 +19,7 @@ Fake data only: every network call is stubbed. Light colour scheme, reduced moti
 | [app-perm-notifications-mobile.png](app-perm-notifications-mobile.png) | Step 2 of 2. Asks for notifications. Skip for now is allowed. |
 | [app-ping-answered-mobile.png](app-ping-answered-mobile.png) | A locate ping was answered. Shows the time of the reply. |
 | [app-relay-url-invalid-mobile.png](app-relay-url-invalid-mobile.png) | Relay URL is not secure. Connect is refused. |
-| [app-request-mobile.png](app-request-mobile.png) | An agent asks for the location. Three tiles: Reject, Once, Always. |
+| [app-request-mobile.png](app-request-mobile.png) | An agent asks for the location. Three tiles: Reject, Allow, Always allow. |
 | [app-signed-out-mobile.png](app-signed-out-mobile.png) | Signed out. Shows the Google sign-in button. |
 | [consent-approving-desktop.png](consent-approving-desktop.png) | Approve pressed. Both buttons are disabled while the answer is sent. (desktop) |
 | [consent-approving-mobile.png](consent-approving-mobile.png) | Approve pressed. Both buttons are disabled while the answer is sent. (mobile) |
