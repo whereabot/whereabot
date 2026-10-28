@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Whereabouts: let your AI agent ask where you are</title>
+  <meta name="description" content="Your AI agent asks your phone where you are. Only when it asks, with your consent.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/parts.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <a class="brand" href="#top" id="top">
+    <svg class="bell" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3a6 6 0 0 0-6 6v5l-2 2v1h16v-1l-2-2V9a6 6 0 0 0-6-6zm-2 15a2 2 0 0 0 4 0z"/></svg>
+    Whereabouts
+  </a>
+  <nav aria-label="Main">
+    <a href="#how">How it works</a>
+    <a href="#privacy">Privacy</a>
+    <a href="https://github.com/tupe12334/whereabouts">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+  <section class="hero" aria-labelledby="hero-title">
+    <h1 id="hero-title">Your agent can ask where you are. Only when it asks.</h1>
+    <p class="lead">Whereabouts lets your AI agent ask your phone where you are, with your consent. Nothing is stored.</p>
+    <div class="actions">
+      <a class="btn primary" href="https://github.com/tupe12334/whereabouts#readme">Get started</a>
+      <a class="btn" href="#agent">Add to your agent</a>
+    </div>
+  </section>
+
+  <section id="how" aria-labelledby="how-title">
+    <h2 id="how-title">How it works</h2>
+    <ol class="steps">
+      <li><h3>Create an agent key</h3><p>Sign in with Google in the phone app. Create a key that starts with <code>wb_</code>. The app shows it once.</p></li>
+      <li><h3>Connect your agent</h3><p>Add the relay as an MCP server with one command. See <a href="#agent">Add to your agent</a>.</p></li>
+      <li><h3>Ask</h3><p>Your agent calls <code>get_phone_location</code>. Your phone reads its GPS fix now and sends it back.</p></li>
+    </ol>
+    <div class="flow" role="img" aria-label="Your agent sends a request to the relay. The relay pings your phone. Your phone reads its location and sends the fix back through the relay to your agent.">
+      <span class="box">Your agent</span><span class="arrow" aria-hidden="true"></span>
+      <span class="box">Relay</span><span class="arrow" aria-hidden="true"></span>
+      <span class="box">Your phone reads GPS</span>
+    </div>
+    <p class="note">The answer returns the same way. For now, the app must be open to answer.</p>
+  </section>
+
+  <section id="uses" aria-labelledby="uses-title">
+    <h2 id="uses-title">What you can ask</h2>
+    <ul class="cards">
+      <li>"Find a kosher restaurant open near me now."</li>
+      <li>"How long until I get home?"</li>
+      <li>"Which station am I closest to?"</li>
+    </ul>
+  </section>
+
+  <section id="agent" aria-labelledby="agent-title">
+    <h2 id="agent-title">Add to your agent</h2>
+    <p>Create a key in the app first. Then run this, replacing <code>&lt;relay-url&gt;</code> and <code>wb_...</code>.</p>
+    <pre><code>claude mcp add --transport http whereabouts &lt;relay-url&gt;/mcp --header "Authorization: Bearer wb_..."</code></pre>
+    <p class="note">Other MCP clients: point them at <code>&lt;relay-url&gt;/mcp</code> with the same bearer header.</p>
+  </section>
+
+  <section id="privacy" aria-labelledby="privacy-title">
+    <h2 id="privacy-title">Privacy</h2>
+    <dl class="points">
+      <div><dt>Asked, not watched</dt><dd>Your phone reads its location only when your agent asks.</dd></div>
+      <div><dt>Nothing stored</dt><dd>The relay keeps no location history. A fix lives in memory for one request.</dd></div>
+      <div><dt>Revocable keys</dt><dd>Each agent has its own key. Revoke it in the app at any time.</dd></div>
+      <div><dt>Open source</dt><dd>MIT licensed. Read the relay and app code yourself.</dd></div>
+    </dl>
+  </section>
+</main>
+<footer>
+  <p>MIT licensed. <a href="https://github.com/tupe12334/whereabouts">Source on GitHub</a>. Early MVP.</p>
+</footer>
+</body>
+</html>
