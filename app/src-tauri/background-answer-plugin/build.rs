@@ -4,6 +4,8 @@ const COMMANDS: &[&str] = &[
     "save_session",
     "load_session",
     "remove_session",
+    "device_id",
+    "reset_device_id",
     "take_always_allowed",
     "location_authorization",
     "request_always_location",

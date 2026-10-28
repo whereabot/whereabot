@@ -45,7 +45,7 @@ function edit(title: HTMLElement, actions: HTMLElement, d: Device, save: RowActi
   input.focus();
 }
 
-export function deviceRow(d: Device, isThis: boolean, act: RowActions) {
+export function deviceRow(d: Device, isThis: boolean, act: RowActions, oldInstall = false) {
   const row = el("li", "row device");
   row.dataset.id = d.id;
   const icon = el("span", "device-icon");
@@ -62,8 +62,19 @@ export function deviceRow(d: Device, isThis: boolean, act: RowActions) {
   );
   const main = el("div", "device-main");
   main.append(title, meta);
+  if (oldInstall) main.append(oldInstallHint(d, act));
   row.append(icon, main, actions);
   return row;
+}
+
+/** Gentle hint under a stale twin of a listed phone, with a one-tap Remove (the confirm dialog still asks). */
+function oldInstallHint(d: Device, act: RowActions) {
+  const hint = el("div", "device-hint");
+  hint.append(
+    el("span", "device-meta", "Looks like an old install of this phone. Remove it?"),
+    button("Remove", `Remove old install of ${d.name}`, () => act.onRemove(d)),
+  );
+  return hint;
 }
 
 /** Placeholder for the future computer client. Not a device: no actions. */

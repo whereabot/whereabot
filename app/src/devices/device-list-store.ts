@@ -32,6 +32,8 @@ export async function renameDevice(id: string, name: string) {
 export async function removeDevice(id: string) {
   const revoked_at = new Date().toISOString();
   check((await supabase.from("devices").update({ revoked_at }).eq("id", id).select("id")) as never);
+  // Revoking keeps the row, so the delete-cascade does not run: drop its push token here.
+  await supabase.from("push_tokens").delete().eq("device_id", id);
 }
 
 /**

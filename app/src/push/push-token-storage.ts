@@ -1,3 +1,4 @@
+import { deviceId } from "../devices/device-identity";
 import { supabase } from "../supabase-client";
 
 const KEY = "whereabouts.push-token";
@@ -7,8 +8,8 @@ export async function storeToken(token: string) {
   localStorage.setItem(KEY, token);
   const { data } = await supabase.auth.getSession();
   if (!data.session) return;
-  // `wb.device_id` is written by the devices feature; null until this install has one.
-  const device_id = localStorage.getItem("wb.device_id");
+  // Linked to the stable device id, so removing the device also drops its token.
+  const device_id = deviceId();
   const { error } = await supabase
     .from("push_tokens")
     .upsert({ user_id: data.session.user.id, token, platform: "ios", device_id, updated_at: new Date().toISOString() });

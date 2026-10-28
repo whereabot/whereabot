@@ -10,7 +10,7 @@ export const REMOVED = "This device was removed from your account. Sign in again
  * disconnects. Its "Disconnected." status lands first, so the reason is set after it.
  */
 export async function signOutRemoved(message = REMOVED) {
-  resetIdentity();
+  await resetIdentity();
   clearLocalData();
   await signOut();
   window.setTimeout(() => setStatus(message), 100);

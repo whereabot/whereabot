@@ -7,6 +7,8 @@ permissions = [
   "allow-save-session",
   "allow-load-session",
   "allow-remove-session",
+  "allow-device-id",
+  "allow-reset-device-id",
   "allow-take-always-allowed",
   "allow-location-authorization",
   "allow-request-always-location",

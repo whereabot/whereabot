@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { appVersion } from "../build-config";
 
 export type Platform = "ios" | "android" | "desktop";
@@ -15,14 +16,32 @@ function uuidV4(): string {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
-/** Stable random id of this install. Created once. */
+let current: string | null = null;
+let started: Promise<string> | null = null;
+const native = <T>(cmd: string, args?: Record<string, unknown>) => invoke<T>(`plugin:background-answer|${cmd}`, args);
+
+/**
+ * Call once at launch, before anything reads `deviceId()`. On iOS the id lives in the Keychain,
+ * which survives uninstall (localStorage does not), so a reinstall stays one device. An id that
+ * localStorage already holds moves into the Keychain. Elsewhere localStorage is the store.
+ */
+export const initDeviceIdentity = (): Promise<string> => (started ??= loadIdentity());
+
+async function loadIdentity(): Promise<string> {
+  const legacy = localStorage.getItem(ID);
+  const res = await native<{ id: string }>("device_id", { legacy }).catch(() => null);
+  current = res?.id ?? legacy ?? uuidV4();
+  localStorage.setItem(ID, current);
+  return current;
+}
+
+/** Stable random id of this install. Needs `initDeviceIdentity()` first; the fallback only covers a missed call. */
 export function deviceId(): string {
-  let id = localStorage.getItem(ID);
-  if (!id) {
-    id = uuidV4();
-    localStorage.setItem(ID, id);
+  if (!current) {
+    current = localStorage.getItem(ID) ?? uuidV4();
+    localStorage.setItem(ID, current);
   }
-  return id;
+  return current;
 }
 
 export function platform(): Platform {
@@ -38,9 +57,12 @@ export const deviceName = (): string => localStorage.getItem(NAME) ?? DEFAULT_NA
 export const setDeviceName = (name: string) => localStorage.setItem(NAME, name);
 
 /** After removal: the next sign-in on this install registers as a new device. */
-export function resetIdentity() {
+export async function resetIdentity() {
   localStorage.removeItem(ID);
   localStorage.removeItem(NAME);
+  current = started = null;
+  await native("reset_device_id").catch(() => {});
+  await initDeviceIdentity();
 }
 
 /** First message on every socket. The relay keys the connection by `device_id`. */

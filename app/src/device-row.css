@@ -45,3 +45,11 @@
 .device-main .row-name {
   flex: 0 1 auto;
 }
+
+/* "Looks like an old install" hint (ui/device-row.ts): text, then one small button. */
+.device-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}

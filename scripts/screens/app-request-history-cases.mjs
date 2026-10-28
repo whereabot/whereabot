@@ -26,10 +26,14 @@ const devices = (page, view) => page.evaluate((v) => {
   if (v.devices) v = { ...v, devices: v.devices.map((d) => ({ ...d, created_at: at(d.created_at), last_seen_at: at(d.seen_ago) })) };
   window.__ui.renderDevices(v, 'd1', window.__ui.deviceActions); window.__ui.setScreen('devices'); }, view);
 
+// The same iPhone listed twice: the earlier install has been silent for 3 days.
+const TWINS = [DEVICES[0], { id: 'd4', name: 'iPhone', platform: 'ios', created_at: 6e9, seen_ago: 3 * 86400e3, revoked_at: null }];
+
 export const UI_CASES = [
   { name: 'request', session: true, desc: 'An agent asks for the location. Three tiles: Reject, Allow, Always allow.', run: ask },
   { name: 'history', session: true, desc: 'Request history with items and always allowed agents.', run: (p) => history(p, SEED, [AGENT, { clientId: 'c3', name: 'Cron agent' }]) },
   { name: 'devices', session: true, desc: 'Devices page: this phone online, others with last seen, a Computer coming soon row and the add-a-phone hint.', run: (p) => devices(p, { kind: 'ready', devices: DEVICES }) },
+  { name: 'devices-old-install', session: true, desc: 'The same iPhone listed twice after a reinstall: the older row shows Last seen 3 days ago and a hint to remove it.', run: (p) => devices(p, { kind: 'ready', devices: TWINS }) },
   { name: 'devices-empty', session: true, desc: 'Devices page with no devices yet.', run: (p) => devices(p, { kind: 'ready', devices: [] }) },
   { name: 'devices-rename', session: true, desc: 'Renaming a device inline: a name field with Save and Cancel.', run: async (p) => { await devices(p, { kind: 'ready', devices: DEVICES }); await p.click('[data-id="d2"] button:has-text("Rename")'); } },
   { name: 'devices-remove', session: true, desc: 'Removing another device asks for confirmation first.', run: async (p) => { await devices(p, { kind: 'ready', devices: DEVICES }); await p.click('[data-id="d3"] button:has-text("Remove")'); } },

@@ -13,6 +13,7 @@ Layout audit across widths, dark mode and large text: `node scripts/screens/audi
 | [app-devices-empty-mobile.png](app-devices-empty-mobile.png) | Devices page with no devices yet. |
 | [app-devices-error-mobile.png](app-devices-error-mobile.png) | Devices could not be loaded. Shows the reason and Try again. |
 | [app-devices-mobile.png](app-devices-mobile.png) | Devices page: this phone online, others with last seen, a Computer coming soon row and the add-a-phone hint. |
+| [app-devices-old-install-mobile.png](app-devices-old-install-mobile.png) | The same iPhone listed twice after a reinstall: the older row shows Last seen 3 days ago and a hint to remove it. |
 | [app-devices-remove-mobile.png](app-devices-remove-mobile.png) | Removing another device asks for confirmation first. |
 | [app-devices-rename-mobile.png](app-devices-rename-mobile.png) | Renaming a device inline: a name field with Save and Cancel. |
 | [app-disconnected-mobile.png](app-disconnected-mobile.png) | Disconnect pressed. Shows Disconnected. |

@@ -6,6 +6,10 @@ struct SessionArgs: Decodable {
   let value: String
 }
 
+struct DeviceIdArgs: Decodable {
+  let legacy: String?
+}
+
 /// Commands for the web view (app/src/background-answer-bridge.ts and
 /// app/src/native-session-storage.ts). The notification work starts in `initPlugin`.
 @objc(BackgroundAnswerPlugin)
@@ -28,6 +32,17 @@ public class BackgroundAnswerPlugin: Plugin {
   @objc public func removeSession(_ invoke: Invoke) {
     SessionKeychain.remove()
     _ = AlwaysAllowedAgents.take()
+    invoke.resolve()
+  }
+
+  /// The stable device id (app/src/devices/device-identity.ts). `legacy` migrates the web view's id.
+  @objc public func deviceId(_ invoke: Invoke) throws {
+    let legacy = try invoke.parseArgs(DeviceIdArgs.self).legacy
+    invoke.resolve(["id": DeviceIdentityKeychain.idOrCreate(legacy: legacy)])
+  }
+
+  @objc public func resetDeviceId(_ invoke: Invoke) {
+    DeviceIdentityKeychain.remove()
     invoke.resolve()
   }
 

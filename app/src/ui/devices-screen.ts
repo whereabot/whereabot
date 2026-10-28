@@ -2,6 +2,7 @@ import { $ } from "../status-display-dom";
 import { deviceId } from "../devices/device-identity";
 import { signOutRemoved } from "../devices/removed-device-signout";
 import { listDevices, removeDevice, renameDevice, type Device } from "../devices/device-list-store";
+import { oldInstallIds } from "../devices/old-install-detection";
 import { confirmRemove } from "./remove-device-confirm-dialog";
 import { comingSoonRow, deviceRow, type RowActions } from "./device-row";
 import { setScreen } from "./screen-view-helpers";
@@ -18,7 +19,8 @@ const why = (e: unknown) => (e instanceof Error ? e.message : String(e));
 export function renderDevices(view: DevicesView, thisId: string, actions: RowActions) {
   const devices = view.kind === "ready" ? view.devices : [];
   const sorted = [...devices].sort((a, b) => Number(b.id === thisId) - Number(a.id === thisId));
-  $("devices-list").replaceChildren(...sorted.map((d) => deviceRow(d, d.id === thisId, actions)), comingSoonRow());
+  const old = oldInstallIds(devices);
+  $("devices-list").replaceChildren(...sorted.map((d) => deviceRow(d, d.id === thisId, actions, old.has(d.id))), comingSoonRow());
   $("devices-empty").hidden = view.kind !== "ready" || devices.length > 0;
   $("devices-retry").hidden = view.kind !== "error";
   say(view.kind === "loading" ? "Loading devices…" : view.kind === "error" ? `Could not load devices: ${view.message}` : "");

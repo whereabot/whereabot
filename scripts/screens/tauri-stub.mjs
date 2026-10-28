@@ -22,6 +22,12 @@ export function installTauri(cfg) {
       if (cfg.locationError) throw cfg.locationError;
       return position;
     }
+    if (cmd === 'plugin:geolocation|watch_position') {
+      if (cfg.locationError) throw cfg.locationError;
+      // The fix is precise, so the app answers on the first reading.
+      setTimeout(() => callbacks[args.channel.id]?.({ index: 0, message: position }), 0);
+      return null;
+    }
     if (cmd === 'plugin:websocket|connect') {
       connects += 1;
       // Only the first connect answers. Later retries hang, so the screen stays put.
