@@ -1,85 +1,73 @@
 #![allow(dead_code)]
-//! Fake Supabase: the agent-key RPC and the auth user endpoint.
+//! Fake Supabase: the JWKS endpoint and the agent-key RPC.
 
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, AtomicUsize, Ordering},
+    },
+};
 
 use axum::{
     Json, Router,
     extract::State,
-    http::{HeaderMap, StatusCode},
+    http::StatusCode,
     response::{IntoResponse, Response},
     routing::{get, post},
 };
-use serde_json::{Value, json};
-use sha2::{Digest, Sha256};
 use tokio::net::TcpListener;
 
-pub const ANON_KEY: &str = "anon-key";
+use super::{
+    agent_rpc::{agent_key_user, key_hashes},
+    jwt,
+};
+
 pub const SERVICE_KEY: &str = "service-key";
 pub const USER_A: &str = "00000000-0000-4000-8000-00000000000a";
 pub const USER_B: &str = "00000000-0000-4000-8000-00000000000b";
 
-pub fn agent_key_a() -> String {
-    format!("wb_{}", "a".repeat(48))
+pub struct Fake {
+    pub url: String,
+    /// Counts JWKS requests, so tests can check the refetch rules.
+    pub jwks_hits: Arc<AtomicUsize>,
+    /// While set, the JWKS endpoint answers 500.
+    pub jwks_fail: Arc<AtomicBool>,
 }
 
-pub fn agent_key_b() -> String {
-    format!("wb_{}", "b".repeat(48))
+pub struct Shared {
+    pub keys: HashMap<String, &'static str>,
+    pub jwks_hits: Arc<AtomicUsize>,
+    pub jwks_fail: Arc<AtomicBool>,
 }
 
-pub fn unknown_key() -> String {
-    format!("wb_{}", "c".repeat(48))
-}
-
-type Keys = Arc<HashMap<String, &'static str>>;
-
-/// Starts the fake on a random port and returns its base URL.
-pub async fn start() -> String {
-    let keys: Keys = Arc::new(HashMap::from([
-        (sha256_hex(&agent_key_a()), USER_A),
-        (sha256_hex(&agent_key_b()), USER_B),
-    ]));
+/// Starts the fake on a random port.
+pub async fn start() -> Fake {
+    let jwks_hits = Arc::new(AtomicUsize::new(0));
+    let jwks_fail = Arc::new(AtomicBool::new(false));
+    let shared = Arc::new(Shared {
+        keys: key_hashes(),
+        jwks_hits: jwks_hits.clone(),
+        jwks_fail: jwks_fail.clone(),
+    });
     let app = Router::new()
         .route("/rest/v1/rpc/agent_key_user", post(agent_key_user))
-        .route("/auth/v1/user", get(auth_user))
-        .with_state(keys);
+        .route("/auth/v1/.well-known/jwks.json", get(jwks))
+        .with_state(shared);
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
     tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
-    format!("http://{addr}")
-}
-
-fn sha256_hex(text: &str) -> String {
-    hex::encode(Sha256::digest(text.as_bytes()))
-}
-
-fn header<'a>(headers: &'a HeaderMap, name: &str) -> Option<&'a str> {
-    headers.get(name)?.to_str().ok()
-}
-
-async fn agent_key_user(
-    State(keys): State<Keys>,
-    headers: HeaderMap,
-    Json(body): Json<Value>,
-) -> Response {
-    let bearer = format!("Bearer {SERVICE_KEY}");
-    if header(&headers, "apikey") != Some(SERVICE_KEY)
-        || header(&headers, "authorization") != Some(bearer.as_str())
-    {
-        return StatusCode::UNAUTHORIZED.into_response();
+    Fake {
+        url: format!("http://{addr}"),
+        jwks_hits,
+        jwks_fail,
     }
-    let hash = body["p_key_hash"].as_str().unwrap_or_default();
-    Json(keys.get(hash).map_or(Value::Null, |user| json!(user))).into_response()
 }
 
-async fn auth_user(headers: HeaderMap) -> Response {
-    if header(&headers, "apikey") != Some(ANON_KEY) {
-        return StatusCode::UNAUTHORIZED.into_response();
+async fn jwks(State(shared): State<Arc<Shared>>) -> Response {
+    shared.jwks_hits.fetch_add(1, Ordering::SeqCst);
+    if shared.jwks_fail.load(Ordering::SeqCst) {
+        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
     }
-    let user = match header(&headers, "authorization").and_then(|v| v.strip_prefix("Bearer ")) {
-        Some("phone-a") => USER_A,
-        Some("phone-b") => USER_B,
-        _ => return StatusCode::UNAUTHORIZED.into_response(),
-    };
-    Json(json!({ "id": user })).into_response()
+    Json(jwt::jwks()).into_response()
 }

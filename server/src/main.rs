@@ -14,10 +14,15 @@ async fn main() {
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
         )
         .init();
+    let supabase_url = required("SUPABASE_URL");
     let config = Config {
-        supabase_url: required("SUPABASE_URL"),
-        anon_key: required("SUPABASE_ANON_KEY"),
-        service_role_key: required("SUPABASE_SERVICE_ROLE_KEY"),
+        issuer: std::env::var("SUPABASE_ISSUER")
+            .ok()
+            .filter(|issuer| !issuer.is_empty())
+            .unwrap_or_else(|| format!("{supabase_url}/auth/v1")),
+        public_url: required("WB_PUBLIC_URL"),
+        agent_keys: agent_keys_enabled().then(|| required("SUPABASE_SERVICE_ROLE_KEY")),
+        supabase_url,
     };
     let addr = bind_addr();
     let listener = tokio::net::TcpListener::bind(&addr).await.expect("bind");
@@ -38,6 +43,11 @@ fn required(key: &str) -> String {
             std::process::exit(1);
         }
     }
+}
+
+/// `WB_AGENT_KEYS=true` (or `1`) keeps the old agent-key path as a headless fallback.
+fn agent_keys_enabled() -> bool {
+    matches!(std::env::var("WB_AGENT_KEYS").as_deref(), Ok("true" | "1"))
 }
 
 /// `WHEREABOUTS_ADDR` wins; Cloud Run sets `PORT`; otherwise bind locally.
