@@ -14,87 +14,69 @@
 #request {
   gap: 20px;
 }
-.choices {
+
+/* Three equal tiles: Reject, Once, Always. */
+.tiles {
   display: grid;
-  grid-auto-rows: minmax(72px, auto);
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
-
-.btn-big {
-  min-height: 72px;
-  padding: 12px 8px;
-  font-size: 1.25rem;
-  text-align: center;
+#request[data-no-always="1"] .tiles {
+  grid-template-columns: repeat(2, 1fr);
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 112px;
+  padding: 12px 6px;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
   overflow-wrap: anywhere;
+  cursor: pointer;
 }
-#allow {
-  position: relative;
-  z-index: 1;
-  touch-action: pan-y;
-  user-select: none;
-  transition: transform 0.18s ease;
+.tile-icon {
+  font-size: 2rem;
+  line-height: 1;
 }
-#allow.dragging {
-  transition: none;
-  box-shadow: 0 8px 20px rgb(0 0 0 / 0.3);
-}
-
-.btn-reject {
+.tile-reject {
   background: var(--card);
   color: var(--off);
-  border: 2px solid var(--off);
-  transition: background 0.18s ease, color 0.18s ease;
+  border-color: var(--off);
 }
-.lbl-always {
-  display: none;
-}
-/* The zone sits above the dragged Allow, so its label stays readable. */
-[data-slide="drag"] .btn-reject,
-[data-slide="over"] .btn-reject {
-  position: relative;
-  z-index: 2;
-  pointer-events: none;
-  border-style: dashed;
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--card) 88%, transparent);
-  color: var(--primary);
-}
-[data-slide="over"] .btn-reject {
+.tile-once {
   background: var(--primary);
-  color: var(--on-primary);
-  border-style: solid;
+  color: #fff;
 }
-[data-slide="drag"] .lbl-reject,
-[data-slide="over"] .lbl-reject {
-  display: none;
-}
-[data-slide="drag"] .lbl-always,
-[data-slide="over"] .lbl-always {
-  display: inline;
-}
-
-.slide-hint {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.95rem;
-  text-align: center;
-}
-.hint-drag,
-[data-slide="drag"] .hint-idle,
-[data-slide="over"] .hint-idle {
-  display: none;
-}
-[data-slide="drag"] .hint-drag,
-[data-slide="over"] .hint-drag {
-  display: inline;
+.tile-always {
+  background: var(--card);
   color: var(--primary);
-  font-weight: 600;
+  border-color: var(--line, #d1d5db);
+}
+.tile:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+}
+.tile:active {
+  transform: scale(0.97);
 }
 
+@media (max-width: 340px) {
+  .tiles {
+    grid-template-columns: 1fr;
+  }
+  .tile {
+    min-height: 64px;
+    flex-direction: row;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  #allow,
-  .btn-reject {
-    transition: none;
+  .tile:active {
+    transform: none;
   }
 }

@@ -39,3 +39,10 @@
   width: 20px;
   height: 20px;
 }
+.btn-big {
+  min-height: 72px;
+  padding: 12px 8px;
+  font-size: 1.25rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}

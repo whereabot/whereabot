@@ -11,23 +11,11 @@ const SEED = [
 
 const ask = (page) => page.evaluate((a) => { window.__ui.showRequest(a, new AbortController().signal); }, AGENT);
 
-async function dragAllow(page, over) {
-  const a = await page.locator('#allow').boundingBox();
-  const r = await page.locator('#reject').boundingBox();
-  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
-  await page.mouse.down();
-  const targetX = over ? r.x + r.width * 0.5 : (a.x + a.width / 2 + r.x) / 2;
-  await page.mouse.move(a.x + a.width / 2 + 30, a.y + a.height / 2, { steps: 3 });
-  await page.mouse.move(targetX, r.y + r.height / 2, { steps: 8 });
-}
-
 const history = (page, entries, always) =>
   page.evaluate(([e, al]) => { window.__ui.renderHistory(e, al, () => {}); window.__ui.setScreen('history'); }, [entries, always]);
 
 export const UI_CASES = [
-  { name: 'request', session: true, desc: 'An agent asks for the location. Two big buttons: Allow and Reject.', run: ask },
-  { name: 'request-dragging', session: true, desc: 'Allow is being dragged. Reject turns into the dashed Always allow drop zone.', run: async (p) => { await ask(p); await dragAllow(p, false); } },
-  { name: 'request-over', session: true, desc: 'Allow is over the drop zone. Releasing now always allows the agent.', run: async (p) => { await ask(p); await dragAllow(p, true); } },
+  { name: 'request', session: true, desc: 'An agent asks for the location. Three tiles: Reject, Once, Always.', run: ask },
   { name: 'history', session: true, desc: 'Request history with items and always allowed agents.', run: (p) => history(p, SEED, [AGENT, { clientId: 'c3', name: 'Cron agent' }]) },
   { name: 'history-empty', session: true, desc: 'Request history with no items.', run: (p) => history(p, [], []) },
 ];

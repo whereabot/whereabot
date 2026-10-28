@@ -31,8 +31,7 @@
 }
 /* Narrow screens and large text: stack the two-button rows. */
 @media (max-width: 340px) {
-  .actions,
-  .choices {
+  .actions {
     grid-template-columns: 1fr;
   }
   .page {
