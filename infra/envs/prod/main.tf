@@ -62,7 +62,7 @@ variable "google_client_secret" {
 }
 
 variable "image" {
-  description = "Set by scripts/deploy.sh."
+  description = "Set by .github/workflows/deploy.yml (break-glass: scripts/deploy.sh)."
   type        = string
 }
 

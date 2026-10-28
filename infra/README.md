@@ -10,24 +10,32 @@ OpenTofu. Per environment: a Supabase project, a Cloud Run relay, an artifact re
 
 This is the only list of live URLs. Each relay URL is the `relay_url` output of its environment. Update this list after a new deploy changes a URL.
 
-## Prerequisites
+## Prerequisites (break-glass only)
 
-- `tofu`, `gcloud`, `docker` (buildx).
-- `SUPABASE_ACCESS_TOKEN` in env. Never in tfvars.
-- `gcloud auth application-default login` (ADC for Google).
-- `TF_VAR_google_client_secret` in env.
-- Copy `envs/<env>/terraform.tfvars.example` to `terraform.tfvars`.
+- `tofu`, `gcloud`, `docker` (buildx), `SUPABASE_ACCESS_TOKEN` and `TF_VAR_google_client_secret` in env, ADC login.
+- Copy `envs/<env>/terraform.tfvars.example` to `terraform.tfvars` (git-ignored).
+
+## Deploy the relay
+
+A push to `main` that touches `server/**` or `infra/**` runs [`deploy.yml`](../.github/workflows/deploy.yml): test, build one image tagged with the commit SHA, push it to both registries, apply dev, then apply prod after a reviewer approves the `production` environment. Auth to GCP is keyless (Workload Identity Federation). Applies never overlap (concurrency group per env).
+
+- Keep one relay instance. Phone sockets live in memory. See [architecture limits](../docs/architecture.md#limits-today).
+- Migrations have their own workflow (below).
+- Rollback: revert the commit, or run `deploy` by hand (workflow_dispatch) with `image_sha` set to an older pushed SHA. That skips the build and applies the current `infra/` with the old image.
+- Break-glass (CI down): `scripts/deploy.sh <dev|prod>` builds and applies from your laptop.
+
+### One-time setup (human)
+
+1. Create the state bucket `gs://whereabouts-tfstate` and the envs (see Bootstrap below). Both registries must exist before the first CI run.
+2. Apply the identity: `tofu -chdir=infra/bootstrap init && tofu -chdir=infra/bootstrap apply`. Code: [`bootstrap/`](bootstrap).
+3. Set repo variables from its outputs and your accounts: `WIF_PROVIDER`, `DEPLOYER_SA`, `GCP_PROJECT`, `GCP_REGION`, `SUPABASE_ORGANIZATION_ID`, `GOOGLE_CLIENT_ID`. The workflow lists every name.
+4. Set secrets `GOOGLE_CLIENT_SECRET` and `SUPABASE_ACCESS_TOKEN` in both GitHub environments `dev` and `production`.
+5. In GitHub settings, add required reviewers to the `production` environment.
 
 ## Bootstrap (once per env)
 
 1. Create the state bucket that `envs/<env>/backend.tf` names: `gcloud storage buckets create gs://<bucket>`.
 2. Enable APIs and the registry first. The image must exist before the relay: `tofu -chdir=envs/<env> init`, then `apply -target=google_artifact_registry_repository.whereabouts`.
-
-## Deploy the relay
-
-- Run `scripts/deploy.sh dev` or `scripts/deploy.sh prod`. The script builds and pushes the image, then applies it.
-- Keep one relay instance. Phone sockets live in memory. See [architecture limits](../docs/architecture.md#limits-today).
-- The deploy script does not apply migrations.
 
 ## Deploy the landing page
 

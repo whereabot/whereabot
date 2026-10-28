@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# BREAK-GLASS ONLY. Normal deploys: .github/workflows/deploy.yml (see infra/README.md).
 # Usage: scripts/deploy.sh <dev|prod>
 set -euo pipefail
 
