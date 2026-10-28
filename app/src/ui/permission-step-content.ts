@@ -1,15 +1,21 @@
 import { isPermissionGranted } from "@tauri-apps/plugin-notification";
 import { checkPermissions, requestPermissions } from "@tauri-apps/plugin-geolocation";
 import { requestNotificationPermission } from "../local-notification";
+import { backgroundAnswerSupported, locationAuthorization, requestAlwaysLocation } from "../background-answer-bridge";
 
-export type Step = "location" | "notifications";
+export type Step = "location" | "background" | "notifications";
 export type Perm = "granted" | "prompt" | "denied";
 
 const ASKED = "whereabouts.notif-asked";
+const ASKED_ALWAYS = "whereabouts.always-asked";
 const android = /Android/i.test(navigator.userAgent);
+
+/** The steps this platform shows, in order. Only iOS answers from a notification. */
+export const STEPS: Step[] = backgroundAnswerSupported ? ["location", "background", "notifications"] : ["location", "notifications"];
 
 export const COPY = {
   location: {
+    label: "Location",
     title: "Allow location",
     why: "So your agent can get your location. Only when you approve a request.",
     button: "Allow location",
@@ -17,7 +23,15 @@ export const COPY = {
       ? ["Tap Open Settings.", "Tap Permissions, then Location, then choose Allow only while using the app.", "Come back to Whereabot."]
       : ["Tap Open Settings.", "Tap Location, then choose While Using the App.", "Come back to Whereabot."],
   },
+  background: {
+    label: "Answer from the notification",
+    title: "Allow location when the app is closed",
+    why: "So you can tap Allow on the notification without opening Whereabot. Whereabot still reads your location only when you approve a request. It never tracks you.",
+    button: "Change to Always",
+    how: ["Tap Open Settings.", "Tap Location, then choose Always.", "Come back to Whereabot."],
+  },
   notifications: {
+    label: "Notifications",
     title: "Allow notifications",
     why: "So you see when an agent asks.",
     button: "Allow notifications",
@@ -34,6 +48,13 @@ export async function permState(step: Step): Promise<Perm> {
       const s = (await checkPermissions()).location;
       return s === "granted" || s === "denied" ? s : "prompt";
     }
+    if (step === "background") {
+      if (!backgroundAnswerSupported) return "granted";
+      const s = await locationAuthorization();
+      if (s === "always") return "granted";
+      // iOS shows the Always prompt once; after that only Settings can change it.
+      return s === "denied" || localStorage.getItem(ASKED_ALWAYS) ? "denied" : "prompt";
+    }
     if (await isPermissionGranted()) return "granted";
   } catch {
     return "denied";
@@ -44,7 +65,10 @@ export async function permState(step: Step): Promise<Perm> {
 export async function askPermission(step: Step) {
   try {
     if (step === "location") await requestPermissions(["location"]);
-    else {
+    else if (step === "background") {
+      localStorage.setItem(ASKED_ALWAYS, "1");
+      await requestAlwaysLocation();
+    } else {
       localStorage.setItem(ASKED, "1");
       await requestNotificationPermission();
     }

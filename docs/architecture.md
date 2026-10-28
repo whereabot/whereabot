@@ -60,10 +60,35 @@ The relay turns each answer into a distinct agent-facing error. If the phone is 
 ## Limits today
 
 - **One relay instance.** Phone connections live in memory, so the relay runs as exactly one instance.
-- **The app must be open.** The phone answers only while the app runs. Push wake-up: [roadmap.md](roadmap.md).
+- **Answers need a tap.** With the app closed the user answers from the notification (below). An always-allowed agent still gets the push and needs Allow: a tapless answer would need a silent push (iOS throttles it) or Apple's location push entitlement (`com.apple.developer.location.push`, granted on request). Not built.
 - **One phone per user.** A new phone connection replaces the old one. See [protocol](protocol.md#phone-to-relay).
 - **Timeouts.** Ping waits are bounded. See [protocol](protocol.md#http-post-v1locate).
 
 ## Push wake-up
 
 The phone stores its APNs token in `push_tokens` (Supabase, RLS: own rows only) after sign-in and notification permission, and deletes it on sign-out. If a location request finds no live phone, the relay pushes through APNs. The user taps the notification, the app opens and connects, and the waiting request reaches the consent prompt. Setup: [infra/README.md](../infra/README.md). Wire details: [protocol.md](protocol.md#push-wake-up).
+
+## Background answer
+
+iOS suspends the web view when the app leaves the front, so the JS prompt works only with the app open. The push therefore carries its own consent: the `LOCATION_REQUEST` category has Reject, Allow and Always allow, none with the `.foreground` option, so iOS runs the action in the background and the app stays closed.
+
+```mermaid
+sequenceDiagram
+    participant A as Agent
+    participant R as Relay
+    participant N as APNs
+    participant H as Native handler (iOS)
+    participant S as Supabase
+    A->>R: Locate
+    R->>N: Alert, category LOCATION_REQUEST, request_id, client_id, expires_ms
+    N->>H: User taps Allow on the notification
+    H->>H: One CLLocationManager read (best, then 100 m, about 8 s each)
+    H->>S: Refresh the access token if it is about to expire
+    H->>R: POST /v1/device/answer with the fix
+    R->>A: Location answer
+```
+
+- **Native code:** a local Tauri plugin, [`app/src-tauri/background-answer-plugin/`](../app/src-tauri/background-answer-plugin). Its Swift package builds with the Rust crate, so `tauri ios build` regenerating `gen/apple` does not drop it. At launch it registers the category and puts its notification delegate in front of the delegates of the push and notification plugins; everything that is not one of its three actions goes on to them.
+- **Session:** supabase-js stores its session through the plugin in the iOS Keychain (`AfterFirstUnlock`), see [`app/src/native-session-storage.ts`](../app/src/native-session-storage.ts). The handler reads the same item and writes back a refreshed session. One refresh token for both sides, so a rotation never revokes the other side's token. Tokens are never logged.
+- **Always allow:** the handler answers like Allow and keeps the `client_id` in `UserDefaults`. On the next launch the app takes those ids and adds them to the signed-in user's always-allowed list ([`app/src/background-answer-bridge.ts`](../app/src/background-answer-bridge.ts)).
+- **Permission:** a read with the app closed needs location access "Always". The permissions screen asks for it after When In Use, and shows Settings steps when it is refused. Without it the handler answers `unavailable` with reason `permission`. There is no `location` background mode: the app never tracks.

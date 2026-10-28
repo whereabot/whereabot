@@ -15,16 +15,18 @@ pub fn start(
     bearer: Option<&str>,
     phone_connected: bool,
     request_id: Uuid,
+    client_id: &str,
     expires_ms: u64,
 ) -> Option<JoinHandle<()>> {
     let (push, bearer) = (Arc::clone(push?), bearer?.to_owned());
+    let client_id = client_id.to_owned();
     let delay = if phone_connected {
         GRACE
     } else {
         Duration::ZERO
     };
     Some(tokio::spawn(async move {
-        push.wake_after(delay, &bearer, request_id, expires_ms)
+        push.wake_after(delay, &bearer, request_id, &client_id, expires_ms)
             .await;
     }))
 }
@@ -37,13 +39,14 @@ mod tests {
     async fn pushes_at_once_when_offline_and_never_without_user_jwt() {
         let (push, fake) = super::super::fake_apns_and_postgrest::start().await;
         let push = Arc::new(push);
-        assert!(start(None, Some("jwt"), false, Uuid::new_v4(), 0).is_none());
-        assert!(start(Some(&push), None, false, Uuid::new_v4(), 0).is_none());
+        assert!(start(None, Some("jwt"), false, Uuid::new_v4(), "c", 0).is_none());
+        assert!(start(Some(&push), None, false, Uuid::new_v4(), "c", 0).is_none());
         let task = start(
             Some(&push),
             Some("jwt"),
             false,
             Uuid::new_v4(),
+            "claude-code",
             1_800_000_000_000,
         );
         task.unwrap().await.unwrap();

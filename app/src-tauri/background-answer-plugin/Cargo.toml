@@ -1,0 +1,13 @@
+[package]
+name = "tauri-plugin-background-answer"
+version = "0.1.0"
+description = "Answers Whereabot location requests from notification actions while the app is in the background"
+edition = "2024"
+publish = false
+links = "tauri-plugin-background-answer"
+
+[dependencies]
+tauri = "2"
+
+[build-dependencies]
+tauri-plugin = { version = "2", features = ["build"] }

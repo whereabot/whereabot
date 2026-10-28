@@ -40,13 +40,14 @@ pub async fn request_location(
         .map_or(0, |since| since.as_millis() as u64);
     let id = Uuid::new_v4();
     let (tx, mut rx) = oneshot::channel();
-    state.pending.lock().await.insert(id, tx);
+    state.pending.lock().await.insert(id, (agent.user_id, tx));
     let connected = !state.devices.senders(agent.user_id).await.is_empty();
     let wake = location_request_wake::start(
         state.push.as_ref(),
         agent.bearer.as_deref(),
         connected,
         id,
+        &agent.client_id,
         expires_ms,
     );
     let mut fanout = Fanout::new(agent.user_id, id, agent.client_id.clone(), expires_ms);

@@ -14,6 +14,7 @@
     "websocket:default",
     "notification:default",
     "mobile-push:default",
+    "background-answer:default",
     "opener:default",
     "deep-link:default"
   ]

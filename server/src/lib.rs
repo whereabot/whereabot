@@ -4,12 +4,13 @@ use axum::{
     Router,
     routing::{any, get, post},
 };
-use tokio::sync::{Mutex, oneshot};
+use tokio::sync::Mutex;
 use uuid::Uuid;
 
 mod agent_bearer_auth;
 mod agent_token_verification;
 mod authenticated_agent;
+mod background_answer_http;
 mod device_socket_session;
 mod devices;
 mod location_request;
@@ -27,7 +28,6 @@ mod graceful_shutdown;
 mod supabase_rest_client;
 
 pub use graceful_shutdown::Shutdown;
-use relay_wire_protocol::Answer;
 use supabase_rest_client::Supabase;
 use supabase_signing_keys::JwksCache;
 
@@ -51,7 +51,7 @@ struct AppState {
     supabase_url: String,
     anon_key: Option<String>,
     devices: devices::device_connection_registry::Registry,
-    pending: Mutex<HashMap<Uuid, oneshot::Sender<(Uuid, Answer)>>>,
+    pending: Mutex<HashMap<Uuid, phone_message_handler::Waiter>>,
 }
 
 pub fn app(config: Config) -> Router {
@@ -76,6 +76,7 @@ pub fn build(config: Config) -> (Router, Shutdown) {
     let router = Router::new()
         .route("/v1/locate", post(location_request::locate))
         .route("/v1/device", any(device_socket_session::device))
+        .route("/v1/device/answer", post(background_answer_http::answer))
         // Cloud Run's front end reserves paths ending in `z`, so public probes use /health.
         .route("/health", get(healthz))
         .route("/healthz", get(healthz))

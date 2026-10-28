@@ -1,4 +1,4 @@
-//! Test double: one server plays PostgREST (two tokens, `bb22` is dead) and APNs.
+//! Test double: one server plays PostgREST (two tokens, `bb22` is dead), the grants list, and APNs.
 
 use std::sync::{Arc, Mutex};
 
@@ -31,6 +31,10 @@ async fn list() -> Json<Value> {
     Json(json!([{ "token": "aa11" }, { "token": "bb22" }]))
 }
 
+async fn grants() -> Json<Value> {
+    Json(json!([{ "client": { "id": "claude-code", "name": "Claude Code" } }]))
+}
+
 async fn drop_token(State(f): Shared, RawQuery(q): RawQuery) {
     f.deleted.lock().unwrap().push(q.unwrap_or_default());
 }
@@ -54,6 +58,7 @@ pub async fn start() -> (Push, Arc<Fake>) {
     let fake = Arc::new(Fake::default());
     let app = Router::new()
         .route("/rest/v1/push_tokens", get(list).delete(drop_token))
+        .route("/auth/v1/user/oauth/grants", get(grants))
         .route("/3/device/{token}", post(apns))
         .with_state(fake.clone());
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();

@@ -7,6 +7,7 @@ import { initHistory } from "./ui/history-screen";
 import { initHome } from "./ui/home-screen";
 import { initPermissions } from "./ui/permissions-screen";
 import { forgetPush, initPush } from "./push/push-token-registration";
+import { initBackgroundAnswer } from "./background-answer-bridge";
 import { clearLocalData } from "./request-history-store";
 import { getAccessToken, supabase } from "./supabase-client";
 
@@ -40,6 +41,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initHome();
   initPermissions();
   initPush();
+  initBackgroundAnswer();
   void listenForAuthRedirect();
 
   supabase.auth.onAuthStateChange((event, session) => {

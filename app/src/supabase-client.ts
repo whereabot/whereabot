@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { nativeSessionStorage } from "./native-session-storage";
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -8,6 +9,7 @@ export const supabase = createClient(
       flowType: "pkce",
       detectSessionInUrl: false,
       persistSession: true,
+      storage: nativeSessionStorage,
       autoRefreshToken: true,
     },
   },

@@ -7,6 +7,7 @@ pub fn run() {
         .plugin(tauri_plugin_geolocation::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_mobile_push::init())
+        .plugin(tauri_plugin_background_answer::init())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

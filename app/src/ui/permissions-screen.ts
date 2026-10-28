@@ -1,42 +1,43 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { $ } from "../status-display-dom";
-import { COPY, askPermission, permState, type Perm, type Step } from "./permission-step-content";
+import { COPY, STEPS, askPermission, permState, type Perm, type Step } from "./permission-step-content";
 import { announce, setScreen } from "./screen-view-helpers";
 
-let skipped = false;
+// Location is required; the later steps can be skipped.
+const skipped = new Set<Step>();
 let shown: Step | null = null;
 
 function render(step: Step, state: Perm) {
   const c = COPY[step];
   const denied = state === "denied";
-  const n = step === "location" ? "1 of 2 — Location" : "2 of 2 — Notifications";
-  $("perm-step").textContent = "Step " + n;
+  $("perm-step").textContent = `Step ${STEPS.indexOf(step) + 1} of ${STEPS.length} — ${c.label}`;
   $("perm-title").textContent = c.title;
   $("perm-why").textContent = c.why;
   $("perm-status").textContent = denied ? "Not allowed. Turn it on in Settings." : "Not allowed yet";
-  $("perm-ico-location").toggleAttribute("hidden", step !== "location");
+  $("perm-ico-location").toggleAttribute("hidden", step === "notifications");
   $("perm-ico-notifications").toggleAttribute("hidden", step !== "notifications");
   $("perm-how").hidden = !denied;
   $("perm-how").replaceChildren(...c.how.map((t) => Object.assign(document.createElement("li"), { textContent: t })));
   $("perm-allow").hidden = denied;
   $("perm-allow").textContent = c.button;
   $("perm-settings").hidden = !denied;
-  $("perm-skip").hidden = step !== "notifications";
+  $("perm-skip").hidden = step === "location";
 }
 
 /** Runs on open and on every return to the foreground. */
 async function refresh() {
   const screen = document.body.dataset.screen;
   if ($("signed-in").hidden || screen === "request" || screen === "history") return;
-  const [loc, notif] = await Promise.all([permState("location"), permState("notifications")]);
-  const step: Step | null = loc !== "granted" ? "location" : notif !== "granted" && !skipped ? "notifications" : null;
-  $("notif-banner").hidden = step !== null || notif === "granted";
+  const states = await Promise.all(STEPS.map(permState));
+  const state = (s: Step) => states[STEPS.indexOf(s)];
+  const step = STEPS.find((s) => state(s) !== "granted" && (s === "location" || !skipped.has(s))) ?? null;
+  $("notif-banner").hidden = step !== null || state("notifications") === "granted";
   if (!step) {
     if (document.body.dataset.screen === "permissions") setScreen("home");
     shown = null;
     return;
   }
-  render(step, step === "location" ? loc : notif);
+  render(step, state(step));
   const entering = document.body.dataset.screen !== "permissions" || shown !== step;
   shown = step;
   setScreen("permissions");
@@ -51,11 +52,11 @@ export function initPermissions() {
   });
   $("perm-settings").addEventListener("click", () => void openUrl("app-settings:"));
   $("notif-fix").addEventListener("click", () => {
-    skipped = false;
+    skipped.delete("notifications");
     void refresh();
   });
   $("perm-skip").addEventListener("click", () => {
-    skipped = true;
+    if (shown) skipped.add(shown);
     void refresh();
   });
   document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && void refresh());
