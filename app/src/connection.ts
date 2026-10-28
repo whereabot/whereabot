@@ -2,7 +2,6 @@ import WebSocket from "@tauri-apps/plugin-websocket";
 import { answerPing } from "./ping";
 import { setState, setStatus } from "./dom";
 import { checkUrl, relayUrl } from "./config";
-import { ensurePermission } from "./location";
 
 const RETRY_MS = 5000;
 
@@ -44,7 +43,9 @@ async function connect(getToken: TokenSource) {
   ws = socket;
   setStatus("Connected. Waiting for pings.");
   setState("connected");
+  lastSeen = Date.now();
   socket.addListener(async (msg) => {
+    if (ws === socket) lastSeen = Date.now();
     if (msg.type === "Close") {
       if (ws !== socket) return; // replaced by a newer socket
       ws = null;
@@ -58,17 +59,27 @@ async function connect(getToken: TokenSource) {
   });
 }
 
+function reconnect() {
+  if (stopped || !lastTokenSource) return;
+  const old = ws;
+  ws = null;
+  void old?.disconnect().catch(() => {});
+  void connect(lastTokenSource);
+}
+
 // iOS kills the socket in the background, often without a Close event: reconnect on return.
 // Short hides (location prompt, indicator) keep the socket and any ping in flight.
 let hiddenAt = 0;
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") return void (hiddenAt = Date.now());
-  if (Date.now() - hiddenAt < 5000 || stopped || !lastTokenSource) return;
-  const old = ws;
-  ws = null;
-  void old?.disconnect().catch(() => {});
-  void connect(lastTokenSource);
+  if (Date.now() - hiddenAt >= 5000) reconnect();
 });
+
+// The relay pings every 25 s; silence means a dead socket (e.g. after a deploy).
+let lastSeen = 0;
+window.setInterval(() => {
+  if (ws && document.visibilityState === "visible" && Date.now() - lastSeen > 60_000) reconnect();
+}, 10_000);
 
 export function disconnect() {
   stopped = true;
@@ -84,12 +95,6 @@ export async function start(getToken: TokenSource) {
   const err = checkUrl(relayUrl);
   if (err) return setStatus(err);
   stopped = false;
-  try {
-    await ensurePermission();
-  } catch (e) {
-    stopped = true;
-    setStatus(String(e));
-    return;
-  }
+  // No location access here: the phone reads its location only for an approved request.
   await connect(getToken);
 }

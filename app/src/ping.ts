@@ -5,6 +5,7 @@ import { $, setStatus } from "./dom";
 import { resolveAgent } from "./agent-name";
 import { addAlwaysApproved, isAlwaysApproved, recordRequest, type Outcome } from "./history";
 import { notify } from "./notify";
+import { ensurePermission } from "./location";
 import { showRequest } from "./ui/request";
 
 // The relay gives up on an unanswered ping after about a minute.
@@ -38,6 +39,7 @@ export async function answerPing(send: Send, data: string) {
 async function sendFix(send: Send, ping: Ping, agent: Agent, outcome: Outcome) {
   let pos;
   try {
+    await ensurePermission();
     // A fix up to 30 s old answers at once; a cold GPS fix can take longer.
     pos = await getCurrentPosition({ enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
   } catch (e) {
