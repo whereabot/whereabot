@@ -1,0 +1,51 @@
+# GitOps for the static site: fill consent config, deploy the "whereabouts" Worker, smoke-test.
+name: site-cloudflare-deploy
+on:
+  push:
+    branches: [main]
+    paths: ["site/**"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: site-cloudflare-deploy
+  cancel-in-progress: false
+env:
+  SITE_URL: https://whereabouts.ofek-gabay-he.workers.dev
+jobs:
+  deploy:
+    # Idle until the Cloudflare settings exist (infra/README.md).
+    if: ${{ vars.CLOUDFLARE_ACCOUNT_ID != '' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Stage site in a fresh temp dir and fill config.js
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          : "${SUPABASE_URL:?set environment var SUPABASE_URL}" "${SUPABASE_ANON_KEY:?set environment var SUPABASE_ANON_KEY}"
+          STAGE=$(mktemp -d)
+          cp -R site "$STAGE/site"
+          sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|g; s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|g" "$STAGE/site/oauth/consent/config.js"
+          if grep -rEn '__[A-Z0-9_]+__' "$STAGE/site"; then echo "unfilled placeholder" >&2; exit 1; fi
+          echo "STAGE=$STAGE" >> "$GITHUB_ENV"
+      - name: Deploy from the empty stage dir (wrangler 4 publishes cwd otherwise)
+        working-directory: ${{ env.STAGE }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4.154.0 deploy --name whereabouts --assets ./site --compatibility-date 2026-10-01 2>&1 | tee "$RUNNER_TEMP/wrangler.log"
+          grep -E "Read [0-9]+ files? from the assets directory ${STAGE}/site" "$RUNNER_TEMP/wrangler.log"
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          for p in / /oauth/consent/; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 3 --retry-all-errors "$SITE_URL$p")
+            echo "$p -> $code"; [ "$code" = 200 ]
+          done
+          curl -sI "$SITE_URL/" | grep -i '^content-security-policy:'
