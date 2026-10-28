@@ -18,10 +18,9 @@
   text-decoration: none;
 }
 
-.bell {
-  width: 1.4rem;
-  height: 1.4rem;
-  fill: var(--accent);
+.mark {
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }

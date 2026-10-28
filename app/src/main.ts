@@ -1,4 +1,4 @@
-import { $, setStatus, showView } from "./dom";
+import { $, setState, setStatus, showView } from "./dom";
 import { disconnect, start } from "./connection";
 import { listenForAuthRedirect, signInWithGoogle, signInWithPassword, signOut } from "./auth";
 import { devLogin } from "./config";
@@ -42,4 +42,5 @@ window.addEventListener("DOMContentLoaded", () => {
     }, 0);
   });
   setStatus("Signed out.");
+  setState("disconnected");
 });
