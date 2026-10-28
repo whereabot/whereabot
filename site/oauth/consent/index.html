@@ -7,18 +7,17 @@
   <title>Approve access · Whereabot</title>
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="icon" href="/mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../../css/base.css">
-  <link rel="stylesheet" href="../../css/parts.css">
+  <link rel="stylesheet" href="../../design-system/design-system.css">
   <link rel="stylesheet" href="consent.css">
   <link rel="stylesheet" href="consent-states.css">
   <script type="module" src="consent.js"></script>
 </head>
 <body data-state="loading">
-<header class="brand">
-  <img src="mark.svg" alt="" width="32" height="32">
+<header class="consent-brand brand">
+  <img class="brand-mark" src="/mark.svg" alt="" width="32" height="32">
   <span>Whereabot</span>
 </header>
-<main id="main" class="card">
+<main id="main" class="card consent-card">
   <h1>Approve access</h1>
   <p id="status" role="status" aria-live="polite">Loading…</p>
   <p id="restart" hidden>Start over: see <a href="https://github.com/whereabot/whereabot#connect-your-agent">the setup steps</a>.</p>
@@ -26,8 +25,8 @@
   <section id="signin" aria-labelledby="signin-title" hidden>
     <h2 id="signin-title">Sign in to continue</h2>
     <p class="lede">Use your Google account. You approve the app on the next step.</p>
-    <div class="actions single">
-      <button type="button" id="signin-btn" class="btn primary">
+    <div class="actions">
+      <button type="button" id="signin-btn" class="btn btn-secondary">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
           <path fill="#34A057" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/>
@@ -47,12 +46,12 @@
     <p class="app" id="client-name"></p>
 
     <p class="label">This app will send the answer to</p>
-    <code class="host" id="redirect-host"></code>
+    <code class="code-block" id="redirect-host"></code>
 
     <div class="account">
       <p class="who">Signed in as <strong id="user-email"></strong></p>
       <p class="hint">Use the same Google account as on your phone.</p>
-      <button type="button" id="signout" class="link">Not you? Sign out</button>
+      <button type="button" id="signout" class="btn btn-link">Not you? Sign out</button>
     </div>
 
     <h3>What the app can receive</h3>
@@ -62,8 +61,8 @@
     </ul>
 
     <div class="actions">
-      <button type="button" id="approve" class="btn primary">Approve</button>
-      <button type="button" id="deny" class="btn secondary">Deny</button>
+      <button type="button" id="approve" class="btn btn-primary">Approve</button>
+      <button type="button" id="deny" class="btn btn-secondary">Deny</button>
     </div>
   </section>
 </main>

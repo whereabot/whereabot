@@ -1,0 +1,14 @@
+/* Code block: a command or host the reader copies. Wraps on phones instead of scrolling sideways. */
+.code-block {
+  display: block;
+  margin: 0;
+  padding: var(--space-3);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: all;
+}

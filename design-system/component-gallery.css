@@ -1,0 +1,23 @@
+/* Gallery page layout only (component-gallery.html). Never shipped with the site. */
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: var(--width-column);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-12);
+}
+
+.gallery section > h2 {
+  font-size: var(--text-xl);
+}
+
+/* Shows the dialog in the page flow instead of over it. */
+.gallery dialog {
+  position: static;
+  margin: 0;
+}
+
+.two-tiles {
+  --tile-columns: 2;
+}

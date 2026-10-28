@@ -1,0 +1,7 @@
+/* Breakpoints. Custom properties cannot sit inside @media, so media queries repeat these
+   values literally: (max-width: 22.5rem) = narrow phone, (min-width: 50rem) = wide screen.
+   Most layouts use intrinsic grids (auto-fit + minmax) and need no breakpoint at all. */
+:root {
+  --breakpoint-narrow: 22.5rem;
+  --breakpoint-wide: 50rem;
+}

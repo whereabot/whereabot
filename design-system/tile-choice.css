@@ -1,0 +1,63 @@
+/* Tile choice: big, equal buttons for one decision (Reject / Allow / Always allow).
+   --tile-columns sets the count; narrow phones stack them as full-width rows. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(var(--tile-columns, 3), minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 7rem;
+  padding: var(--space-3) var(--space-2);
+  border: var(--border-thick) solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  text-align: center;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.tile:active {
+  transform: scale(var(--press-scale));
+}
+.tile:focus-visible {
+  outline-offset: 3px;
+}
+
+.tile-icon {
+  font-size: 2em;
+  line-height: 1;
+}
+
+.tile-danger {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+.tile-primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.tile-accent {
+  color: var(--color-accent-text);
+}
+
+@media (max-width: 22.5rem) {
+  .tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tile {
+    flex-direction: row;
+    min-height: var(--size-touch-large);
+  }
+}

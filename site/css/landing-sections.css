@@ -1,0 +1,73 @@
+/* Landing body: page width, section rhythm, headings, hero and footer. */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--space-16);
+}
+
+body {
+  line-height: var(--leading-relaxed);
+}
+
+main,
+footer {
+  max-width: var(--width-page);
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+}
+
+main h1 {
+  max-width: 16ch;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-3xl);
+  letter-spacing: var(--tracking-tight);
+}
+main h2 {
+  margin-bottom: var(--space-4);
+  font-size: var(--text-2xl);
+}
+main h3 {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-lg);
+}
+main p {
+  margin-bottom: var(--space-4);
+}
+
+section {
+  padding: var(--space-12) 0;
+  border-bottom: var(--border-thin) solid var(--color-border);
+}
+
+.hero .lede {
+  max-width: var(--width-prose);
+  font-size: var(--text-lg);
+}
+.hero .actions-inline {
+  margin-top: var(--space-6);
+}
+
+.note {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.card-grid > li,
+.step-flow p:last-child {
+  margin-bottom: 0;
+}
+
+footer {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-12);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 50rem) {
+  section {
+    padding: var(--space-16) 0;
+  }
+  .hero {
+    padding-top: calc(var(--space-16) * 1.5);
+  }
+}

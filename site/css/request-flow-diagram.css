@@ -1,0 +1,39 @@
+/* "Agent -> Relay -> Phone" diagram: a column with down arrows on phones, a row on wide screens. */
+.flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-10) 0 var(--space-4);
+}
+
+.box {
+  width: 100%;
+  max-width: 22rem;
+  padding: var(--space-3);
+  border: var(--border-thick) solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  font-weight: var(--weight-semibold);
+}
+
+.arrow::before {
+  content: "\2193";
+  font-size: var(--text-xl);
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 50rem) {
+  .flow {
+    flex-direction: row;
+    justify-content: center;
+  }
+  .box {
+    width: auto;
+    min-width: 10rem;
+    max-width: none;
+  }
+  .arrow::before {
+    content: "\2192";
+  }
+}

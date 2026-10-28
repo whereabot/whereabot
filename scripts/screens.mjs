@@ -7,6 +7,7 @@ import { captureApp } from './screens/app-screenshots.mjs';
 import { captureConsent } from './screens/consent-screenshots.mjs';
 import { captureSite } from './screens/site-screenshots.mjs';
 import { captureDocs } from './screens/docs-screenshots.mjs';
+import { captureGallery } from './screens/gallery-screenshots.mjs';
 import { writeReadme } from './screens/screens-readme-writer.mjs';
 
 mkdirSync(OUT_DIR, { recursive: true });
@@ -17,6 +18,7 @@ for (const file of readdirSync(OUT_DIR)) {
 const browser = await launch();
 const shots = [];
 try {
+  shots.push(...(await captureGallery(browser)));
   shots.push(...(await captureSite(browser)));
   shots.push(...(await captureDocs(browser)));
   shots.push(...(await captureConsent(browser)));

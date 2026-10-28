@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Whereabot component gallery</title>
+  <link rel="stylesheet" href="design-system.css">
+  <link rel="stylesheet" href="component-gallery.css">
+</head>
+<body>
+<main class="gallery">
+  <header class="brand"><img class="brand-mark" src="../site/mark.svg" alt="">Whereabot components</header>
+  <p class="lede">Every shared component and state. Screenshots: docs/screens/gallery-*.png.</p>
+
+  <section class="stack" aria-labelledby="g-btn"><h2 id="g-btn">Buttons</h2>
+    <div class="actions"><button class="btn btn-primary" type="button">Primary (focused)</button><button class="btn btn-secondary" type="button">Secondary</button></div>
+    <div class="actions"><button class="btn btn-danger" type="button">Danger</button><button class="btn btn-ghost" type="button">Ghost</button></div>
+    <div class="actions"><button class="btn btn-primary" type="button" disabled>Disabled</button><button class="btn btn-link" type="button">Link button</button></div>
+    <button class="btn btn-big btn-primary" type="button">Big primary with a long label that wraps</button>
+    <div class="actions-inline"><button class="btn btn-secondary btn-small" type="button">Small</button><button class="btn btn-ghost btn-back" type="button">&larr; Back</button></div>
+  </section>
+
+  <section class="stack" aria-labelledby="g-card"><h2 id="g-card">Card, status dot, badges</h2>
+    <div class="card"><p class="card-label">Status</p><p class="status-dot is-success">Connected</p><p class="muted">Connected. Waiting for pings.</p></div>
+    <div class="actions-inline"><span class="status-dot is-warning">Waiting</span><span class="status-dot is-danger">Disconnected</span><span class="status-dot">Unknown</span></div>
+    <div class="actions-inline"><span class="badge is-success">Allowed</span><span class="badge is-danger">Rejected</span><span class="badge">No answer</span><span class="badge is-accent">This device</span><span class="badge is-warning">Waiting</span></div>
+  </section>
+
+  <section class="stack" aria-labelledby="g-banner"><h2 id="g-banner">Banners</h2>
+    <aside class="banner"><p class="banner-title">Connect your agent</p><p>Run this in your terminal:</p><code class="code-block">claude mcp add --transport http whereabot https://relay.example.test/mcp</code><button class="btn btn-secondary" type="button">Copy MCP URL</button></aside>
+    <aside class="banner banner-warn"><p class="banner-title">Notifications are off &mdash; you may miss requests</p><button class="btn btn-secondary" type="button">Fix</button></aside>
+  </section>
+
+  <section class="stack" aria-labelledby="g-tile"><h2 id="g-tile">Tile choice</h2>
+    <div class="tiles"><button class="tile tile-danger" type="button"><span class="tile-icon" aria-hidden="true">✕</span>Reject</button><button class="tile tile-primary" type="button"><span class="tile-icon" aria-hidden="true">✓</span>Allow</button><button class="tile tile-accent" type="button"><span class="tile-icon" aria-hidden="true">★</span>Always allow</button></div>
+    <div class="tiles two-tiles"><button class="tile tile-danger" type="button">Reject</button><button class="tile tile-primary" type="button">Allow</button></div>
+  </section>
+
+  <section class="stack" aria-labelledby="g-list"><h2 id="g-list">List rows</h2>
+    <ul class="list">
+      <li class="row"><span class="row-name">Claude on Ofek-laptop with a long name</span><span class="badge is-success">Allowed automatically</span><time class="row-meta">Oct 28, 01:35 PM</time></li>
+      <li class="row"><span class="row-name">Cron agent</span><button class="btn btn-secondary btn-small" type="button">Remove</button></li>
+      <li class="row"><span class="row-name">Pixel 8 (work)</span><span class="row-meta">Android · Last seen 3 h ago</span><div class="row-actions"><button class="btn btn-secondary btn-small" type="button">Rename</button><button class="btn btn-secondary btn-small" type="button">Remove</button></div></li>
+      <li class="row row-muted"><span class="row-name">Computer</span><span class="row-meta">Coming soon</span></li>
+    </ul>
+  </section>
+
+  <section class="stack" aria-labelledby="g-form"><h2 id="g-form">Form fields</h2>
+    <div class="field"><label for="g-email">Email</label><input id="g-email" type="email" value="user@example.test"></div>
+    <form class="field-inline"><label class="sr-only" for="g-name">Name</label><input id="g-name" value="Pixel 8 (work)"><button class="btn btn-primary btn-small" type="button">Save</button><button class="btn btn-ghost btn-small" type="button">Cancel</button></form>
+  </section>
+
+  <section class="stack" aria-labelledby="g-step"><h2 id="g-step">Step flow</h2>
+    <p class="step-label">Step 1 of 2 &mdash; Location</p>
+    <div class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+    <ol class="step-list"><li>Tap Open Settings.</li><li>Tap Location, then choose While Using the App.</li></ol>
+    <ol class="step-flow"><li><span class="step-number" aria-hidden="true">1</span><h3>Install the app</h3><p>Join the beta.</p></li><li><span class="step-number" aria-hidden="true">2</span><h3>Sign in</h3><p>Use Google.</p></li></ol>
+  </section>
+
+  <section class="stack" aria-labelledby="g-dialog"><h2 id="g-dialog">Dialog</h2>
+    <dialog open aria-labelledby="g-dialog-title"><form class="stack" method="dialog"><h2 id="g-dialog-title">Remove Old Galaxy?</h2><p>It stops answering location requests and is signed out.</p><div class="actions"><button class="btn btn-secondary">Cancel</button><button class="btn btn-danger">Remove</button></div></form></dialog>
+  </section>
+</main>
+</body>
+</html>

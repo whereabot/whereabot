@@ -1,0 +1,6 @@
+/* Stacking order (z-index) tokens. Native <dialog> uses the browser top layer and needs none. */
+:root {
+  --layer-base: 0;
+  --layer-raised: 1;
+  --layer-skip-link: 100;
+}

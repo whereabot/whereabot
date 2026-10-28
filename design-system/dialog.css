@@ -1,0 +1,20 @@
+/* Dialog: native <dialog> opened with showModal() (focus trap and Escape come free). */
+dialog {
+  width: min(calc(100vw - 2 * var(--space-5)), 24rem);
+  max-height: calc(100vh - 2 * var(--space-5));
+  overflow: auto;
+  padding: var(--space-5);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-overlay);
+}
+
+dialog::backdrop {
+  background: var(--color-backdrop);
+}
+
+dialog h2 {
+  font-size: var(--text-xl);
+}

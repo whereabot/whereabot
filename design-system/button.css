@@ -1,0 +1,83 @@
+/* Button: .btn + one variant (.btn-primary, .btn-secondary, .btn-ghost, .btn-danger, .btn-link)
+   + optional size (.btn-big, .btn-small). Works on <button> and <a>. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--size-touch);
+  min-width: var(--size-touch);
+  padding: var(--space-2) var(--space-5);
+  border: var(--border-thin) solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+.btn:active:not(:disabled) {
+  transform: scale(var(--press-scale));
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.btn svg {
+  flex: none;
+  width: var(--size-icon);
+  height: var(--size-icon);
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.btn-secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-surface-sunken);
+}
+
+.btn-ghost {
+  color: var(--color-text-muted);
+}
+.btn-ghost:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+.btn-danger {
+  background: var(--color-danger-fill);
+  color: var(--color-on-danger);
+}
+
+.btn-link {
+  padding-inline: var(--space-1);
+  color: var(--color-accent-text);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.btn-big {
+  min-height: var(--size-touch-large);
+  font-size: var(--text-lg);
+}
+.btn-small {
+  padding: var(--space-1) var(--space-4);
+}
+.btn-back {
+  align-self: flex-start;
+  padding-inline: 0;
+}

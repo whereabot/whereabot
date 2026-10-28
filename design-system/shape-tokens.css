@@ -1,0 +1,15 @@
+/* Corner radius, border width and shadow tokens. */
+:root {
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-pill: 999px;
+  --radius-round: 50%;
+
+  --border-thin: 1px;
+  --border-thick: 2px;
+  --border-accent: 4px;
+
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow-overlay: 0 12px 32px rgb(0 0 0 / 0.24);
+}

@@ -1,6 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, sep } from 'node:path';
-import { FAKE, VIEWPORTS } from './playwright-browser.mjs';
+import { FAKE, ROOT, VIEWPORTS } from './playwright-browser.mjs';
+
+// The site deploy copies design-system/ into the published site; serve it the same way here.
+const DESIGN_SYSTEM = join(ROOT, 'design-system');
 
 const FIXED_TIME = new Date('2026-01-15T12:00:00Z');
 const TYPES = {
@@ -53,16 +56,18 @@ async function routeRequest(route, { origin, dir, stubs, mount }) {
   const href = route.request().url();
   const stub = stubs.find(([prefix]) => href.startsWith(prefix));
   if (stub) return stub[1](route, route.request());
-  if (href.startsWith(origin + '/')) return serveFile(route, dir, new URL(href).pathname, mount);
+  const { pathname } = new URL(href);
+  if (href.startsWith(origin + '/design-system/')) return serveFile(route, DESIGN_SYSTEM, pathname, '/design-system');
+  if (href.startsWith(origin + '/')) return serveFile(route, dir, pathname, mount);
   return route.abort();
 }
 
 /** One isolated context per state. Runs `run(page)`, then closes the context. */
-export async function withScene(browser, { viewport, origin, dir, mount = '', stubs = [], init = [] }, run) {
+export async function withScene(browser, { viewport, origin, dir, mount = '', stubs = [], init = [], colorScheme }, run) {
   const context = await browser.newContext({
     viewport: VIEWPORTS[viewport],
     deviceScaleFactor: 1,
-    colorScheme: 'light',
+    colorScheme: colorScheme ?? process.env.SCREENS_SCHEME ?? 'light',
     reducedMotion: 'reduce',
     locale: 'en-US',
     timezoneId: 'UTC',
@@ -73,6 +78,8 @@ export async function withScene(browser, { viewport, origin, dir, mount = '', st
     const page = await context.newPage();
     await page.clock.setFixedTime(FIXED_TIME);
     for (const [fn, arg] of init) await page.addInitScript(fn, arg);
+    const rootFont = process.env.SCREENS_ROOT_FONT; // large-text audit, e.g. "20px"
+    if (rootFont) await page.addInitScript((size) => addEventListener('DOMContentLoaded', () => { document.documentElement.style.fontSize = size; }), rootFont);
     await run(page);
   } finally {
     await context.close();

@@ -4,14 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
-    <link rel="stylesheet" href="/src/base-theme.css" /><link rel="stylesheet" href="/src/page-layout.css" /><link rel="stylesheet" href="/src/buttons.css" />
-    <link rel="stylesheet" href="/src/card-components.css" /><link rel="stylesheet" href="/src/request-screen.css" /><link rel="stylesheet" href="/src/history-screen.css" /><link rel="stylesheet" href="/src/home-screen.css" /><link rel="stylesheet" href="/src/permissions-screen.css" /><link rel="stylesheet" href="/src/devices-screen.css" /><link rel="stylesheet" href="/src/device-row.css" />
+    <link rel="stylesheet" href="/src/app-style-entry.css" />
     <title>Whereabot</title>
     <script type="module" src="/src/main.ts" defer></script>
   </head>
 
   <body data-screen="home">
-    <main class="page">
+    <main class="page-shell">
       <header class="brand">
         <svg class="brand-mark" viewBox="0 0 128 128" aria-hidden="true" focusable="false">
                     <path fill="#2F5BEA" d="M64 122C64 122 26 86 26 52A38 38 0 0 1 102 52C102 86 64 122 64 122Z" /> <circle fill="#FFFFFF" cx="64" cy="35" r="3.5" /> <path fill="#FFFFFF" d="M64 40C52 40 47 48 47 58L43 68H85L81 58C81 48 76 40 64 40Z" /> <rect fill="#FFFFFF" x="41" y="66" width="46" height="5" rx="2.5" /> <circle fill="#FFB020" cx="64" cy="77" r="4.5" />
@@ -21,31 +20,31 @@
 
       <p class="lede">Your AI agent can ask this phone where you are. Only when it asks. Nothing is stored.</p>
 
-      <section id="state-card" class="card status-card" data-state="disconnected" aria-labelledby="state-label">
+      <section id="state-card" class="card" data-state="disconnected" aria-labelledby="state-label">
         <p class="card-label">Status</p>
-        <p id="state-label" class="state-label">Disconnected</p>
+        <p id="state-label" class="state-label status-dot">Disconnected</p>
         <p id="status" class="status-text" role="status" aria-live="polite"></p>
       </section>
 
       <section id="signed-out" class="stack">
-        <button id="google-sign-in" class="btn btn-google" type="button">
-          <svg class="google-g" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <button id="google-sign-in" class="btn btn-secondary" type="button">
+          <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
                         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" /> <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" /> <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" /> <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
           </svg>
           Sign in with Google
         </button>
         <form id="dev-form" class="stack" hidden>
-          <label for="dev-email">Email</label><input id="dev-email" type="email" autocomplete="username" required /><label for="dev-password">Password</label><input id="dev-password" type="password" autocomplete="current-password" required />
+          <div class="field"><label for="dev-email">Email</label><input id="dev-email" type="email" autocomplete="username" required /></div><div class="field"><label for="dev-password">Password</label><input id="dev-password" type="password" autocomplete="current-password" required /></div>
           <button class="btn btn-secondary" type="submit">Sign in with email (dev)</button>
         </form>
       </section>
 
       <section id="signed-in" class="stack" hidden>
         <section id="perms" class="stack" aria-labelledby="perm-title">
-          <p id="perm-step" class="perm-step"></p><div class="perm-icon" aria-hidden="true">
+          <p id="perm-step" class="step-label"></p><div class="step-icon" aria-hidden="true">
             <svg id="perm-ico-location" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12Z" /><circle cx="12" cy="10" r="2.5" /></svg>
             <svg id="perm-ico-notifications" viewBox="0 0 24 24" hidden><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2Z" /><path d="M10 21h4" /></svg></div>
-          <h2 id="perm-title" tabindex="-1"></h2><p id="perm-why"></p><p id="perm-status" class="perm-status" role="status" aria-live="polite"></p><ol id="perm-how" hidden></ol>
+          <h2 id="perm-title" tabindex="-1"></h2><p id="perm-why"></p><p id="perm-status" class="perm-status" role="status" aria-live="polite"></p><ol id="perm-how" class="step-list" hidden></ol>
           <button id="perm-allow" class="btn btn-big btn-primary" type="button"></button><button id="perm-settings" class="btn btn-big btn-primary" type="button" hidden>Open Settings</button><button id="perm-skip" class="btn btn-ghost" type="button" hidden>Skip for now</button>
         </section>
         <div id="home" class="stack">
@@ -54,21 +53,19 @@
           </div>
           <div class="actions"><button id="open-history" class="btn btn-secondary" type="button">Request history</button><button id="open-devices" class="btn btn-secondary" type="button">Devices</button></div>
           <p id="last-ping" class="muted"></p>
-          <section id="notif-banner" class="help warn" aria-labelledby="notif-title" hidden>
-            <p id="notif-title" class="help-title">Notifications are off &mdash; you may miss requests</p><button id="notif-fix" class="btn btn-secondary" type="button">Fix</button>
+          <section id="notif-banner" class="banner banner-warn" aria-labelledby="notif-title" hidden>
+            <p id="notif-title" class="banner-title">Notifications are off &mdash; you may miss requests</p><button id="notif-fix" class="btn btn-secondary" type="button">Fix</button>
           </section>
-          <section id="onboarding" class="help" aria-labelledby="onb-title" hidden>
-            <p id="onb-title" class="help-title">Get started</p>
+          <section id="onboarding" class="banner" aria-labelledby="onb-title" hidden>
+            <p id="onb-title" class="banner-title">Get started</p>
             <ol><li>Signed in &#10003;</li><li>Connect your agent (steps below).</li></ol>
-            <div class="actions">
-              <button id="onb-done" class="btn btn-primary" type="button">Done</button>
-            </div>
+            <button id="onb-done" class="btn btn-primary" type="button">Done</button>
           </section>
-          <aside class="help" aria-labelledby="help-title">
-            <p id="help-title" class="help-title">Connect your agent</p>
+          <aside class="banner" aria-labelledby="help-title">
+            <p id="help-title" class="banner-title">Connect your agent</p>
             <p>Use the same Google account as this phone. Signed in as <strong id="account">...</strong>.</p>
             <p>1. Run this in your terminal:</p>
-            <code id="cmd-add" class="cmd"></code>
+            <code id="cmd-add" class="code-block"></code>
             <p>2. Run <code>/mcp</code> in Claude Code and sign in.</p>
             <button id="copy-url" class="btn btn-secondary" type="button">Copy MCP URL</button>
           </aside>
@@ -77,18 +74,18 @@
         <section id="request" class="stack" aria-labelledby="request-title">
           <h2 id="request-title" class="request-title" tabindex="-1">Your agent <strong id="req-name"></strong> wants to know your location</h2>
           <div class="tiles">
-            <button id="reject" class="tile tile-reject" type="button"><span class="tile-icon" aria-hidden="true">✕</span>Reject</button>
-            <button id="allow" class="tile tile-allow" type="button"><span class="tile-icon" aria-hidden="true">✓</span>Allow</button>
-            <button id="always-allow" class="tile tile-always" type="button"><span class="tile-icon" aria-hidden="true">★</span>Always allow<span id="always-name" class="sr-only"></span></button>
+            <button id="reject" class="tile tile-danger" type="button"><span class="tile-icon" aria-hidden="true">✕</span>Reject</button>
+            <button id="allow" class="tile tile-primary" type="button"><span class="tile-icon" aria-hidden="true">✓</span>Allow</button>
+            <button id="always-allow" class="tile tile-accent" type="button"><span class="tile-icon" aria-hidden="true">★</span>Always allow<span id="always-name" class="sr-only"></span></button>
           </div>
         </section>
         <section id="devices" class="stack" aria-labelledby="devices-title">
-          <button id="devices-back" class="btn btn-ghost back" type="button">&larr; Back</button><h2 id="devices-title" tabindex="-1">Devices</h2>
+          <button id="devices-back" class="btn btn-ghost btn-back" type="button">&larr; Back</button><h2 id="devices-title" tabindex="-1">Devices</h2>
           <p id="devices-status" class="muted" role="status" aria-live="polite"></p><button id="devices-retry" class="btn btn-secondary" type="button" hidden>Try again</button>
-          <ul id="devices-list" class="list"></ul><p id="devices-empty" class="muted" hidden>No devices yet. Open Whereabot on your phone and connect.</p><aside class="help" aria-labelledby="add-title"><p id="add-title" class="help-title">Add another phone</p><p>Install Whereabot and sign in with the same Google account.</p></aside>
+          <ul id="devices-list" class="list"></ul><p id="devices-empty" class="muted" hidden>No devices yet. Open Whereabot on your phone and connect.</p><aside class="banner" aria-labelledby="add-title"><p id="add-title" class="banner-title">Add another phone</p><p>Install Whereabot and sign in with the same Google account.</p></aside>
         </section>
         <section id="history" class="stack" aria-labelledby="history-title">
-          <button id="history-back" class="btn btn-ghost back" type="button">&larr; Back</button><h2 id="history-title" tabindex="-1">Request history</h2><button id="history-clear" class="btn btn-secondary" type="button">Clear history</button>
+          <button id="history-back" class="btn btn-ghost btn-back" type="button">&larr; Back</button><h2 id="history-title" tabindex="-1">Request history</h2><button id="history-clear" class="btn btn-secondary" type="button">Clear history</button>
           <ul id="history-list" class="list"></ul>
           <p id="history-empty" class="muted">No requests yet. They show up here when an agent asks.</p>
           <h3>Always allowed agents</h3><ul id="always-list" class="list"></ul><p id="always-empty" class="muted">No agent is always allowed.</p>

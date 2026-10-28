@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "design-system/**"
       - "docs/**"
       - "docs-site/**"
       - "server/src/mcp_location_tool.rs"
@@ -42,7 +43,7 @@ jobs:
           npm ci
           npm run build
           test -f .vitepress/dist/index.html
-      - name: Stage site in a fresh temp dir and fill config.js
+      - name: Stage site in a fresh temp dir and fill supabase-config.js
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
@@ -51,7 +52,11 @@ jobs:
           : "${SUPABASE_URL:?set environment var SUPABASE_URL}" "${SUPABASE_ANON_KEY:?set environment var SUPABASE_ANON_KEY}"
           STAGE=$(mktemp -d)
           cp -R site "$STAGE/site"
-          sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|g; s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|g" "$STAGE/site/oauth/consent/config.js"
+          # Landing and consent link design-system/*.css; only the stylesheets ship (no gallery page).
+          mkdir "$STAGE/site/design-system"
+          cp design-system/*.css "$STAGE/site/design-system/"
+          test -f "$STAGE/site/design-system/design-system.css"
+          sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|g; s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|g" "$STAGE/site/oauth/consent/supabase-config.js"
           if grep -rEn '__[A-Z0-9_]+__' "$STAGE/site"; then echo "unfilled placeholder" >&2; exit 1; fi
           # After the placeholder check: the docs bundle contains names like __VP_HASH_MAP__.
           cp -R docs-site/.vitepress/dist "$STAGE/site/docs"

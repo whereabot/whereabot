@@ -1,0 +1,56 @@
+/* Colour tokens. Palette = raw steps; semantic tokens = what components use.
+   Text pairs meet WCAG AA (4.5:1) on --color-bg and --color-surface; control borders meet 3:1. */
+:root {
+  --palette-blue-300: #8aa8ff;
+  --palette-blue-400: #7391f5;
+  --palette-blue-600: #2f5bea;
+  --palette-blue-700: #2549c0;
+
+  --color-bg: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #eef0f4;
+  --color-text: #14171f;
+  --color-text-muted: #545c6a;
+  --color-border: #dde1e8;
+  --color-border-strong: #858e9f;
+
+  --color-accent: var(--palette-blue-600);
+  --color-accent-hover: var(--palette-blue-700);
+  --color-on-accent: #ffffff;
+  --color-accent-text: var(--palette-blue-600);
+  --color-accent-soft: rgb(47 91 234 / 0.12);
+
+  --color-success: #15803d;
+  --color-warning: #a74c07;
+  --color-danger: #b42318;
+  --color-danger-fill: #b42318;
+  --color-on-danger: #ffffff;
+
+  --color-focus: #c2410c;
+  --color-backdrop: rgb(0 0 0 / 0.5);
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f1116;
+    --color-surface: #181b23;
+    --color-surface-sunken: #11141b;
+    --color-text: #e8eaf0;
+    --color-text-muted: #a3acbb;
+    --color-border: #2c313d;
+    --color-border-strong: #6b7487;
+
+    --color-accent-text: var(--palette-blue-300);
+    --color-accent-soft: rgb(138 168 255 / 0.16);
+
+    --color-success: #4ade80;
+    --color-warning: #fbbf24;
+    --color-danger: #f87171;
+    --color-danger-fill: #dc2626;
+
+    --color-focus: #fdba74;
+    --color-backdrop: rgb(0 0 0 / 0.7);
+  }
+}

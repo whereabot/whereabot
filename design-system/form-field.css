@@ -1,0 +1,37 @@
+/* Form field: label above a full-width input. .field-inline puts an input and its buttons on one wrapping line. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+input {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--size-touch);
+  padding: 0 var(--space-3);
+  border: var(--border-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+  font: inherit;
+}
+input:focus-visible {
+  outline-offset: 0;
+}
+
+.field-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.field-inline input {
+  flex: 1 1 100%;
+}

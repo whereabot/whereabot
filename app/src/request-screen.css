@@ -1,82 +1,18 @@
-.request-title {
-  margin: 8px 0 0;
-  font-size: 1.6rem;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
+/* Request screen: the question and the three choice tiles (design-system/tile-choice.css). */
+#request {
+  gap: var(--space-5);
 }
-.request-title:focus {
-  outline: none;
+
+.request-title {
+  margin-top: var(--space-2);
+  font-size: var(--text-2xl);
+  overflow-wrap: anywhere;
 }
 .request-title strong {
-  color: var(--primary);
+  color: var(--color-accent-text);
 }
 
-#request {
-  gap: 20px;
-}
-
-/* Three equal tiles: Reject, Allow, Always allow. */
-.tiles {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
+/* Generic agent ids cannot be "always allowed": two tiles. */
 #request[data-no-always="1"] .tiles {
-  grid-template-columns: repeat(2, 1fr);
-}
-.tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 112px;
-  padding: 12px 6px;
-  border: 2px solid transparent;
-  border-radius: 16px;
-  font: inherit;
-  font-size: 1.05rem;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-  cursor: pointer;
-}
-.tile-icon {
-  font-size: 2rem;
-  line-height: 1;
-}
-.tile-reject {
-  background: var(--card);
-  color: var(--off);
-  border-color: var(--off);
-}
-.tile-allow {
-  background: var(--primary);
-  color: #fff;
-}
-.tile-always {
-  background: var(--card);
-  color: var(--primary);
-  border-color: var(--line, #d1d5db);
-}
-.tile:focus-visible {
-  outline: 3px solid var(--primary);
-  outline-offset: 3px;
-}
-.tile:active {
-  transform: scale(0.97);
-}
-
-@media (max-width: 340px) {
-  .tiles {
-    grid-template-columns: 1fr;
-  }
-  .tile {
-    min-height: 64px;
-    flex-direction: row;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .tile:active {
-    transform: none;
-  }
+  --tile-columns: 2;
 }

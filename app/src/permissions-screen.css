@@ -1,66 +1,19 @@
+/* Permission step screen. Parts come from design-system/step-flow.css; this only centres the copy. */
 #perms {
-  display: none;
-  gap: 16px;
+  gap: var(--space-4);
 }
-[data-screen="permissions"] #perms {
-  display: flex;
-}
-[data-screen="permissions"] :is(#home, #state-card, .lede) {
-  display: none;
-}
-.perm-step {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--muted);
-}
-.perm-icon {
-  align-self: center;
-  display: grid;
-  place-items: center;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: var(--card);
-  border: 1px solid var(--line);
-  color: var(--primary);
-}
-.perm-icon svg {
-  width: 48px;
-  height: 48px;
-}
+
 #perms h2 {
-  margin: 0;
-  font-size: 1.5rem;
+  font-size: var(--text-xl);
   text-align: center;
 }
-#perms h2:focus {
-  outline: none;
-}
+
 #perm-why {
-  margin: 0;
   text-align: center;
 }
+
 .perm-status {
-  margin: 0;
   text-align: center;
-  font-weight: 600;
-  color: var(--wait);
-}
-#perm-how {
-  margin: 0;
-  padding: 12px 12px 12px 2rem;
-  border-radius: 12px;
-  background: var(--card);
-  border: 1px solid var(--line);
-}
-#perm-how li + li {
-  margin-top: 8px;
-}
-.perm-icon svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  font-weight: var(--weight-semibold);
+  color: var(--color-warning);
 }

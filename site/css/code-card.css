@@ -1,0 +1,22 @@
+/* Captioned code card: the "claude mcp add" command. The command wraps, so phones never scroll sideways. */
+.codecard {
+  margin: 0 0 var(--space-4);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.codecard figcaption {
+  padding: var(--space-2) var(--space-4);
+  border-bottom: var(--border-thin) solid var(--color-border);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.codecard .code-block {
+  border: 0;
+  border-radius: 0;
+  font-variant-ligatures: none;
+}

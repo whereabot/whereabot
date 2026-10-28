@@ -1,0 +1,22 @@
+/* Whereabot design system: one entry point. Tokens first, then element defaults, then components.
+   App: Vite inlines these imports. Landing and consent: the site deploy copies this folder into the
+   published site (see .github/workflows/site-cloudflare-deploy.yml). Gallery: component-gallery.html. */
+@import url("color-tokens.css");
+@import url("spacing-tokens.css");
+@import url("typography-tokens.css");
+@import url("shape-tokens.css");
+@import url("motion-tokens.css");
+@import url("layer-tokens.css");
+@import url("breakpoint-tokens.css");
+@import url("base-reset.css");
+@import url("page-shell.css");
+@import url("button.css");
+@import url("card.css");
+@import url("banner.css");
+@import url("tile-choice.css");
+@import url("list-row.css");
+@import url("status-badge.css");
+@import url("dialog.css");
+@import url("step-flow.css");
+@import url("form-field.css");
+@import url("code-block.css");

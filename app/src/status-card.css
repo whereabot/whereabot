@@ -1,0 +1,20 @@
+/* Connection status card. data-state (status-display-dom.ts) picks the colour; the label text says it too. */
+#state-card {
+  --status-color: var(--color-danger);
+}
+#state-card:is([data-state="connected"]) {
+  --status-color: var(--color-success);
+}
+#state-card:is([data-state="waiting"], [data-state="replaced"]) {
+  --status-color: var(--color-warning);
+}
+
+.state-label {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+}
+
+.status-text {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}

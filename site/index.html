@@ -16,18 +16,18 @@
   <meta property="og:image" content="https://whereabouts.ofek-gabay-he.workers.dev/og-image.png">
   <meta property="og:image:alt" content="Whereabot: a location pin holding a bell. Your agent can ask where you are. Only when it asks.">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/layout.css">
-  <link rel="stylesheet" href="css/hero.css">
-  <link rel="stylesheet" href="css/parts.css">
-  <link rel="stylesheet" href="css/code.css">
-  <link rel="stylesheet" href="css/privacy.css">
+  <link rel="stylesheet" href="design-system/design-system.css">
+  <link rel="stylesheet" href="css/site-header.css">
+  <link rel="stylesheet" href="css/landing-sections.css">
+  <link rel="stylesheet" href="css/request-flow-diagram.css">
+  <link rel="stylesheet" href="css/code-card.css">
+  <link rel="stylesheet" href="css/privacy-points.css">
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip-link" href="#main">Skip to content</a>
 <header class="top">
   <a class="brand" href="#top" id="top">
-    <img class="mark" src="mark.svg" alt="" width="28" height="28">
+    <img class="brand-mark" src="mark.svg" alt="" width="28" height="28">
     Whereabot
   </a>
   <nav aria-label="Main">
@@ -40,20 +40,20 @@
 <main id="main">
   <section class="hero" aria-labelledby="hero-title">
     <h1 id="hero-title">Your agent can ask where you are. Only when it asks.</h1>
-    <p class="lead">Whereabot lets Claude, ChatGPT or any MCP client ask your phone for its location, with your consent. Nothing is stored.</p>
-    <div class="actions">
-      <a class="btn primary" href="#agent">Add to your agent</a>
-      <a class="btn" href="https://github.com/whereabot/whereabot">View on GitHub</a>
+    <p class="lede">Whereabot lets Claude, ChatGPT or any MCP client ask your phone for its location, with your consent. Nothing is stored.</p>
+    <div class="actions-inline">
+      <a class="btn btn-primary" href="#agent">Add to your agent</a>
+      <a class="btn btn-secondary" href="https://github.com/whereabot/whereabot">View on GitHub</a>
     </div>
   </section>
 
   <section id="how" aria-labelledby="how-title">
     <h2 id="how-title">How it works</h2>
-    <ol class="steps">
-      <li><span class="num" aria-hidden="true">1</span><h3>Install the app</h3><p>Join the beta. <!-- TODO(user): link the public TestFlight / Play beta here when it exists. --></p></li>
-      <li><span class="num" aria-hidden="true">2</span><h3>Sign in on your phone</h3><p>Open the app and sign in with Google. Keep it open while your agent asks.</p></li>
-      <li><span class="num" aria-hidden="true">3</span><h3>Add the relay</h3><p>Add the relay URL to your agent. See <a href="#agent">Add to your agent</a>.</p></li>
-      <li><span class="num" aria-hidden="true">4</span><h3>Ask</h3><p>Your agent calls <code>get_phone_location</code>. You approve on your phone, and it sends its GPS fix back.</p></li>
+    <ol class="step-flow">
+      <li><span class="step-number" aria-hidden="true">1</span><h3>Install the app</h3><p>Join the beta. <!-- TODO(user): link the public TestFlight / Play beta here when it exists. --></p></li>
+      <li><span class="step-number" aria-hidden="true">2</span><h3>Sign in on your phone</h3><p>Open the app and sign in with Google. Keep it open while your agent asks.</p></li>
+      <li><span class="step-number" aria-hidden="true">3</span><h3>Add the relay</h3><p>Add the relay URL to your agent. See <a href="#agent">Add to your agent</a>.</p></li>
+      <li><span class="step-number" aria-hidden="true">4</span><h3>Ask</h3><p>Your agent calls <code>get_phone_location</code>. You approve on your phone, and it sends its GPS fix back.</p></li>
     </ol>
     <div class="flow" role="img" aria-label="Your agent sends a request to the relay. The relay pings your phone. Your phone reads its location and sends the fix back through the relay to your agent.">
       <span class="box">Your agent</span><span class="arrow" aria-hidden="true"></span>
@@ -65,10 +65,10 @@
 
   <section id="uses" aria-labelledby="uses-title">
     <h2 id="uses-title">What you can ask</h2>
-    <ul class="cards">
-      <li>"Find a kosher restaurant open near me now."</li>
-      <li>"How long until I get home?"</li>
-      <li>"Which station am I closest to?"</li>
+    <ul class="card-grid">
+      <li class="card">"Find a kosher restaurant open near me now."</li>
+      <li class="card">"How long until I get home?"</li>
+      <li class="card">"Which station am I closest to?"</li>
     </ul>
   </section>
 
@@ -77,7 +77,7 @@
     <p>Run this in Claude Code, then run <code>/mcp</code> and sign in. Use the <strong>same Google account</strong> as on your phone.</p>
     <figure class="codecard">
       <figcaption>Claude Code</figcaption>
-      <pre><code>claude mcp add --transport http whereabot https://whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app/mcp</code></pre>
+      <pre class="code-block"><code>claude mcp add --transport http whereabot https://whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app/mcp</code></pre>
     </figure>
     <p class="note">Other MCP clients: add <code>https://whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app/mcp</code> as an HTTP server. Sign in with the same Google account as on your phone.</p>
   </section>

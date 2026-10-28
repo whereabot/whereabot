@@ -1,0 +1,8 @@
+/* The app's only stylesheet link (index.html). Vite inlines the shared design system, then app screens. */
+@import "../../design-system/design-system.css";
+@import "./screen-switching.css";
+@import "./status-card.css";
+@import "./request-screen.css";
+@import "./history-screen.css";
+@import "./device-row.css";
+@import "./permissions-screen.css";

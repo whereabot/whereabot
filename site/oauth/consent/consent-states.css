@@ -1,32 +1,43 @@
-#status { margin: 0 0 1rem; color: var(--muted); font-size: 0.95rem; }
+/* Consent page states (body[data-state], set by consent.js): loading spinner, error box, restart hint. */
+#status,
+#restart {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
 body[data-state="loading"] #status::before {
   content: "";
   display: inline-block;
-  width: 0.9rem;
-  height: 0.9rem;
-  margin-right: 0.5rem;
-  border: 2px solid var(--line);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  vertical-align: -0.1rem;
-  animation: spin 1s linear infinite;
-}
-body[data-state="error"] #status {
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--focus);
-  border-radius: 8px;
-  color: var(--fg);
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: var(--space-2);
+  border: var(--border-thick) solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: var(--radius-round);
+  vertical-align: -0.1em;
+  animation: consent-spin var(--duration-spin) linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+body[data-state="error"] #status {
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-thin) solid var(--color-danger);
+  border-left-width: var(--border-accent);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+}
+
+#restart {
+  color: var(--color-text);
+}
+
+@keyframes consent-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  body[data-state="loading"] #status::before { animation: none; }
+  body[data-state="loading"] #status::before {
+    animation: none;
+  }
 }
-@media (max-width: 359px) {
-  .actions { grid-template-columns: 1fr; }
-}
-.account { display: block; }
-.account .who { margin: 0.5rem 0 0; font-size: 1.1rem; }
-.account .who strong { overflow-wrap: anywhere; }
-.account .hint { margin: 0.15rem 0 0.5rem; color: var(--muted); font-size: 0.95rem; }
-#restart { margin: 0 0 1rem; font-size: 0.95rem; }

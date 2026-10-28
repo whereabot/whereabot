@@ -1,0 +1,20 @@
+/* Privacy points: term + description pairs with an accent edge, two columns on wide screens. */
+.points {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: var(--space-5) var(--space-8);
+  margin: 0;
+}
+
+.points div {
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--color-accent);
+}
+.points dt {
+  margin-bottom: var(--space-1);
+  font-weight: var(--weight-bold);
+}
+.points dd {
+  margin: 0;
+  color: var(--color-text-muted);
+}

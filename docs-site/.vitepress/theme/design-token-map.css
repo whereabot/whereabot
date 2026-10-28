@@ -1,0 +1,21 @@
+/* Maps VitePress theme variables to the shared design tokens (design-system/).
+   VitePress switches dark mode with a .dark class, not the OS setting, so it maps palette steps,
+   not the semantic colours that follow prefers-color-scheme. */
+:root {
+  --vp-c-brand-1: var(--palette-blue-600);
+  --vp-c-brand-2: var(--palette-blue-700);
+  --vp-c-brand-3: var(--palette-blue-600);
+  --vp-c-brand-soft: rgb(47 91 234 / 0.14);
+
+  --vp-font-family-base: var(--font-sans);
+  --vp-font-family-mono: var(--font-mono);
+  color-scheme: light;
+}
+
+.dark {
+  --vp-c-brand-1: var(--palette-blue-300);
+  --vp-c-brand-2: var(--palette-blue-400);
+  --vp-c-brand-3: var(--palette-blue-600);
+  --vp-c-brand-soft: rgb(138 168 255 / 0.16);
+  color-scheme: dark;
+}

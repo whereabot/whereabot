@@ -1,0 +1,26 @@
+/* One screen at a time: body[data-screen] picks it (ui/screen-view-helpers.ts). */
+#request,
+#history,
+#devices,
+#perms {
+  display: none;
+}
+[data-screen="request"] #request,
+[data-screen="history"] #history,
+[data-screen="devices"] #devices,
+[data-screen="permissions"] #perms {
+  display: flex;
+}
+:is([data-screen="request"], [data-screen="history"], [data-screen="devices"], [data-screen="permissions"])
+  :is(#home, #state-card, .lede) {
+  display: none;
+}
+
+/* Sub-screen headings: the page title size, with a little room above list subheadings. */
+:is(#history, #devices) h2 {
+  font-size: var(--text-xl);
+}
+#history h3 {
+  margin-top: var(--space-3);
+  font-size: var(--text-md);
+}

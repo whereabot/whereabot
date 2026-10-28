@@ -1,0 +1,41 @@
+/* Status badge (pill) and status dot. Text always carries the meaning; colour only repeats it.
+   Variants set --status-color: .is-success, .is-warning, .is-danger, .is-accent (default muted). */
+.badge {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border: var(--border-thin) solid currentColor;
+  border-radius: var(--radius-pill);
+  color: var(--status-color, var(--color-text-muted));
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-normal);
+  white-space: nowrap;
+}
+
+.status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--status-color, var(--color-text-muted));
+}
+.status-dot::before {
+  content: "";
+  flex: none;
+  width: 0.6em;
+  height: 0.6em;
+  border-radius: var(--radius-round);
+  background: currentColor;
+}
+
+.is-success {
+  --status-color: var(--color-success);
+}
+.is-warning {
+  --status-color: var(--color-warning);
+}
+.is-danger {
+  --status-color: var(--color-danger);
+}
+.is-accent {
+  --status-color: var(--color-accent-text);
+}

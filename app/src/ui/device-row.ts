@@ -22,7 +22,7 @@ function button(label: string, aria: string, onClick: () => void, kind = "second
 
 /** Swaps the title for a name field. Enter saves, Escape or Cancel restores. */
 function edit(title: HTMLElement, actions: HTMLElement, d: Device, save: RowActions["onRename"]) {
-  const form = el("form", "rename");
+  const form = el("form", "field-inline");
   const input = el("input", "") as HTMLInputElement;
   input.id = `rename-${d.id}`;
   input.value = d.name;
@@ -53,9 +53,9 @@ export function deviceRow(d: Device, isThis: boolean, act: RowActions) {
   icon.innerHTML = `<svg viewBox="0 0 24 24">${d.platform === "desktop" ? COMPUTER : PHONE}</svg>`;
   const title = el("div", "device-title");
   title.append(el("span", "row-name", d.name));
-  if (isThis) title.append(el("span", "badge badge-this", "This device"));
-  const meta = el("span", `device-meta${isOnline(d) ? " online" : ""}`, `${PLATFORM[d.platform]} · ${seenText(d)}`);
-  const actions = el("div", "device-actions");
+  if (isThis) title.append(el("span", "badge is-accent", "This device"));
+  const meta = el("span", `device-meta${isOnline(d) ? " status-dot is-success" : ""}`, `${PLATFORM[d.platform]} · ${seenText(d)}`);
+  const actions = el("div", "row-actions");
   actions.append(
     button("Rename", `Rename ${d.name}`, () => edit(title, actions, d, act.onRename)),
     button("Remove", `Remove ${d.name}`, () => act.onRemove(d)),
@@ -68,7 +68,7 @@ export function deviceRow(d: Device, isThis: boolean, act: RowActions) {
 
 /** Placeholder for the future computer client. Not a device: no actions. */
 export function comingSoonRow() {
-  const row = el("li", "row device device-soon");
+  const row = el("li", "row device row-muted");
   const icon = el("span", "device-icon");
   icon.setAttribute("aria-hidden", "true");
   icon.innerHTML = `<svg viewBox="0 0 24 24">${COMPUTER}</svg>`;
