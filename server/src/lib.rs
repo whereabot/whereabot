@@ -47,6 +47,8 @@ pub fn app(config: Config) -> Router {
     Router::new()
         .route("/v1/locate", post(locate::locate))
         .route("/v1/device", any(device::device))
+        // Cloud Run's front end reserves paths ending in `z`, so public probes use /health.
+        .route("/health", get(healthz))
         .route("/healthz", get(healthz))
         .nest("/mcp", mcp::router(state.clone()))
         .with_state(state)

@@ -56,12 +56,12 @@ resource "google_cloud_run_v2_service" "relay" {
 
       startup_probe {
         http_get {
-          path = "/healthz"
+          path = "/health"
         }
       }
       liveness_probe {
         http_get {
-          path = "/healthz"
+          path = "/health"
         }
       }
     }
