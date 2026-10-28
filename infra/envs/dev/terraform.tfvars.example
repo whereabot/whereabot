@@ -1,0 +1,8 @@
+# Copy to terraform.tfvars (git-ignored). Never put secrets here: use env vars.
+gcp_project              = "your-gcp-project-id"
+gcp_region               = "europe-west1"
+supabase_organization_id = "your-supabase-org-slug"
+supabase_region          = "eu-central-1"
+google_client_id         = "xxxx.apps.googleusercontent.com"
+# google_client_secret: set TF_VAR_google_client_secret in your shell.
+# image: set by scripts/deploy.sh (-var image=...).
