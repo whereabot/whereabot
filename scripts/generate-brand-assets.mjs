@@ -15,7 +15,7 @@ import { runTauriIcon } from './brand-assets/run-tauri-icon.mjs';
 // Everything this script may write. Directories are hashed recursively.
 const OUTPUTS = ['brand', 'app/src-tauri/icons', 'app/src-tauri/gen', 'site/mark.svg', 'site/favicon.ico',
   'site/apple-touch-icon.png', 'site/icon-192.png', 'site/icon-512.png', 'site/og-image.png',
-  'site/site.webmanifest', 'site/oauth/consent/mark.svg'];
+  'site/site.webmanifest'];
 const SKIP = new Set(['node_modules', 'build', '.gradle']);
 
 function snapshot() {

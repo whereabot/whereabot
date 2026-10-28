@@ -21,8 +21,8 @@ Commit the output, so builds need no generator.
 
 ## Colours
 
-Colours come from the design tokens in `site/css/base.css`. The mark uses three:
-pin `#2F5BEA` (`--accent`), bell `#FFFFFF`, clapper `#FFB020`. The icon background is `#FBFAF7` (`--bg`).
+Colours come from the design tokens in `design-system/color-tokens.css`. The mark uses three:
+pin `#2F5BEA` (`--accent`), bell `#FFFFFF`, clapper `#FFB020`. The icon background is `#F6F7F9` (`--color-bg`).
 
 ## Usage rules
 

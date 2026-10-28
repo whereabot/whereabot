@@ -1,4 +1,4 @@
-// Single place for repo paths and brand colours (colours mirror the light tokens in site/css/base.css).
+// Single place for repo paths and brand colours (colours mirror the light tokens in design-system/color-tokens.css).
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,7 +9,7 @@ export const MARK = at('brand', 'whereabot-mark.svg');
 export const APP_ICON = at('brand', 'whereabot-app-icon.svg');
 export const WORDMARK = at('brand', 'whereabot-wordmark.svg');
 
-export const COLOURS = { background: '#FBFAF7', text: '#1B1D21', muted: '#4B5058', accent: '#2F5BEA' };
+export const COLOURS = { background: '#F6F7F9', text: '#1B1D21', muted: '#4B5058', accent: '#2F5BEA' };
 
 export const SOCIAL = {
   title: 'Whereabot',

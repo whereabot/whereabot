@@ -22,8 +22,7 @@ export async function renderWebIcons() {
     await sharp(APP_ICON, { density: 384 }).resize(size, size).flatten({ background: COLOURS.background }).png().toFile(at('site', name));
   }
   copyFileSync(at('app', 'src-tauri', 'icons', 'icon.ico'), at('site', 'favicon.ico'));
-  // Page markup references these two copies; they are derived, never edited.
+  // Page markup references these copy; they are derived, never edited.
   copyFileSync(MARK, at('site', 'mark.svg'));
-  copyFileSync(MARK, at('site', 'oauth', 'consent', 'mark.svg'));
   writeFileSync(at('site', 'site.webmanifest'), JSON.stringify(manifest, null, 2) + '\n');
 }
