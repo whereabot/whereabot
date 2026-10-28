@@ -41,12 +41,12 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Whereabouts shares your location with your AI agent only when it asks.</string>
+	<string>Whereabot shares your location with your AI agent only when it asks.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>dev.tupe12334.whereabouts</string>
+			<string>io.whereabot.app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>whereabouts</string>

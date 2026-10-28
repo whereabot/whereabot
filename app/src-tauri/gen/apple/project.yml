@@ -1,6 +1,6 @@
 name: app
 options:
-  bundleIdPrefix: dev.tupe12334.whereabouts
+  bundleIdPrefix: io.whereabot.app
   deploymentTarget:
     iOS: 15.0
 fileGroups: [../../src]
@@ -10,8 +10,9 @@ configs:
 settingGroups:
   app:
     base:
-      PRODUCT_NAME: Whereabouts
-      PRODUCT_BUNDLE_IDENTIFIER: dev.tupe12334.whereabouts
+      PRODUCT_NAME: Whereabot
+      PRODUCT_BUNDLE_IDENTIFIER: io.whereabot.app
+      DEVELOPMENT_TEAM: V72CW46B5V
 targetTemplates:
   app:
     type: application

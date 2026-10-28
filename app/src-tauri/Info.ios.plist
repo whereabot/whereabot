@@ -3,6 +3,6 @@
 <plist version="1.0">
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Whereabouts shares your location with your AI agent only when it asks.</string>
+	<string>Whereabot shares your location with your AI agent only when it asks.</string>
 </dict>
 </plist>

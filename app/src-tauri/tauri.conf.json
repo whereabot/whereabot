@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Whereabouts",
+  "productName": "Whereabot",
   "version": "0.1.0",
-  "identifier": "dev.tupe12334.whereabouts",
+  "identifier": "io.whereabot.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Whereabouts",
+        "title": "Whereabot",
         "width": 800,
         "height": 600
       }
@@ -35,6 +35,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "iOS": {
+      "developmentTeam": "V72CW46B5V"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

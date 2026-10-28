@@ -1,4 +1,4 @@
-package dev.tupe12334.whereabouts
+package io.whereabot.app
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

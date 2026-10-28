@@ -24,10 +24,10 @@ val keystoreProperties = Properties().apply {
 
 android {
     compileSdk = 37
-    namespace = "dev.tupe12334.whereabouts"
+    namespace = "io.whereabot.app"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
-        applicationId = "dev.tupe12334.whereabouts"
+        applicationId = "io.whereabot.app"
         minSdk = 24
         targetSdk = 37
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
