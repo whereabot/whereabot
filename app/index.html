@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <link rel="stylesheet" href="/src/styles.css" /><link rel="stylesheet" href="/src/layout.css" /><link rel="stylesheet" href="/src/buttons.css" />
-    <link rel="stylesheet" href="/src/components.css" /><link rel="stylesheet" href="/src/request.css" /><link rel="stylesheet" href="/src/history.css" /><link rel="stylesheet" href="/src/home.css" /><link rel="stylesheet" href="/src/permissions.css" />
+    <link rel="stylesheet" href="/src/components.css" /><link rel="stylesheet" href="/src/request.css" /><link rel="stylesheet" href="/src/history.css" /><link rel="stylesheet" href="/src/home.css" /><link rel="stylesheet" href="/src/permissions.css" /><link rel="stylesheet" href="/src/slider-cue.css" />
     <title>Whereabot</title>
     <script type="module" src="/src/main.ts" defer></script>
   </head>
@@ -77,13 +77,13 @@
         <section id="request" class="stack" data-slide="idle" aria-labelledby="request-title">
           <h2 id="request-title" class="request-title" tabindex="-1">Your agent <strong id="req-name"></strong> wants to know your location</h2>
           <div class="choices">
-            <button id="allow" class="btn btn-big btn-primary" type="button">Allow</button>
+            <button id="allow" class="btn btn-big btn-primary" type="button"><span class="grip" aria-hidden="true"></span>Allow<span class="chev" aria-hidden="true">›››</span></button>
             <button id="reject" class="btn btn-big btn-reject" type="button">
               <span class="lbl-reject">Reject</span><span class="lbl-always" aria-hidden="true">Always allow</span>
             </button>
           </div>
           <p class="slide-hint">
-            <span class="hint-idle">Slide Allow onto Reject to always allow this agent.</span><span class="hint-drag">Drop on the dashed zone to always allow <strong id="req-name-always"></strong>. Let go elsewhere to cancel.</span>
+            <span class="hint-idle">Tap <strong>Allow</strong> for this request. Or slide it onto Reject <span aria-hidden="true">→</span> <strong>always allow</strong>.</span><span class="hint-drag">Drop on the dashed zone to always allow <strong id="req-name-always"></strong>. Let go elsewhere to cancel.</span>
           </p>
           <button id="always-allow" class="btn btn-secondary" type="button">Always allow <span id="always-name" class="sr-only"></span></button>
         </section>
