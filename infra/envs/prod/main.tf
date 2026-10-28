@@ -31,8 +31,12 @@ module "whereabouts" {
   google_client_secret     = var.google_client_secret
   image                    = var.image
   apns_enabled             = true
-  site_host                = "whereabouts.ofek-gabay-he.workers.dev"
-  relay_public_url         = "https://whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app"
+  site_host                = "whereabot.io"
+  relay_domain             = "relay.whereabot.io"
+  relay_public_url         = "https://relay.whereabot.io"
+  # Transition from the pre-whereabot.io hosts: drop once clients and the app use the new ones.
+  legacy_site_hosts = ["whereabouts.ofek-gabay-he.workers.dev"]
+  legacy_relay_urls = ["https://whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app"]
 }
 
 variable "gcp_project" {

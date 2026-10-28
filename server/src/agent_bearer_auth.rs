@@ -63,7 +63,7 @@ pub async fn authorize(
     next: Next,
 ) -> Response {
     let Some(agent) = agent_user(&state, &headers).await else {
-        return oauth_protected_resource_metadata::unauthorized(&state.public_url);
+        return oauth_protected_resource_metadata::unauthorized(&state.public_url, &headers);
     };
     request.extensions_mut().insert(agent);
     next.run(request).await

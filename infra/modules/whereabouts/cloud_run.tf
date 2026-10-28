@@ -37,7 +37,7 @@ resource "google_cloud_run_v2_service" "relay" {
       }
       env {
         name  = "WB_PUBLIC_URL"
-        value = var.relay_public_url
+        value = join(",", concat([var.relay_public_url], var.legacy_relay_urls))
       }
       env {
         name  = "RUST_LOG"

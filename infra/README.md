@@ -4,11 +4,19 @@ OpenTofu. Per environment: a Supabase project, a Cloud Run relay, an artifact re
 
 ## Live URLs
 
-- Prod relay: https://whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app
+- Prod relay: https://relay.whereabot.io (MCP: https://relay.whereabot.io/mcp)
 - Dev relay: https://whereabouts-relay-dev-yz6gmxu7na-ew.a.run.app
-- Landing page: https://whereabouts.ofek-gabay-he.workers.dev
+- Landing page, docs and OAuth consent: https://whereabot.io
 
 This is the only list of live URLs. Each relay URL is the `relay_url` output of its environment. Update this list after a new deploy changes a URL.
+
+Transition: the old prod hosts (`whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app`, `whereabouts.ofek-gabay-he.workers.dev`) still work. The `legacy_*` inputs in [`envs/prod/main.tf`](envs/prod/main.tf) keep them; remove them once every client and app build uses the new hosts.
+
+## DNS (whereabot.io)
+
+The zone is in the Cloudflare account "whereabot", not the personal one. [`dns/`](dns) holds the relay CNAME and the Google verification TXT. A human applies it with `CLOUDFLARE_API_TOKEN` (Zone DNS: Edit on whereabot.io). The apex record belongs to the Worker custom domain, which `site-cloudflare-deploy` creates.
+
+The relay host is a Cloud Run domain mapping (`relay_domain`, [`cloud_run_domain_mapping.tf`](modules/whereabouts/cloud_run_domain_mapping.tf)). Google must see whereabot.io as verified, with the CI deployer service account as an owner in Search Console.
 
 ## Prerequisites (break-glass only)
 
@@ -42,7 +50,8 @@ A push to `main` that touches `server/**` or `infra/**` runs [`deploy.yml`](../.
 
 The [`site-cloudflare-deploy`](../.github/workflows/site-cloudflare-deploy.yml) workflow deploys `site/` on push to `main`. It deploys a clean copy, so files outside `site/` never publish.
 
-- Setup: repo variable `CLOUDFLARE_ACCOUNT_ID` (the job stays idle without it); in environment `production`, secret `CLOUDFLARE_API_TOKEN` (Workers Scripts: Edit) and variables `SUPABASE_URL`, `SUPABASE_ANON_KEY`.
+- Setup: repo variable `CLOUDFLARE_ACCOUNT_ID` = the "whereabot" account, which owns the whereabot.io zone (the job stays idle without it); in environment `production`, secret `CLOUDFLARE_API_TOKEN` for that account (Workers Scripts: Edit, Workers Routes: Edit, Zone DNS: Edit on whereabot.io) and variables `SUPABASE_URL`, `SUPABASE_ANON_KEY`.
+- The deploy attaches the custom domain whereabot.io to the Worker.
 - Break-glass: copy `site/` into an empty directory and deploy that copy with Wrangler, passing it explicitly as the assets path.
 
 ## Release the iOS app
@@ -50,7 +59,7 @@ The [`site-cloudflare-deploy`](../.github/workflows/site-cloudflare-deploy.yml) 
 The [`ios-testflight-release`](../.github/workflows/ios-testflight-release.yml) workflow builds, signs and uploads to TestFlight when an `app-vX.Y.Z` tag is pushed.
 
 - Release: run [`scripts/release-app-version.sh`](../scripts/release-app-version.sh) `X.Y.Z`, merge to `main`, then push the tag it prints.
-- Setup, environment `testflight`: secret `ASC_API_KEY_P8`; variables `ASC_KEY_ID`, `ASC_ISSUER_ID`, `APPLE_TEAM_ID`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `RELAY_URL`. The API key needs the App Manager role or higher.
+- Setup, environment `testflight`: secret `ASC_API_KEY_P8`; variables `ASC_KEY_ID`, `ASC_ISSUER_ID`, `APPLE_TEAM_ID`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `RELAY_URL` (prod: `wss://relay.whereabot.io`). The API key needs the App Manager role or higher.
 - A DUPLICATE error means TestFlight has that version: bump and tag again.
 
 ## Migrations

@@ -22,7 +22,7 @@ pub async fn device(
     ws: WebSocketUpgrade,
 ) -> Response {
     let Some(token) = agent_bearer_auth::verify(&state, &headers, false).await else {
-        return oauth_protected_resource_metadata::unauthorized(&state.public_url);
+        return oauth_protected_resource_metadata::unauthorized(&state.public_url, &headers);
     };
     let bearer = agent_bearer_auth::bearer(&headers)
         .unwrap_or_default()

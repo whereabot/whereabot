@@ -1,0 +1,2 @@
+# Copy to terraform.tfvars (git-ignored). Value from Google Search Console (Domain property, TXT method).
+google_site_verification = "google-site-verification=REPLACE_ME"

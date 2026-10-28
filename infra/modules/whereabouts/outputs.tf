@@ -1,6 +1,6 @@
 output "relay_url" {
-  description = "Public URL of the relay."
-  value       = google_cloud_run_v2_service.relay.uri
+  description = "Canonical public URL of the relay (custom domain when set)."
+  value       = var.relay_public_url
 }
 
 output "supabase_url" {

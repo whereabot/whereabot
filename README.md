@@ -59,7 +59,7 @@ Early MVP. The phone answers pings **while the app is open**. Waking a closed ap
 3. Add the relay to your agent:
 
    ```bash
-   claude mcp add --transport http whereabot <prod-relay-url>/mcp
+   claude mcp add --transport http whereabot https://relay.whereabot.io/mcp
    ```
 
 4. In Claude Code run `/mcp` and sign in with the **same Google account** as on the phone. You never paste a token.
@@ -74,7 +74,7 @@ Relay URLs: [live URLs](infra/README.md#live-urls). The tool and its arguments: 
 - [Prior art](docs/prior-art.md): what exists and why this project
 - [Roadmap](docs/roadmap.md)
 - [Contributing](docs/contributing.md): hooks, line limit, adding a migration
-- [Docs site](https://whereabouts.ofek-gabay-he.workers.dev/docs/): built from these files by `docs-site/`, plus generated MCP and wire references
+- [Docs site](https://whereabot.io/docs/): built from these files by `docs-site/`, plus generated MCP and wire references
 - [Infrastructure](infra/README.md): live URLs, deploy steps, migrations
 
 ## License

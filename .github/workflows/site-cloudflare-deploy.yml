@@ -19,7 +19,7 @@ concurrency:
   group: site-cloudflare-deploy
   cancel-in-progress: false
 env:
-  SITE_URL: https://whereabouts.ofek-gabay-he.workers.dev
+  SITE_URL: https://whereabot.io
 jobs:
   deploy:
     # Idle until the Cloudflare settings exist (infra/README.md).
@@ -68,7 +68,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          npx --yes wrangler@4.154.0 deploy --name whereabouts --assets ./site --compatibility-date 2026-10-01 2>&1 | tee "$RUNNER_TEMP/wrangler.log"
+          npx --yes wrangler@4.154.0 deploy --name whereabouts --assets ./site --domains whereabot.io --compatibility-date 2026-10-01 2>&1 | tee "$RUNNER_TEMP/wrangler.log"
           grep -E "Read [0-9]+ files? from the assets directory ${STAGE}/site" "$RUNNER_TEMP/wrangler.log"
       - name: Smoke test
         run: |

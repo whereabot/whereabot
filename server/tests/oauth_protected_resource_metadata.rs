@@ -26,6 +26,31 @@ async fn metadata_matches_c1_at_both_paths() {
 }
 
 #[tokio::test]
+async fn metadata_and_challenge_follow_a_listed_host() {
+    let relay = start_relay().await;
+    let client = reqwest::Client::new();
+    let get = |path: &str| {
+        client
+            .get(format!("http://{}{path}", relay.addr))
+            .header("host", "old.relay.test")
+            .send()
+    };
+    let body: Value = get("/.well-known/oauth-protected-resource/mcp")
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(body["resource"], "https://old.relay.test/mcp");
+    let res = get("/mcp").await.unwrap();
+    assert_eq!(res.status(), 401);
+    assert_eq!(
+        res.headers()["www-authenticate"],
+        CHALLENGE.replace("relay.test", "old.relay.test")
+    );
+}
+
+#[tokio::test]
 async fn device_401_carries_challenge() {
     let relay = start_relay().await;
     let req = format!("ws://{}/v1/device", relay.addr)

@@ -22,7 +22,8 @@ use std::sync::{
 use tokio::net::TcpListener;
 use whereabouts_server::{Config, Shutdown, build};
 
-pub const PUBLIC_URL: &str = "https://relay.test";
+/// Canonical host first; `old.relay.test` stands for a legacy host still accepted.
+pub const PUBLIC_URL: &str = "https://relay.test,https://old.relay.test";
 /// The `WWW-Authenticate` value every 401 on `/mcp` and `/v1/device` must carry (C2).
 pub const CHALLENGE: &str =
     "Bearer resource_metadata=\"https://relay.test/.well-known/oauth-protected-resource/mcp\"";

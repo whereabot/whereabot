@@ -21,7 +21,7 @@ resource "supabase_settings" "this" {
   # (https://api.supabase.com/api/v1-json, checked 2026-10-28).
   auth = jsonencode({
     site_url                                = "https://${var.site_host}"
-    uri_allow_list                          = "whereabouts://auth-callback,https://${var.site_host}/oauth/consent/"
+    uri_allow_list                          = join(",", concat(["whereabouts://auth-callback"], [for h in concat([var.site_host], var.legacy_site_hosts) : "https://${h}/oauth/consent/"]))
     disable_signup                          = false
     external_google_enabled                 = true
     external_google_client_id               = var.google_client_id

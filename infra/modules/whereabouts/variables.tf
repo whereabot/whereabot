@@ -46,8 +46,26 @@ variable "site_host" {
 }
 
 variable "relay_public_url" {
-  description = "Relay public URL, https://<service-uri>. Set per env; a Cloud Run service cannot read its own URI."
+  description = "Canonical relay URL: https://<relay_domain>, or the Cloud Run URI (a service cannot read its own URI)."
   type        = string
+}
+
+variable "relay_domain" {
+  description = "Custom relay host mapped to Cloud Run (needs Google domain verification), or null for none."
+  type        = string
+  default     = null
+}
+
+variable "legacy_relay_urls" {
+  description = "Old relay base URLs the relay still answers RFC 9728 metadata for (appended to WB_PUBLIC_URL)."
+  type        = list(string)
+  default     = []
+}
+
+variable "legacy_site_hosts" {
+  description = "Old landing hosts whose /oauth/consent/ stays in the Supabase redirect allow list during a move."
+  type        = list(string)
+  default     = []
 }
 
 variable "image" {

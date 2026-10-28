@@ -24,7 +24,7 @@ pub async fn answer(
     Json(message): Json<FromDevice>,
 ) -> Response {
     let Some(token) = agent_bearer_auth::verify(&state, &headers, false).await else {
-        return oauth_protected_resource_metadata::unauthorized(&state.public_url);
+        return oauth_protected_resource_metadata::unauthorized(&state.public_url, &headers);
     };
     // An agent token carries a client_id: an agent must never answer its own request.
     if token.client_id.is_some() {
