@@ -18,3 +18,9 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npm run build
+  linecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo install linecheck --locked --version 1.2.1
+      - run: linecheck .

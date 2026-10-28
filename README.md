@@ -51,6 +51,10 @@ Expose the relay with TLS (`wss://`) before you use it outside your LAN — see 
 - [Prior art](docs/prior-art.md) — what exists and why this project
 - [Roadmap](docs/roadmap.md)
 
+## Contributing
+
+Run `scripts/install-hooks.sh` once; the pre-push hook then runs `linecheck` (needs `cargo install linecheck`).
+
 ## License
 
 [MIT](LICENSE)
