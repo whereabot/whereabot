@@ -18,7 +18,7 @@ mod protocol;
 mod supabase;
 
 use jwks::JwksCache;
-use protocol::{Location, ToDevice};
+use protocol::{Answer, ToDevice};
 use supabase::Supabase;
 
 pub struct Config {
@@ -31,9 +31,12 @@ pub struct Config {
     pub agent_keys: Option<String>,
 }
 
-/// Owner of an authenticated agent request. Set by the MCP auth middleware.
-#[derive(Clone, Copy)]
-pub struct UserId(pub Uuid);
+/// An authenticated agent request: whose phone to ping, and who asks. Set by the MCP auth middleware.
+#[derive(Clone)]
+pub struct Agent {
+    pub user_id: Uuid,
+    pub client_id: String,
+}
 
 struct AppState {
     jwks: JwksCache,
@@ -42,7 +45,7 @@ struct AppState {
     agent_keys: Option<Supabase>,
     // One live phone per user.
     devices: Mutex<HashMap<Uuid, mpsc::Sender<ToDevice>>>,
-    pending: Mutex<HashMap<Uuid, oneshot::Sender<Location>>>,
+    pending: Mutex<HashMap<Uuid, oneshot::Sender<Answer>>>,
 }
 
 pub fn app(config: Config) -> Router {

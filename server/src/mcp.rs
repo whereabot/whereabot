@@ -13,7 +13,7 @@ use rmcp::{
 use serde::Deserialize;
 
 use crate::{
-    AppState, UserId, auth,
+    Agent, AppState, auth,
     locate::{LocateError, request_location},
 };
 
@@ -39,20 +39,23 @@ impl Whereabouts {
     )]
     async fn get_phone_location(
         &self,
-        // rmcp copies the HTTP request parts into the request context; the middleware put UserId inside them.
+        // rmcp copies the HTTP request parts into the request context; the middleware put Agent inside them.
         Extension(parts): Extension<Parts>,
         Parameters(params): Parameters<LocationParams>,
     ) -> CallToolResult {
-        let Some(UserId(user_id)) = parts.extensions.get::<UserId>().copied() else {
+        let Some(agent) = parts.extensions.get::<Agent>() else {
             return CallToolResult::error(vec![ContentBlock::text("Unauthorized.")]);
         };
         let timeout = Duration::from_secs(params.timeout_secs.unwrap_or(60).clamp(1, 120));
-        match request_location(&self.state, user_id, timeout).await {
+        match request_location(&self.state, agent, timeout).await {
             Ok(location) => CallToolResult::success(vec![ContentBlock::text(
                 serde_json::to_string(&location).expect("Location serializes"),
             )]),
             Err(LocateError::Offline) => CallToolResult::error(vec![ContentBlock::text(
                 "The user's phone is not connected. Ask the user to open the Whereabot app and keep it open.",
+            )]),
+            Err(LocateError::Denied) => CallToolResult::error(vec![ContentBlock::text(
+                "The user declined to share their location.",
             )]),
             Err(LocateError::Timeout) => CallToolResult::error(vec![ContentBlock::text(
                 "The phone did not answer in time.",

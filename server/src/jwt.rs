@@ -10,13 +10,13 @@ struct Claims {
     client_id: Option<String>,
 }
 
-/// User id when every C3 rule passes. `client_id` is required for MCP, not for the phone.
+/// User id and `client_id` when every C3 rule passes. `client_id` is required for MCP, not for the phone.
 pub fn check(
     token: &str,
     key: &DecodingKey,
     issuer: &str,
     require_client_id: bool,
-) -> Option<Uuid> {
+) -> Option<(Uuid, Option<String>)> {
     // The key decides the one allowed algorithm. `none` and HS256 never match an EC or RSA key.
     let alg = match key.family() {
         AlgorithmFamily::Ec => Algorithm::ES256,
@@ -29,6 +29,6 @@ pub fn check(
     validation.set_audience(&["authenticated"]);
     validation.leeway = 30;
     let claims = decode::<Claims>(token, key, &validation).ok()?.claims;
-    let has_client = claims.client_id.is_some_and(|id| !id.is_empty());
-    (!require_client_id || has_client).then_some(claims.sub)
+    let client_id = claims.client_id.filter(|id| !id.is_empty());
+    (!require_client_id || client_id.is_some()).then_some((claims.sub, client_id))
 }

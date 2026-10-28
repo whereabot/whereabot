@@ -12,6 +12,7 @@
     "geolocation:allow-request-permissions",
     "geolocation:allow-get-current-position",
     "websocket:default",
+    "notification:default",
     "opener:default",
     "deep-link:default"
   ]

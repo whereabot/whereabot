@@ -54,7 +54,7 @@ async function connect(getToken: TokenSource) {
       retry(getToken);
       return;
     }
-    if (msg.type === "Text") await answerPing(socket, msg.data);
+    if (msg.type === "Text") await answerPing((m) => (ws ?? socket).send(m), msg.data);
   });
 }
 

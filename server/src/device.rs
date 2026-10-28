@@ -11,14 +11,17 @@ use axum::{
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
-use crate::{AppState, auth, oauth, protocol::FromDevice};
+use crate::{
+    AppState, auth, oauth,
+    protocol::{Answer, FromDevice},
+};
 
 pub async fn device(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     ws: WebSocketUpgrade,
 ) -> Response {
-    let Some(user_id) = auth::verify(&state, &headers, false).await else {
+    let Some((user_id, _)) = auth::verify(&state, &headers, false).await else {
         return oauth::unauthorized(&state.public_url);
     };
     ws.on_upgrade(move |socket| serve_device(state, user_id, socket))
@@ -48,7 +51,12 @@ async fn serve_device(state: Arc<AppState>, user_id: Uuid, mut socket: WebSocket
                 Some(Ok(Message::Text(text))) => match serde_json::from_str(&text) {
                     Ok(FromDevice::Location(location)) => {
                         if let Some(waiter) = state.pending.lock().await.remove(&location.id) {
-                            let _ = waiter.send(location);
+                            let _ = waiter.send(Answer::Fix(location));
+                        }
+                    }
+                    Ok(FromDevice::Denied { id }) => {
+                        if let Some(waiter) = state.pending.lock().await.remove(&id) {
+                            let _ = waiter.send(Answer::Denied);
                         }
                     }
                     Err(_) => continue,

@@ -5,6 +5,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_websocket::init())
         .plugin(tauri_plugin_geolocation::init())
+        .plugin(tauri_plugin_notification::init())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

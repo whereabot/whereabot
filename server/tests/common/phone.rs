@@ -42,3 +42,25 @@ pub async fn connect_silent_phone(
         .insert("authorization", format!("Bearer {token}").parse().unwrap());
     tokio_tungstenite::connect_async(req).await.unwrap().0
 }
+
+/// Connects a phone whose user declines every ping. It asserts the ping names `client_id`.
+pub async fn connect_denying_phone(addr: &str, token: &str, client_id: &str) {
+    let mut req = format!("ws://{addr}/v1/device")
+        .into_client_request()
+        .unwrap();
+    req.headers_mut()
+        .insert("authorization", format!("Bearer {token}").parse().unwrap());
+    let (mut ws, _) = tokio_tungstenite::connect_async(req).await.unwrap();
+    let client_id = client_id.to_string();
+    tokio::spawn(async move {
+        while let Some(Ok(msg)) = ws.next().await {
+            let Message::Text(text) = msg else { continue };
+            let ping: Value = serde_json::from_str(&text).unwrap();
+            assert_eq!(ping["client_id"], client_id.as_str());
+            let reply = json!({ "type": "denied", "id": ping["id"] });
+            ws.send(Message::Text(reply.to_string().into()))
+                .await
+                .unwrap();
+        }
+    });
+}

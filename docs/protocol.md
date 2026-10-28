@@ -21,6 +21,7 @@ Pings the user's phone and waits for the fix. Query: `timeout_secs`, default 30,
 |--------|---------|
 | `200` | The fix. The body is a JSON location. |
 | `401` | Missing, unknown, expired or revoked credential. |
+| `403` | The user declined to share their location. |
 | `503` | No phone is connected for this user. |
 | `504` | The phone did not answer before the timeout. |
 
@@ -32,7 +33,7 @@ Streamable HTTP, with JSON responses and no session. The same bearer header gate
 
 - One tool: `get_phone_location`. Optional `timeout_secs`, 1 to 120, default 30.
 - A fix returns as text: the JSON location.
-- Offline or timeout returns a tool error with a short message. The HTTP status stays `200`.
+- Offline, timeout or a declined request returns a tool error with a short message. The HTTP status stays `200`.
 - A bad credential returns `401` before any tool runs.
 
 ## Agent keys (headless fallback)
@@ -49,6 +50,7 @@ The phone opens a WebSocket to `/v1/device` with its Supabase access token as a 
 
 A new connection replaces the user's old one. The relay sends keep-alive pings, so idle sockets survive mobile networks.
 
-- **Relay to phone:** a ping with a new id. The phone answers it.
+- **Relay to phone:** a ping with a new id and the asking agent's `client_id` (from the token; agent keys use `agent-key`). The relay sends no name: the app maps `client_id` to the client name with `supabase.auth.oauth.listGrants()`. The relay resends the ping to a new socket after a reconnect, so the app handles each id once.
 - **Phone to relay:** a fix with the same id, so the relay matches it to the waiting agent.
+- **Consent:** the app asks the user (Reject, Approve, Always approve) before it answers. Always-approved agents get an answer at once. Reject sends `denied` with the id, and the relay ends the request: MCP tool error `The user declined to share their location.`, HTTP `403`. No answer in about 55 s sends nothing, and the agent times out.
 - **Unknown messages:** the relay ignores them. A fix with an unknown id is dropped.
