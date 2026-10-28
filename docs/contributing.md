@@ -4,6 +4,7 @@
 
 - Run `scripts/install-hooks.sh` once. The pre-push hook runs `linecheck .`. Install it with `cargo install linecheck`.
 - Local stack and end-to-end check: [quick start](../README.md#quick-start-local).
+- Regenerate UI screenshots in `docs/screens/` with `node scripts/screens.mjs` (needs Playwright and Chromium; see [screens index](screens/README.md)).
 
 ## Rules
 
