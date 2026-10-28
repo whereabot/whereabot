@@ -8,6 +8,9 @@
   "permissions": [
     "core:default",
     "geolocation:default",
+    "geolocation:allow-check-permissions",
+    "geolocation:allow-request-permissions",
+    "geolocation:allow-get-current-position",
     "websocket:default",
     "opener:default",
     "deep-link:default"
