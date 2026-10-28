@@ -21,6 +21,8 @@ pub mod push;
 mod relay_wire_protocol;
 mod supabase_signing_keys;
 pub use authenticated_agent::Agent;
+pub use mcp_location_tool::tool_list_json;
+pub use relay_wire_protocol::{FromDevice, ToDevice};
 mod graceful_shutdown;
 mod supabase_rest_client;
 

@@ -1,8 +1,9 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Fix sent by the phone in answer to a `locate` ping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Location {
     pub id: Uuid,
     pub latitude: f64,
@@ -12,7 +13,7 @@ pub struct Location {
 }
 
 /// Why the user did not share. Unknown reasons count as `User`.
-#[derive(Debug, Clone, Copy, Default, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum DeniedReason {
     NoAnswer,
@@ -22,7 +23,7 @@ pub enum DeniedReason {
 }
 
 /// Why the phone could not look. Unknown reasons count as `Error`.
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum UnavailableReason {
     Permission,
@@ -39,7 +40,7 @@ pub enum Answer {
 }
 
 /// Server -> device. `client_id` names the asking agent; the app maps it to a display name.
-#[derive(Serialize)]
+#[derive(Serialize, JsonSchema)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ToDevice {
     /// `expires_ms`: epoch ms when the relay stops waiting.
@@ -56,7 +57,7 @@ pub enum ToDevice {
 }
 
 /// Device -> server.
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum FromDevice {
     Hello {

@@ -60,6 +60,11 @@ impl ServerHandler for Whereabouts {
     }
 }
 
+/// Tool list as the MCP `tools/list` reply carries it. The docs build prints this.
+pub fn tool_list_json() -> serde_json::Value {
+    serde_json::to_value(Whereabouts::tool_router().list_all()).expect("tools serialize")
+}
+
 pub fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
     let factory_state = state.clone();
     // Stateless JSON responses: each POST stands alone, so no session header is needed.

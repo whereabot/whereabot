@@ -42,6 +42,10 @@ Fake data only: every network call is stubbed. Light colour scheme, reduced moti
 | [consent-request-mobile.png](consent-request-mobile.png) | Signed in. Shows the app name, the redirect host, Approve and Deny. (mobile) |
 | [consent-signin-desktop.png](consent-signin-desktop.png) | Signed out. Shows the Google sign-in button. (desktop) |
 | [consent-signin-mobile.png](consent-signin-mobile.png) | Signed out. Shows the Google sign-in button. (mobile) |
+| [docs-home-desktop.png](docs-home-desktop.png) | Docs at 1280 px: docs home: hero and three feature cards. |
+| [docs-home-mobile.png](docs-home-mobile.png) | Docs at 390 px: docs home: hero and three feature cards. |
+| [docs-mcp-tool-reference-desktop.png](docs-mcp-tool-reference-desktop.png) | Docs at 1280 px: the generated MCP tool reference. |
+| [docs-mcp-tool-reference-mobile.png](docs-mcp-tool-reference-mobile.png) | Docs at 390 px: the generated MCP tool reference. |
 | [site-landing-desktop.png](site-landing-desktop.png) | Landing page at 1280 px: hero, how it works, sample questions, agent setup, privacy. |
 | [site-landing-mobile.png](site-landing-mobile.png) | Landing page at 390 px: hero, how it works, sample questions, agent setup, privacy. |
 | [site-landing-skip-link-focus-desktop.png](site-landing-skip-link-focus-desktop.png) | Landing page with keyboard focus on the "Skip to content" link. |

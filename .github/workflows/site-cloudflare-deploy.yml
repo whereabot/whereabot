@@ -1,9 +1,16 @@
-# GitOps for the static site: fill consent config, deploy the "whereabouts" Worker, smoke-test.
+# GitOps for the landing page and docs (one Worker): build docs, fill consent config, deploy the "whereabouts" Worker, smoke-test.
 name: site-cloudflare-deploy
 on:
   push:
     branches: [main]
-    paths: ["site/**"]
+    paths:
+      - "site/**"
+      - "docs/**"
+      - "docs-site/**"
+      - "server/src/mcp_location_tool.rs"
+      - "server/src/relay_wire_protocol.rs"
+      - "README.md"
+      - ".github/workflows/site-cloudflare-deploy.yml"
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,6 +27,21 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: server
+      - name: Build the docs (reference pages come from the relay code)
+        working-directory: docs-site
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+          test -f .vitepress/dist/index.html
       - name: Stage site in a fresh temp dir and fill config.js
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
@@ -31,6 +53,8 @@ jobs:
           cp -R site "$STAGE/site"
           sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|g; s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|g" "$STAGE/site/oauth/consent/config.js"
           if grep -rEn '__[A-Z0-9_]+__' "$STAGE/site"; then echo "unfilled placeholder" >&2; exit 1; fi
+          # After the placeholder check: the docs bundle contains names like __VP_HASH_MAP__.
+          cp -R docs-site/.vitepress/dist "$STAGE/site/docs"
           echo "STAGE=$STAGE" >> "$GITHUB_ENV"
       - name: Deploy from the empty stage dir (wrangler 4 publishes cwd otherwise)
         working-directory: ${{ env.STAGE }}
@@ -44,8 +68,9 @@ jobs:
       - name: Smoke test
         run: |
           set -euo pipefail
-          for p in / /oauth/consent/; do
+          for p in / /docs/ /docs/reference/mcp-tools /oauth/consent/; do
             code=$(curl -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 3 --retry-all-errors "$SITE_URL$p")
             echo "$p -> $code"; [ "$code" = 200 ]
           done
           curl -sI "$SITE_URL/" | grep -i '^content-security-policy:'
+          curl -sI "$SITE_URL/docs/" | grep -i "^content-security-policy:.*script-src 'self';"

@@ -1,0 +1,14 @@
+{
+  "name": "whereabot-docs-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "stage": "node scripts/stage-docs-source.mjs",
+    "reference": "cargo run -q --manifest-path ../server/Cargo.toml --bin print_docs_reference_json > generated-source/reference.json && node scripts/generate-reference-pages.mjs",
+    "build": "npm run stage && npm run reference && vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "1.6.4"
+  }
+}

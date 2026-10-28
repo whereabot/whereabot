@@ -10,3 +10,9 @@
 /oauth/*
   ! Content-Security-Policy
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://*.supabase.co; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+# Docs (VitePress, /docs/): scripts stay 'self' only because the build moves every inline script to /docs/assets/.
+# style-src needs 'unsafe-inline' for the syntax-highlighter's style="--shiki-*" attributes (colours only; no script can run from it).
+/docs/*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'

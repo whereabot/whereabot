@@ -74,6 +74,7 @@ Relay URLs: [live URLs](infra/README.md#live-urls). The tool and its arguments: 
 - [Prior art](docs/prior-art.md): what exists and why this project
 - [Roadmap](docs/roadmap.md)
 - [Contributing](docs/contributing.md): hooks, line limit, adding a migration
+- [Docs site](https://whereabouts.ofek-gabay-he.workers.dev/docs/): built from these files by `docs-site/`, plus generated MCP and wire references
 - [Infrastructure](infra/README.md): live URLs, deploy steps, migrations
 
 ## License

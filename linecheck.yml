@@ -25,3 +25,5 @@ exclude:
   - "**/.terraform.lock.hcl"
   - "LICENSE"
   - ".claude/**"
+  - "docs-site/generated-source/**"
+  - "docs-site/.vitepress/cache/**"

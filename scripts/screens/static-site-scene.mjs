@@ -33,10 +33,13 @@ export function sessionInit() {
   return [seedSessionInPage, { key: FAKE.sessionKey, value: JSON.stringify(SESSION) }];
 }
 
-async function serveFile(route, dir, pathname) {
-  let file = normalize(join(dir, decodeURIComponent(pathname)));
+async function serveFile(route, dir, pathname, mount) {
+  // `mount` is the URL folder that `dir` stands for, e.g. "/docs" for the built docs.
+  const inside = mount && pathname.startsWith(mount) ? pathname.slice(mount.length) : pathname;
+  let file = normalize(join(dir, decodeURIComponent(inside)));
   if (!file.startsWith(dir + sep) && file !== dir) return route.fulfill({ status: 403, body: 'forbidden' });
   if (pathname.endsWith('/')) file = join(file, 'index.html');
+  else if (!extname(file)) file += '.html'; // clean URLs: /protocol -> protocol.html
   try {
     const body = await readFile(file);
     return route.fulfill({ status: 200, contentType: TYPES[extname(file)] ?? 'application/octet-stream', body });
@@ -46,16 +49,16 @@ async function serveFile(route, dir, pathname) {
 }
 
 /** Stubs match by URL prefix first. Own origin is served from disk. Anything else is aborted. */
-async function routeRequest(route, { origin, dir, stubs }) {
+async function routeRequest(route, { origin, dir, stubs, mount }) {
   const href = route.request().url();
   const stub = stubs.find(([prefix]) => href.startsWith(prefix));
   if (stub) return stub[1](route, route.request());
-  if (href.startsWith(origin + '/')) return serveFile(route, dir, new URL(href).pathname);
+  if (href.startsWith(origin + '/')) return serveFile(route, dir, new URL(href).pathname, mount);
   return route.abort();
 }
 
 /** One isolated context per state. Runs `run(page)`, then closes the context. */
-export async function withScene(browser, { viewport, origin, dir, stubs = [], init = [] }, run) {
+export async function withScene(browser, { viewport, origin, dir, mount = '', stubs = [], init = [] }, run) {
   const context = await browser.newContext({
     viewport: VIEWPORTS[viewport],
     deviceScaleFactor: 1,
@@ -66,7 +69,7 @@ export async function withScene(browser, { viewport, origin, dir, stubs = [], in
     serviceWorkers: 'block',
   });
   try {
-    await context.route('**/*', (route) => routeRequest(route, { origin, dir, stubs }));
+    await context.route('**/*', (route) => routeRequest(route, { origin, dir, stubs, mount }));
     const page = await context.newPage();
     await page.clock.setFixedTime(FIXED_TIME);
     for (const [fn, arg] of init) await page.addInitScript(fn, arg);

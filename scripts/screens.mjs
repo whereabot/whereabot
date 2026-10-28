@@ -6,6 +6,7 @@ import { OUT_DIR, launch } from './screens/playwright-browser.mjs';
 import { captureApp } from './screens/app-screenshots.mjs';
 import { captureConsent } from './screens/consent-screenshots.mjs';
 import { captureSite } from './screens/site-screenshots.mjs';
+import { captureDocs } from './screens/docs-screenshots.mjs';
 import { writeReadme } from './screens/screens-readme-writer.mjs';
 
 mkdirSync(OUT_DIR, { recursive: true });
@@ -17,6 +18,7 @@ const browser = await launch();
 const shots = [];
 try {
   shots.push(...(await captureSite(browser)));
+  shots.push(...(await captureDocs(browser)));
   shots.push(...(await captureConsent(browser)));
   shots.push(...(await captureApp(browser)));
 } finally {
