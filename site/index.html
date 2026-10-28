@@ -36,8 +36,8 @@
   <section id="how" aria-labelledby="how-title">
     <h2 id="how-title">How it works</h2>
     <ol class="steps">
-      <li><h3>Create an agent key</h3><p>Sign in with Google in the phone app. Create a key that starts with <code>wb_</code>. The app shows it once.</p></li>
-      <li><h3>Connect your agent</h3><p>Add the relay as an MCP server with one command. See <a href="#agent">Add to your agent</a>.</p></li>
+      <li><h3>Add the relay URL</h3><p>Add the relay URL to your MCP client. See <a href="#agent">Add to your agent</a>.</p></li>
+      <li><h3>Sign in when asked</h3><p>Your client opens a browser. Sign in with Google and approve the request. No token to copy.</p></li>
       <li><h3>Ask</h3><p>Your agent calls <code>get_phone_location</code>. Your phone reads its GPS fix now and sends it back.</p></li>
     </ol>
     <div class="flow" role="img" aria-label="Your agent sends a request to the relay. The relay pings your phone. Your phone reads its location and sends the fix back through the relay to your agent.">
@@ -59,9 +59,9 @@
 
   <section id="agent" aria-labelledby="agent-title">
     <h2 id="agent-title">Add to your agent</h2>
-    <p>Create a key in the app first. Then run this, replacing <code>&lt;relay-url&gt;</code> and <code>wb_...</code>.</p>
-    <pre><code>claude mcp add --transport http whereabouts &lt;relay-url&gt;/mcp --header "Authorization: Bearer wb_..."</code></pre>
-    <p class="note">Other MCP clients: point them at <code>&lt;relay-url&gt;/mcp</code> with the same bearer header.</p>
+    <p>Add the relay URL to your MCP client, replacing <code>&lt;relay-url&gt;</code>. Your client opens a browser and asks you to sign in.</p>
+    <pre><code>claude mcp add --transport http whereabouts &lt;relay-url&gt;/mcp</code></pre>
+    <p class="note">Other MCP clients: add <code>&lt;relay-url&gt;/mcp</code> as an HTTP server. Sign in when asked.</p>
   </section>
 
   <section id="privacy" aria-labelledby="privacy-title">
@@ -69,7 +69,7 @@
     <dl class="points">
       <div><dt>Asked, not watched</dt><dd>Your phone reads its location only when your agent asks.</dd></div>
       <div><dt>Nothing stored</dt><dd>The relay keeps no location history. A fix lives in memory for one request.</dd></div>
-      <div><dt>Revocable keys</dt><dd>Each agent has its own key. Revoke it in the app at any time.</dd></div>
+      <div><dt>Revocable access</dt><dd>Each agent signs in separately. Remove its access any time by signing out of it or revoking it.</dd></div>
       <div><dt>Open source</dt><dd>MIT licensed. Read the relay and app code yourself.</dd></div>
     </dl>
   </section>

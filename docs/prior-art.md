@@ -11,4 +11,4 @@ Checked October 2026. The question: can an agent ask a **phone** for its current
 
 ## Why Whereabouts
 
-No open-source project found gives the full path agent → own relay → ping phone → fresh fix. Whereabouts does it with one Rust binary and one Tauri app, and it keeps no location history.
+No open-source project found gives the full path agent → own relay → ping phone → fresh fix. Whereabouts does it with one Rust binary and one Tauri app. How it works: [architecture](architecture.md).

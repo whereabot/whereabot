@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Approve access · Whereabouts</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../../css/base.css">
+  <link rel="stylesheet" href="../../css/parts.css">
+  <link rel="stylesheet" href="consent.css">
+  <script type="module" src="consent.js"></script>
+</head>
+<body>
+<main id="main" class="consent">
+  <h1>Approve access</h1>
+  <p id="status" role="status" aria-live="polite">Loading…</p>
+
+  <section id="signin" aria-labelledby="signin-title" hidden>
+    <h2 id="signin-title">Sign in</h2>
+    <button type="button" id="signin-btn" class="btn primary">Sign in with Google</button>
+  </section>
+
+  <section id="request" aria-labelledby="request-title" hidden>
+    <h2 id="request-title">An app asks to use Whereabouts</h2>
+    <dl>
+      <div><dt>App</dt><dd id="client-name"></dd></div>
+      <div><dt>Sends the answer to</dt><dd id="redirect-host"></dd></div>
+      <div><dt>Signed in as</dt><dd id="user-email"></dd></div>
+    </dl>
+    <p>If you approve, the app can ask for <strong>your location, only when your agent asks</strong>.</p>
+    <div class="actions">
+      <button type="button" id="approve" class="btn primary">Approve</button>
+      <button type="button" id="deny" class="btn">Deny</button>
+    </div>
+  </section>
+</main>
+</body>
+</html>

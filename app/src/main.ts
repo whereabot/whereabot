@@ -1,6 +1,5 @@
 import { $, setStatus, showView } from "./dom";
 import { disconnect, start } from "./connection";
-import { initKeys, refreshKeys } from "./keys";
 import { listenForAuthRedirect, signInWithGoogle, signInWithPassword, signOut } from "./auth";
 import { devLogin } from "./config";
 import { getAccessToken, supabase } from "./supabase";
@@ -28,10 +27,9 @@ window.addEventListener("DOMContentLoaded", () => {
     disconnect();
     await signOut();
   });
-  initKeys();
   void listenForAuthRedirect();
 
-  supabase.auth.onAuthStateChange((event, session) => {
+  supabase.auth.onAuthStateChange((_event, session) => {
     // Deferred: supabase calls must not run inside the auth callback.
     setTimeout(() => {
       if (!session) {
@@ -40,7 +38,6 @@ window.addEventListener("DOMContentLoaded", () => {
         return;
       }
       showView("signed-in");
-      if (event === "SIGNED_IN" || event === "INITIAL_SESSION") void refreshKeys();
       void start(currentToken);
     }, 0);
   });
