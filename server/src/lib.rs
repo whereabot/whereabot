@@ -8,7 +8,7 @@ use axum::{
     },
     http::{HeaderMap, StatusCode, header::AUTHORIZATION},
     response::{IntoResponse, Response},
-    routing::{any, post},
+    routing::{any, get, post},
 };
 use serde::{Deserialize, Serialize};
 use subtle::ConstantTimeEq;
@@ -60,7 +60,12 @@ pub fn app(config: Config) -> Router {
     Router::new()
         .route("/v1/locate", post(locate))
         .route("/v1/device", any(device))
+        .route("/healthz", get(healthz))
         .with_state(state)
+}
+
+async fn healthz() -> &'static str {
+    "ok"
 }
 
 fn authorized(headers: &HeaderMap, token: &str) -> bool {
@@ -119,11 +124,19 @@ async fn serve_device(state: Arc<AppState>, mut socket: WebSocket) {
     let (tx, mut rx) = mpsc::channel(8);
     // A new connection replaces the old one; the old loop ends when its sender drops.
     *state.device.lock().await = Some(tx.clone());
+    tracing::info!("device connected");
+    // Keeps mobile networks and Cloudflare from dropping an idle socket.
+    let mut keepalive = tokio::time::interval(Duration::from_secs(25));
     loop {
         tokio::select! {
             Some(msg) = rx.recv() => {
                 let text = serde_json::to_string(&msg).expect("ToDevice serializes");
                 if socket.send(Message::Text(text.into())).await.is_err() {
+                    break;
+                }
+            }
+            _ = keepalive.tick() => {
+                if socket.send(Message::Ping(Default::default())).await.is_err() {
                     break;
                 }
             }
@@ -142,8 +155,12 @@ async fn serve_device(state: Arc<AppState>, mut socket: WebSocket) {
             else => break,
         }
     }
+    tracing::info!("device disconnected");
     let mut device = state.device.lock().await;
-    if device.as_ref().is_some_and(|current| current.same_channel(&tx)) {
+    if device
+        .as_ref()
+        .is_some_and(|current| current.same_channel(&tx))
+    {
         *device = None;
     }
 }

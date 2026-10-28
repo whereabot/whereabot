@@ -14,20 +14,26 @@ async fn start() -> String {
 }
 
 async fn connect_device(addr: &str) {
-    let mut req = format!("ws://{addr}/v1/device").into_client_request().unwrap();
+    let mut req = format!("ws://{addr}/v1/device")
+        .into_client_request()
+        .unwrap();
     req.headers_mut()
         .insert("authorization", "Bearer device".parse().unwrap());
     let (mut ws, _) = tokio_tungstenite::connect_async(req).await.unwrap();
     // Fake phone: answer every ping with a fixed fix.
     tokio::spawn(async move {
-        while let Some(Ok(Message::Text(text))) = ws.next().await {
+        // Skip the server's keepalive pings; only locate frames are text.
+        while let Some(Ok(msg)) = ws.next().await {
+            let Message::Text(text) = msg else { continue };
             let ping: serde_json::Value = serde_json::from_str(&text).unwrap();
             assert_eq!(ping["type"], "locate");
             let reply = serde_json::json!({
                 "type": "location", "id": ping["id"],
                 "latitude": 32.08, "longitude": 34.78, "accuracy_m": 5.0, "captured_at_ms": 1
             });
-            ws.send(Message::Text(reply.to_string().into())).await.unwrap();
+            ws.send(Message::Text(reply.to_string().into()))
+                .await
+                .unwrap();
         }
     });
 }
@@ -58,6 +64,18 @@ async fn agent_ping_reaches_device_and_returns_location() {
     let body: serde_json::Value = res.json().await.unwrap();
     assert_eq!(body["latitude"], 32.08);
     assert_eq!(body["longitude"], 34.78);
+}
+
+#[tokio::test]
+async fn healthz_is_ok_without_auth() {
+    let addr = start().await;
+    let res = reqwest::Client::new()
+        .get(format!("http://{addr}/healthz"))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), 200);
+    assert_eq!(res.text().await.unwrap(), "ok");
 }
 
 #[tokio::test]
