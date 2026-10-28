@@ -2,8 +2,12 @@
 
 Let your AI agent ask **your phone** where you are, on demand. You host the relay. Sign-in and user data live in Supabase.
 
-```
-agent ──HTTP / MCP──▶ relay (Rust) ──WebSocket──▶ phone app (Tauri) ──GPS fix──▶ relay ──▶ agent
+```mermaid
+flowchart LR
+  Agent["AI agent"] -->|"MCP or HTTP"| Relay["Relay (Rust)"]
+  Relay -->|WebSocket| Phone["Phone app (Tauri)"]
+  Phone -->|"GPS fix"| Relay
+  Relay -->|"answer"| Agent
 ```
 
 The relay keeps no location history. It sends a ping, the phone reads its GPS now, and the answer goes back to the agent.
@@ -18,10 +22,10 @@ Early MVP. The phone answers pings **while the app is open**. Waking a closed ap
 |------|------|
 | [`server/`](server) | Rust relay (axum). Agents call it over HTTP or MCP; the phone holds a WebSocket to it. |
 | [`app/`](app) | Tauri v2 phone app (Android / iOS). Signs in, then answers pings with a GPS fix. |
-| [`supabase/`](supabase) | Database migrations for agent keys. |
+| [`supabase/`](supabase) | Database migrations and tests. |
 | [`infra/`](infra) | OpenTofu for the dev and prod environments. |
 | [`scripts/`](scripts) | Local dev, end-to-end check, deploy, hook install. |
-| [`docs/`](docs) | Architecture, protocol, prior art, roadmap. |
+| [`docs/`](docs) | Architecture, protocol, prior art, roadmap, contributing. |
 
 ## Quick start (local)
 
@@ -31,7 +35,7 @@ Early MVP. The phone answers pings **while the app is open**. Waking a closed ap
    scripts/dev-up.sh
    ```
 
-   It writes `server/.env.local` (gitignored) and prints the `app/.env.local` lines. The relay listens on `WB_PORT` (default 8787).
+   It writes `server/.env.local` (gitignored) and prints the `app/.env.local` lines.
 
 2. In a second terminal, run the phone app in the Android emulator. Copy the template, then fill in the values that `dev-up.sh` prints:
 
@@ -42,30 +46,21 @@ Early MVP. The phone answers pings **while the app is open**. Waking a closed ap
 
    Sign in with the dev email and password form.
 
-3. Check the whole path, from agent key to phone and back. Run it in the second terminal. The stack and the relay must already run. It needs `curl`, `jq`, `openssl`, `node` and `npm`. It prints PASS or FAIL for 12 checks and exits 1 on failure. For another port, set the same value: `WB_PORT=8788 scripts/e2e-local.sh`:
+3. Check the whole path, from agent to phone and back. Run it in the second terminal while the stack and relay run. It needs `curl`, `jq`, `openssl`, `node` and `npm`. It prints PASS or FAIL per check and exits 1 on failure. For another port, set the same value for both: `WB_PORT=8788 scripts/e2e-local.sh`:
 
    ```bash
    scripts/e2e-local.sh
    ```
 
-## Use it from your agent
+## Connect your agent
 
-1. In the app, create an agent key. The key starts with `wb_`. The app shows it once.
-2. Add the relay as an MCP server in Claude Code:
+Coming next: sign-in through the browser (OAuth). See [roadmap](docs/roadmap.md). Once live, you add the relay to your MCP client and sign in once. You never create or paste a token.
 
-   ```bash
-   claude mcp add --transport http whereabouts <relay-url>/mcp --header "Authorization: Bearer wb_..."
-   ```
+```bash
+claude mcp add --transport http whereabouts <prod-relay-url>/mcp
+```
 
-   The tool is `get_phone_location`. Details: [protocol](docs/protocol.md).
-
-3. Or call the relay directly:
-
-   ```bash
-   curl -X POST -H "Authorization: Bearer wb_..." "<relay-url>/v1/locate?timeout_secs=30"
-   ```
-
-For a local relay, `<relay-url>` is `http://127.0.0.1:8787`.
+Relay URLs: [live URLs](infra/README.md#live-urls). The tool and its arguments: [protocol](docs/protocol.md).
 
 ## Docs
 
@@ -73,12 +68,8 @@ For a local relay, `<relay-url>` is `http://127.0.0.1:8787`.
 - [Protocol](docs/protocol.md): HTTP, MCP and WebSocket at intent level
 - [Prior art](docs/prior-art.md): what exists and why this project
 - [Roadmap](docs/roadmap.md)
-- [Infrastructure](infra/README.md): deploy steps per environment, and [migrations](infra/README.md#migrations) (applied by GitHub Actions)
-
-## Contributing
-
-- Run `scripts/install-hooks.sh` once. The pre-push hook runs `linecheck .` (install with `cargo install linecheck`).
-- Every file stays at 100 lines or fewer. Split a file by its job when it grows.
+- [Contributing](docs/contributing.md): hooks, line limit, adding a migration
+- [Infrastructure](infra/README.md): live URLs, deploy steps, migrations
 
 ## License
 

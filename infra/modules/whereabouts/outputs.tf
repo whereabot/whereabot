@@ -20,7 +20,7 @@ output "supabase_project_ref" {
 }
 
 output "db_url" {
-  description = "Postgres URL for supabase db push (direct connection)."
+  description = "Direct Postgres URL (read by the migrations workflow setup; never push migrations by hand)."
   value       = "postgresql://postgres:${random_password.db.result}@db.${supabase_project.this.id}.supabase.co:5432/postgres"
   sensitive   = true
 }
