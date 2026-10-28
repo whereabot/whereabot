@@ -7,19 +7,19 @@ use std::time::Duration;
 
 use uuid::Uuid;
 
-mod apns;
-mod config;
+mod apns_config;
+mod apns_provider_token;
+mod apns_sender;
 #[cfg(test)]
-mod fake;
-mod jwt;
+mod fake_apns_and_postgrest;
 pub mod location_request_wake;
+mod push_token_store;
 #[cfg(test)]
-mod tests;
-mod tokens;
+mod push_wake_tests;
 
-use apns::{Apns, Sent};
-pub use config::PushConfig;
-use tokens::Tokens;
+pub use apns_config::PushConfig;
+use apns_sender::{Apns, Sent};
+use push_token_store::Tokens;
 
 pub struct Push {
     apns: Apns,

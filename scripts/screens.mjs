@@ -1,12 +1,12 @@
 // Renders PNG screenshots of every page and visible state into docs/screens/.
-// Usage: node scripts/screens.mjs   (needs Playwright and its Chromium; see scripts/screens/browser.mjs)
+// Usage: node scripts/screens.mjs   (needs Playwright and its Chromium; see scripts/screens/playwright-browser.mjs)
 import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { OUT_DIR, launch } from './screens/browser.mjs';
-import { captureApp } from './screens/app.mjs';
-import { captureConsent } from './screens/consent.mjs';
-import { captureSite } from './screens/site.mjs';
-import { writeReadme } from './screens/readme.mjs';
+import { OUT_DIR, launch } from './screens/playwright-browser.mjs';
+import { captureApp } from './screens/app-screenshots.mjs';
+import { captureConsent } from './screens/consent-screenshots.mjs';
+import { captureSite } from './screens/site-screenshots.mjs';
+import { writeReadme } from './screens/screens-readme-writer.mjs';
 
 mkdirSync(OUT_DIR, { recursive: true });
 for (const file of readdirSync(OUT_DIR)) {

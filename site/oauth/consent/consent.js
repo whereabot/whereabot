@@ -1,5 +1,5 @@
 import { createClient } from './supabase.esm.mjs';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase-config.js';
 
 const $ = (id) => document.getElementById(id);
 const authorizationId = new URLSearchParams(location.search).get('authorization_id');
@@ -61,7 +61,7 @@ async function start() {
 }
 
 $('signin-btn').addEventListener('click', async () => {
-  if (!configured) return fail('This page is not configured. Deploy fills config.js.');
+  if (!configured) return fail('This page is not configured. Deploy fills supabase-config.js.');
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: location.href },

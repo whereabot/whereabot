@@ -1,16 +1,16 @@
 #![allow(dead_code)]
 //! Shared fixtures: relay start-up, OAuth tokens, and the agent-side HTTP helpers.
 
-pub mod agent_rpc;
-pub mod http;
-pub mod jwt;
-pub mod mcp;
-pub mod phone;
-pub mod scripted;
-pub mod supabase;
+pub mod agent_key_rpc_fake;
+pub mod fake_phone;
+pub mod fake_supabase;
+pub mod locate_http_client;
+pub mod mcp_client;
+pub mod scripted_fake_phone;
+pub mod test_token_signer;
 
 #[allow(unused_imports)]
-pub use http::{locate_once, locate_settled};
+pub use locate_http_client::{locate_once, locate_settled};
 
 use std::sync::{
     Arc,
@@ -40,19 +40,19 @@ pub struct Relay {
 impl Relay {
     /// An MCP token that also carries an `email` claim.
     pub fn mcp_email(&self, user: &str, email: &str) -> String {
-        let mut claims = jwt::claims(&self.issuer, user, true);
+        let mut claims = test_token_signer::claims(&self.issuer, user, true);
         claims["email"] = email.into();
-        jwt::sign(&claims)
+        test_token_signer::sign(&claims)
     }
 
     /// A token an MCP client holds: has `client_id`.
     pub fn mcp(&self, user: &str) -> String {
-        jwt::sign(&jwt::claims(&self.issuer, user, true))
+        test_token_signer::sign(&test_token_signer::claims(&self.issuer, user, true))
     }
 
     /// The phone's session token: no `client_id`.
     pub fn phone(&self, user: &str) -> String {
-        jwt::sign(&jwt::claims(&self.issuer, user, false))
+        test_token_signer::sign(&test_token_signer::claims(&self.issuer, user, false))
     }
 }
 
@@ -63,13 +63,13 @@ pub async fn start_relay() -> Relay {
 
 /// Starts a relay with `WB_AGENT_KEYS` on.
 pub async fn spawn(agent_keys: bool) -> Relay {
-    let fake = supabase::start().await;
+    let fake = fake_supabase::start().await;
     let issuer = format!("{}/auth/v1", fake.url);
     let config = Config {
         supabase_url: fake.url.clone(),
         issuer: issuer.clone(),
         public_url: PUBLIC_URL.into(),
-        agent_keys: agent_keys.then(|| supabase::SERVICE_KEY.into()),
+        agent_keys: agent_keys.then(|| fake_supabase::SERVICE_KEY.into()),
         anon_key: None,
     };
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();

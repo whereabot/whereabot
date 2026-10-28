@@ -35,7 +35,7 @@ mod tests {
 
     #[tokio::test]
     async fn pushes_at_once_when_offline_and_never_without_user_jwt() {
-        let (push, fake) = super::super::fake::start().await;
+        let (push, fake) = super::super::fake_apns_and_postgrest::start().await;
         let push = Arc::new(push);
         assert!(start(None, Some("jwt"), false, Uuid::new_v4(), 0).is_none());
         assert!(start(Some(&push), None, false, Uuid::new_v4(), 0).is_none());

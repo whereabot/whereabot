@@ -1,6 +1,6 @@
-import { isOnline, seenText } from "../devices/presence";
-import type { Device } from "../devices/store";
-import { el } from "./view";
+import { isOnline, seenText } from "../devices/device-online-status";
+import type { Device } from "../devices/device-list-store";
+import { el } from "./screen-view-helpers";
 
 export type RowActions = {
   onRename: (d: Device, name: string) => void;

@@ -3,8 +3,8 @@
 The code is the source of truth. This page explains intent. Exact shapes live in code:
 
 - Relay routes: [`server/src/lib.rs`](../server/src/lib.rs)
-- Messages between relay and phone: [`server/src/protocol.rs`](../server/src/protocol.rs) and [`app/src/protocol.ts`](../app/src/protocol.ts)
-- MCP tool: [`server/src/mcp.rs`](../server/src/mcp.rs)
+- Messages between relay and phone: [`server/src/relay_wire_protocol.rs`](../server/src/relay_wire_protocol.rs) and [`app/src/relay-wire-protocol.ts`](../app/src/relay-wire-protocol.ts)
+- MCP tool: [`server/src/mcp_location_tool.rs`](../server/src/mcp_location_tool.rs)
 - Credential checks: [`supabase/migrations/`](../supabase/migrations)
 
 ## Agent to relay

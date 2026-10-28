@@ -1,4 +1,4 @@
-import { FAKE } from './browser.mjs';
+import { FAKE } from './playwright-browser.mjs';
 
 export const ORIGIN = 'http://site.local';
 export const AUTH_ID = 'fake-authorization-id';

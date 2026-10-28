@@ -1,14 +1,14 @@
-import { $, setState, setStatus, showView } from "./dom";
-import { disconnect, start } from "./connection";
-import { listenForAuthRedirect, signInWithGoogle, signInWithPassword, signOut } from "./auth";
-import { devLogin } from "./config";
-import { initDevices } from "./ui/devices";
-import { initHistory } from "./ui/history";
-import { initHome } from "./ui/home";
-import { initPermissions } from "./ui/permissions";
-import { forgetPush, initPush } from "./push/register";
-import { clearLocalData } from "./history";
-import { getAccessToken, supabase } from "./supabase";
+import { $, setState, setStatus, showView } from "./status-display-dom";
+import { disconnect, start } from "./relay-connection";
+import { listenForAuthRedirect, signInWithGoogle, signInWithPassword, signOut } from "./supabase-sign-in";
+import { devLogin } from "./build-config";
+import { initDevices } from "./ui/devices-screen";
+import { initHistory } from "./ui/history-screen";
+import { initHome } from "./ui/home-screen";
+import { initPermissions } from "./ui/permissions-screen";
+import { forgetPush, initPush } from "./push/push-token-registration";
+import { clearLocalData } from "./request-history-store";
+import { getAccessToken, supabase } from "./supabase-client";
 
 /** Read on every (re)connect. No session means the sign-in screen shows. */
 async function currentToken() {
@@ -61,7 +61,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // Screenshot builds only: lets scripts/screens drive the UI without a relay.
 if (import.meta.env.VITE_SCREENS) {
-  void Promise.all([import("./ui/request"), import("./ui/history"), import("./ui/view"), import("./ui/devices")]).then(([r, h, v, d]) => {
+  void Promise.all([import("./ui/request-screen"), import("./ui/history-screen"), import("./ui/screen-view-helpers"), import("./ui/devices-screen")]).then(([r, h, v, d]) => {
     Object.assign(window, { __ui: { ...r, ...h, ...v, ...d } });
   });
 }
