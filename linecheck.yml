@@ -1,10 +1,10 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/tupe12334/linecheck/main/schema/linecheck.schema.json
 
 rules:
-  # Ratchet: lower error step by step (186 -> 150 -> 120 -> 100). Never raise it.
+  # Ratchet: lower error step by step (186 -> 150 -> 120 -> 100, done). Never raise it.
   - pattern: "**/*"
-    warn: 100
-    error: 120
+    warn: 90
+    error: 100
     error_message: "Split this file by responsibility. Target is 100 lines (ratchet: see linecheck.yml)"
 
 exclude:
