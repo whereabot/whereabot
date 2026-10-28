@@ -364,14 +364,15 @@ enabled = false
 # Obtain from https://clerk.com/setup/supabase
 # domain = "example.clerk.accounts.dev"
 
-# OAuth server configuration
+# OAuth server configuration. Same settings as the hosted project (infra supabase.tf).
+# Key names confirmed in the local CLI binary: enabled, authorization_url_path, allow_dynamic_registration.
 [auth.oauth_server]
 # Enable OAuth server functionality
-enabled = false
+enabled = true
 # Path for OAuth consent flow UI
-authorization_url_path = "/oauth/consent"
+authorization_url_path = "/oauth/consent/"
 # Allow dynamic client registration
-allow_dynamic_registration = false
+allow_dynamic_registration = true
 
 [edge_runtime]
 enabled = true
