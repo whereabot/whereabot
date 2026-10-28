@@ -7,8 +7,8 @@ use axum::{
 use tokio::sync::{Mutex, oneshot};
 use uuid::Uuid;
 
-mod agent;
 mod auth;
+mod authenticated_agent;
 mod device;
 mod device_in;
 mod devices;
@@ -20,7 +20,7 @@ mod mcp;
 mod oauth;
 mod protocol;
 pub mod push;
-pub use agent::Agent;
+pub use authenticated_agent::Agent;
 mod shutdown;
 mod supabase;
 

@@ -12,7 +12,7 @@ mod config;
 #[cfg(test)]
 mod fake;
 mod jwt;
-pub mod schedule;
+pub mod location_request_wake;
 #[cfg(test)]
 mod tests;
 mod tokens;

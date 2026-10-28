@@ -18,7 +18,7 @@ use crate::{
     devices::fanout::Fanout,
     errors::LocateError,
     protocol::{Answer, Location},
-    push::schedule,
+    push::location_request_wake,
 };
 
 #[derive(Deserialize)]
@@ -42,7 +42,7 @@ pub async fn request_location(
     let (tx, mut rx) = oneshot::channel();
     state.pending.lock().await.insert(id, tx);
     let connected = !state.devices.senders(agent.user_id).await.is_empty();
-    let wake = schedule::start(
+    let wake = location_request_wake::start(
         state.push.as_ref(),
         agent.bearer.as_deref(),
         connected,
