@@ -56,6 +56,8 @@ export const clearHistory = () => localStorage.removeItem(key(REQUESTS));
 /** Sign-out: drops every user's history and always-allowed list from this phone. */
 export function clearLocalData() {
   for (const k of Object.keys(localStorage)) {
+    // First-run flag from ui/home.ts: the next account sees onboarding again.
+    if (k === "whereabouts.onboarded") localStorage.removeItem(k);
     if ([REQUESTS, ALWAYS, UID].some((base) => k === base || k.startsWith(`${base}.`))) localStorage.removeItem(k);
   }
   uid = "anon";
