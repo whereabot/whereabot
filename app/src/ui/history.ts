@@ -1,7 +1,7 @@
 import type { Agent } from "../agent";
 import { $ } from "../dom";
-import { listAlwaysApproved, listRequests, removeAlwaysApproved } from "../history";
-import { el, setScreen } from "./view";
+import { clearHistory, listAlwaysApproved, listRequests, removeAlwaysApproved } from "../history";
+import { announce, el, setScreen } from "./view";
 
 type Entries = ReturnType<typeof listRequests>;
 
@@ -51,6 +51,12 @@ export function initHistory() {
   $("open-history").addEventListener("click", () => {
     refresh();
     setScreen("history");
+    $("history-title").focus();
+  });
+  $("history-clear").addEventListener("click", () => {
+    clearHistory();
+    refresh();
+    announce("History cleared");
     $("history-title").focus();
   });
   $("history-back").addEventListener("click", () => {

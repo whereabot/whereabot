@@ -1,11 +1,19 @@
 export const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
-export type ConnState = "connected" | "waiting" | "disconnected";
+export type ConnState = "connected" | "waiting" | "disconnected" | "replaced" | "expired";
 
 const LABELS: Record<ConnState, string> = {
   connected: "Connected",
   waiting: "Waiting",
   disconnected: "Disconnected",
+  replaced: "Replaced",
+  expired: "Sign-in expired",
+};
+
+/** States that explain themselves in the status line. */
+const NOTES: Partial<Record<ConnState, string>> = {
+  replaced: "Another phone is now connected for this account.",
+  expired: "Sign-in expired. Sign out and sign in again.",
 };
 
 export function setStatus(text: string) {
@@ -16,8 +24,11 @@ export function setStatus(text: string) {
 export function setState(state: ConnState) {
   $("state-card").dataset.state = state;
   $("state-label").textContent = LABELS[state];
-  $("connect").hidden = state !== "disconnected";
-  $("disconnect").hidden = state === "disconnected";
+  const note = NOTES[state];
+  if (note) setStatus(note);
+  // "replaced" allows a manual Connect. "expired" needs sign-out, so no button.
+  $("connect").hidden = state !== "disconnected" && state !== "replaced";
+  $("disconnect").hidden = state !== "connected" && state !== "waiting";
 }
 
 export function showView(view: "signed-in" | "signed-out") {

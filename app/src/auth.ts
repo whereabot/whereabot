@@ -1,16 +1,26 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { supabase } from "./supabase";
-import { setStatus } from "./dom";
+import { $, setStatus } from "./dom";
 
 const REDIRECT = "whereabouts://auth-callback";
 
+/** One browser tab at a time: the button stays off until the user is back. */
+function setBusy(busy: boolean) {
+  $<HTMLButtonElement>("google-sign-in").disabled = busy;
+}
+document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && setBusy(false));
+
 export async function signInWithGoogle() {
+  setBusy(true);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: { redirectTo: REDIRECT, skipBrowserRedirect: true },
   });
-  if (error) return setStatus(`Sign-in failed: ${error.message}`);
+  if (error) {
+    setBusy(false);
+    return setStatus(`Sign-in failed: ${error.message}`);
+  }
   await openUrl(data.url);
 }
 
@@ -28,7 +38,16 @@ export async function signOut() {
 async function completeRedirect(urls: string[]) {
   for (const url of urls) {
     if (!url.startsWith(REDIRECT)) continue;
-    const code = new URL(url).searchParams.get("code");
+    const u = new URL(url);
+    const hash = new URLSearchParams(u.hash.slice(1));
+    const get = (k: string) => u.searchParams.get(k) ?? hash.get(k);
+    const err = get("error");
+    if (err) {
+      setBusy(false);
+      setStatus(err === "access_denied" ? "Sign-in cancelled" : `Sign-in failed: ${get("error_description") ?? err}`);
+      continue;
+    }
+    const code = u.searchParams.get("code");
     if (!code) continue;
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) setStatus(`Sign-in failed: ${error.message}`);
