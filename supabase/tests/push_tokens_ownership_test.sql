@@ -19,8 +19,8 @@ select throws_ok(
   '42501', null, 'A cannot insert a row for B'
 );
 select lives_ok($$update public.push_tokens set updated_at = now() where token = 'token-a'$$, 'A updates own token');
-select is((with d as (delete from public.push_tokens where token = 'token-b' returning 1) select count(*)::int from d), 0, 'A cannot delete B token');
-select is((with d as (delete from public.push_tokens where token = 'token-a' returning 1) select count(*)::int from d), 1, 'A deletes own token');
+with d as (delete from public.push_tokens where token = 'token-b' returning 1) select is(count(*)::int, 0, 'A cannot delete B token') from d;
+with d as (delete from public.push_tokens where token = 'token-a' returning 1) select is(count(*)::int, 1, 'A deletes own token') from d;
 
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
 select is((select count(*)::int from public.push_tokens), 1, 'B still has own token');
