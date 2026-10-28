@@ -1,0 +1,27 @@
+#status { margin: 0 0 1rem; color: var(--muted); font-size: 0.95rem; }
+body[data-state="loading"] #status::before {
+  content: "";
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-right: 0.5rem;
+  border: 2px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  vertical-align: -0.1rem;
+  animation: spin 1s linear infinite;
+}
+body[data-state="error"] #status {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--focus);
+  border-radius: 8px;
+  color: var(--fg);
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  body[data-state="loading"] #status::before { animation: none; }
+}
+@media (max-width: 359px) {
+  .actions { grid-template-columns: 1fr; }
+}

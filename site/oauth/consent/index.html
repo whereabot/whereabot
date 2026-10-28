@@ -4,34 +4,63 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Approve access · Whereabouts</title>
+  <title>Approve access · Whereabot</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../css/base.css">
   <link rel="stylesheet" href="../../css/parts.css">
   <link rel="stylesheet" href="consent.css">
+  <link rel="stylesheet" href="states.css">
   <script type="module" src="consent.js"></script>
 </head>
-<body>
-<main id="main" class="consent">
+<body data-state="loading">
+<header class="brand">
+  <img src="mark.svg" alt="" width="32" height="32">
+  <span>Whereabot</span>
+</header>
+<main id="main" class="card">
   <h1>Approve access</h1>
   <p id="status" role="status" aria-live="polite">Loading…</p>
 
   <section id="signin" aria-labelledby="signin-title" hidden>
-    <h2 id="signin-title">Sign in</h2>
-    <button type="button" id="signin-btn" class="btn primary">Sign in with Google</button>
+    <h2 id="signin-title">Sign in to continue</h2>
+    <p class="lede">Use your Google account. You approve the app on the next step.</p>
+    <div class="actions single">
+      <button type="button" id="signin-btn" class="btn primary">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+          <path fill="#34A057" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/>
+          <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75z"/>
+        </svg>
+        <span>Sign in with Google</span>
+      </button>
+    </div>
   </section>
 
   <section id="request" aria-labelledby="request-title" hidden>
-    <h2 id="request-title">An app asks to use Whereabouts</h2>
-    <dl>
-      <div><dt>App</dt><dd id="client-name"></dd></div>
-      <div><dt>Sends the answer to</dt><dd id="redirect-host"></dd></div>
-      <div><dt>Signed in as</dt><dd id="user-email"></dd></div>
-    </dl>
-    <p>If you approve, the app can ask for <strong>your location, only when your agent asks</strong>.</p>
+    <h2 id="request-title">An app asks to use Whereabot</h2>
+    <p class="lede">Approve only if you started this sign-in in the app named below.</p>
+
+    <p class="label">App</p>
+    <p class="app" id="client-name"></p>
+
+    <p class="label">This app will send the answer to</p>
+    <code class="host" id="redirect-host"></code>
+
+    <div class="account">
+      <p class="label">Signed in as <strong id="user-email"></strong></p>
+      <button type="button" id="signout" class="link">Not you? Sign out</button>
+    </div>
+
+    <h3>What the app can receive</h3>
+    <ul class="shares">
+      <li>Your location, only when your agent asks.</li>
+      <li>Nothing is stored.</li>
+    </ul>
+
     <div class="actions">
       <button type="button" id="approve" class="btn primary">Approve</button>
-      <button type="button" id="deny" class="btn">Deny</button>
+      <button type="button" id="deny" class="btn secondary">Deny</button>
     </div>
   </section>
 </main>

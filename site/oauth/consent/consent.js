@@ -10,11 +10,13 @@ const supabase = createClient(configured ? SUPABASE_URL : 'https://unconfigured.
 const SECTIONS = ['signin', 'request'];
 function show(id) {
   for (const name of SECTIONS) $(name).hidden = name !== id;
+  document.body.dataset.state = id;
 }
 
 function fail(message) {
   $('status').textContent = message;
   for (const name of SECTIONS) $(name).hidden = true;
+  document.body.dataset.state = 'error';
 }
 
 function busy(on) {
@@ -64,6 +66,10 @@ $('signin-btn').addEventListener('click', async () => {
     options: { redirectTo: location.href },
   });
   if (error) $('status').textContent = 'Sign-in could not start. Try again.';
+});
+$('signout').addEventListener('click', async () => {
+  await supabase.auth.signOut();
+  location.reload();
 });
 $('approve').addEventListener('click', () => decide('approve'));
 $('deny').addEventListener('click', () => decide('deny'));
