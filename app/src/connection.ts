@@ -1,100 +1,100 @@
 import WebSocket from "@tauri-apps/plugin-websocket";
 import { answerPing } from "./ping";
 import { setState, setStatus } from "./dom";
-import { checkUrl, relayUrl } from "./config";
+import { appVersion, checkUrl, relayUrl } from "./config";
+import { backoffMs } from "./backoff";
+import { dropLive, getLive, noteExpiry, send, setLive } from "./outbox";
+import { touch, watchLiveness } from "./liveness";
+import { authOk, EXPIRED, isAuthError, refreshOnce } from "./reauth";
 
-const RETRY_MS = 5000;
-
+export { send };
 type TokenSource = () => Promise<string | null>;
 
-let ws: WebSocket | null = null;
 let retryTimer: number | undefined;
-let stopped = true;
+let attempt = 0;
+let connecting = false;
+let tokenSource: TokenSource | null = null;
+// True after Disconnect, "replaced" or "expired": only a manual start() clears it.
+let halted = false;
 
-const retry = (getToken: TokenSource) => (retryTimer = window.setTimeout(() => connect(getToken), RETRY_MS));
+function halt(state: "disconnected" | "replaced" | "expired", status: string) {
+  halted = true;
+  clearTimeout(retryTimer);
+  dropLive();
+  setStatus(status);
+  setState(state);
+}
 
-let lastTokenSource: TokenSource | null = null;
-async function connect(getToken: TokenSource) {
-  lastTokenSource = getToken;
+function retry(delay: number) {
+  clearTimeout(retryTimer);
+  retryTimer = window.setTimeout(() => void connect(), delay);
+}
+
+async function connect() {
+  if (halted || !tokenSource || connecting) return;
+  connecting = true;
+  await open(tokenSource).finally(() => (connecting = false));
+}
+
+async function open(getToken: TokenSource) {
   clearTimeout(retryTimer);
   setStatus("Connecting…");
   setState("waiting");
-  // Read the current session on every connect. supabase-js refreshes it.
-  const token = await getToken();
-  if (!token) {
-    stopped = true;
-    return;
-  }
+  const token = await getToken(); // supabase-js refreshes the session as needed
+  if (!token) return halt("disconnected", "Signed out.");
   let socket: WebSocket;
   try {
-    socket = await WebSocket.connect(`${relayUrl}/v1/device`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    socket = await WebSocket.connect(`${relayUrl}/v1/device`, { headers: { Authorization: `Bearer ${token}` } });
   } catch (e) {
+    if (isAuthError(e)) return (await refreshOnce()) ? retry(0) : halt("expired", EXPIRED);
     setStatus(`Connect failed: ${e}. Retrying…`);
-    setState("waiting");
-    retry(getToken);
-    return;
+    return retry(backoffMs(attempt++));
   }
-  if (stopped) {
-    await socket.disconnect();
-    return;
-  }
-  ws = socket;
+  if (halted) return void socket.disconnect().catch(() => {});
+  setLive(socket);
+  attempt = 0;
+  authOk();
+  touch();
   setStatus("Connected. Waiting for pings.");
   setState("connected");
-  lastSeen = Date.now();
-  socket.addListener(async (msg) => {
-    if (ws === socket) lastSeen = Date.now();
-    if (msg.type === "Close") {
-      if (ws !== socket) return; // replaced by a newer socket
-      ws = null;
-      if (stopped) return;
-      setStatus("Connection lost. Retrying…");
-      setState("waiting");
-      retry(getToken);
-      return;
-    }
-    if (msg.type === "Text")
-      await answerPing((m) => (ws ?? socket).send(m), msg.data).catch((e) => setStatus(`Request failed: ${e}`));
+  void socket.send(JSON.stringify({ type: "hello", app_version: appVersion })).catch(() => {});
+  socket.addListener((msg) => {
+    if (getLive() !== socket) return;
+    touch();
+    if (msg.type === "Close") return onClose(msg.data?.code);
+    if (msg.type !== "Text") return;
+    noteExpiry(msg.data);
+    answerPing(send, msg.data).catch((e) => setStatus(`Request failed: ${e}`));
   });
 }
 
-function reconnect() {
-  if (stopped || !lastTokenSource) return;
-  const old = ws;
-  ws = null;
-  void old?.disconnect().catch(() => {});
-  void connect(lastTokenSource);
+function onClose(code?: number) {
+  setLive(null);
+  if (halted) return;
+  if (code === 4000) return halt("replaced", "Another phone is now connected for this account.");
+  setStatus("Connection lost. Retrying…");
+  setState("waiting");
+  retry(code === 1012 ? 0 : backoffMs(attempt++));
 }
 
-// iOS kills the socket in the background without a Close event; short hides (prompts) keep it.
-let hiddenAt = 0;
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") return void (hiddenAt = Date.now());
-  if (Date.now() - hiddenAt >= 5000) reconnect();
+watchLiveness(() => {
+  if (halted) return;
+  dropLive();
+  attempt = 0;
+  void connect();
 });
 
-// The relay pings every 25 s; silence means a dead socket (e.g. after a deploy).
-let lastSeen = 0;
-window.setInterval(() => {
-  if (ws && document.visibilityState === "visible" && Date.now() - lastSeen > 60_000) reconnect();
-}, 10_000);
-
-export function disconnect() {
-  stopped = true;
-  clearTimeout(retryTimer);
-  void ws?.disconnect();
-  ws = null;
-  setStatus("Disconnected.");
-  setState("disconnected");
+/** `signOut` also lets the next sign-in connect on its own. */
+export function disconnect(signOut = false) {
+  halt("disconnected", "Disconnected.");
+  halted = !signOut;
 }
 
-export async function start(getToken: TokenSource) {
-  if (!stopped) return;
+/** `manual` = the Connect button. Auth events pass false and never undo a halt. */
+export function start(getToken: TokenSource, manual = false) {
+  if (manual) halted = false;
   const err = checkUrl(relayUrl);
   if (err) return setStatus(err);
-  stopped = false;
-  // No location access here: the phone reads its location only for an approved request.
-  await connect(getToken);
+  tokenSource = getToken;
+  if (!getLive()) void connect();
 }

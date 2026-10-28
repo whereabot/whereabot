@@ -3,6 +3,8 @@ import { disconnect, start } from "./connection";
 import { listenForAuthRedirect, signInWithGoogle, signInWithPassword, signOut } from "./auth";
 import { devLogin } from "./config";
 import { initHistory } from "./ui/history";
+import { initHome } from "./ui/home";
+import { clearLocalData } from "./history";
 import { getAccessToken, supabase } from "./supabase";
 
 /** Read on every (re)connect. No session means the sign-in screen shows. */
@@ -22,25 +24,28 @@ window.addEventListener("DOMContentLoaded", () => {
       $<HTMLInputElement>("dev-password").value,
     );
   });
-  $("connect").addEventListener("click", () => void start(currentToken));
-  $("disconnect").addEventListener("click", disconnect);
+  $("connect").addEventListener("click", () => void start(currentToken, true));
+  $("disconnect").addEventListener("click", () => disconnect());
   $("sign-out").addEventListener("click", async () => {
-    disconnect();
+    disconnect(true);
+    clearLocalData();
     await signOut();
   });
   initHistory();
+  initHome();
   void listenForAuthRedirect();
 
-  supabase.auth.onAuthStateChange((_event, session) => {
+  supabase.auth.onAuthStateChange((event, session) => {
     // Deferred: supabase calls must not run inside the auth callback.
     setTimeout(() => {
       if (!session) {
-        disconnect();
+        disconnect(true);
         showView("signed-out");
         return;
       }
       showView("signed-in");
-      void start(currentToken);
+      // TOKEN_REFRESHED and friends must not undo a Disconnect.
+      if (event === "SIGNED_IN" || event === "INITIAL_SESSION") start(currentToken);
     }, 0);
   });
   setStatus("Signed out.");

@@ -1,4 +1,7 @@
+import pkg from "../package.json";
+
 /** Build-time config from Vite env. See app/.env.example. */
+export const appVersion: string = pkg.version;
 export const relayUrl = import.meta.env.VITE_RELAY_URL.replace(/\/$/, "");
 export const devLogin = import.meta.env.DEV || import.meta.env.VITE_DEV_LOGIN === "true";
 
