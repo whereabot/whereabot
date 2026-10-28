@@ -22,6 +22,16 @@
       "csp": null
     }
   },
+  "plugins": {
+    "deep-link": {
+      "mobile": [
+        { "scheme": ["whereabouts"], "appLink": false }
+      ],
+      "desktop": {
+        "schemes": ["whereabouts"]
+      }
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",

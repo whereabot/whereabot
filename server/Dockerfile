@@ -9,6 +9,7 @@ RUN touch src/main.rs src/lib.rs && cargo build --release
 
 FROM gcr.io/distroless/cc-debian12:nonroot
 COPY --from=builder /app/target/release/whereabouts-server /usr/local/bin/whereabouts-server
-ENV WHEREABOUTS_ADDR=0.0.0.0:8787
-EXPOSE 8787
+# Cloud Run sets PORT at runtime; the default matches the local port.
+ENV PORT=8080
+EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/whereabouts-server"]

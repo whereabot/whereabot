@@ -15,10 +15,11 @@ async fn main() {
         )
         .init();
     let config = Config {
-        agent_token: token("WHEREABOUTS_AGENT_TOKEN"),
-        device_token: token("WHEREABOUTS_DEVICE_TOKEN"),
+        supabase_url: required("SUPABASE_URL"),
+        anon_key: required("SUPABASE_ANON_KEY"),
+        service_role_key: required("SUPABASE_SERVICE_ROLE_KEY"),
     };
-    let addr = std::env::var("WHEREABOUTS_ADDR").unwrap_or_else(|_| "127.0.0.1:8787".into());
+    let addr = bind_addr();
     let listener = tokio::net::TcpListener::bind(&addr).await.expect("bind");
     tracing::info!("whereabouts relay listening on {addr}");
     let router = app(config).layer(middleware::from_fn(log_locate_status));
@@ -28,16 +29,26 @@ async fn main() {
         .expect("serve");
 }
 
-/// Reads a token from the environment. Exits when it is missing or too short.
-fn token(key: &str) -> String {
-    let value = std::env::var(key).unwrap_or_default();
-    if value.len() < 32 {
-        eprintln!(
-            "error: {key} must be set and at least 32 characters (try: openssl rand -hex 32)"
-        );
-        std::process::exit(1);
+/// Reads a required setting. Exits when it is missing or empty.
+fn required(key: &str) -> String {
+    match std::env::var(key) {
+        Ok(value) if !value.is_empty() => value,
+        _ => {
+            eprintln!("error: {key} must be set");
+            std::process::exit(1);
+        }
     }
-    value
+}
+
+/// `WHEREABOUTS_ADDR` wins; Cloud Run sets `PORT`; otherwise bind locally.
+fn bind_addr() -> String {
+    if let Ok(addr) = std::env::var("WHEREABOUTS_ADDR") {
+        return addr;
+    }
+    match std::env::var("PORT") {
+        Ok(port) => format!("0.0.0.0:{port}"),
+        Err(_) => "127.0.0.1:8787".into(),
+    }
 }
 
 async fn log_locate_status(req: Request, next: Next) -> Response {

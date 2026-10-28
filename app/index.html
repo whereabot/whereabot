@@ -12,17 +12,40 @@
     <main class="container">
       <h1>Whereabouts</h1>
       <p>Lets your AI agent ask this phone where it is.</p>
+      <p id="status" role="status" aria-live="polite"></p>
 
-      <form id="pair-form">
-        <label for="server">Relay URL</label>
-        <input id="server" type="url" placeholder="wss://relay.example.com" required />
-        <label for="token">Device token</label>
-        <input id="token" type="password" autocomplete="off" required />
-        <button type="submit">Connect</button>
-      </form>
+      <section id="signed-out">
+        <button id="google-sign-in" type="button">Sign in with Google</button>
+        <form id="dev-form" hidden>
+          <label for="dev-email">Email</label>
+          <input id="dev-email" type="email" autocomplete="username" required />
+          <label for="dev-password">Password</label>
+          <input id="dev-password" type="password" autocomplete="current-password" required />
+          <button type="submit">Sign in with email (dev)</button>
+        </form>
+      </section>
 
-      <p id="status" role="status" aria-live="polite">Not connected</p>
-      <p id="last-ping"></p>
+      <section id="signed-in" hidden>
+        <button id="connect" type="button">Connect</button>
+        <button id="disconnect" type="button">Disconnect</button>
+        <p id="last-ping"></p>
+
+        <h2>Agent keys</h2>
+        <ul id="key-list"></ul>
+        <form id="key-form">
+          <label for="key-name">Key name</label>
+          <input id="key-name" type="text" required />
+          <button type="submit">Create key</button>
+        </form>
+        <div id="new-key-box" class="key-box" hidden>
+          <label for="new-key">New agent key</label>
+          <input id="new-key" type="text" readonly />
+          <button id="copy-key" type="button">Copy key</button>
+          <p>Copy it now. It is shown only once.</p>
+        </div>
+
+        <button id="sign-out" type="button">Sign out</button>
+      </section>
     </main>
   </body>
 </html>

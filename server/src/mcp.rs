@@ -1,15 +1,9 @@
 use std::{sync::Arc, time::Duration};
 
-use axum::{
-    Router,
-    extract::{Request, State},
-    http::{HeaderMap, StatusCode},
-    middleware::{self, Next},
-    response::{IntoResponse, Response},
-};
+use axum::{Router, http::request::Parts, middleware};
 use rmcp::{
     ServerHandler,
-    handler::server::wrapper::Parameters,
+    handler::server::{tool::Extension, wrapper::Parameters},
     model::{CallToolResult, ContentBlock, ServerCapabilities, ServerConfig},
     schemars, tool, tool_handler, tool_router,
     transport::streamable_http_server::{
@@ -18,7 +12,10 @@ use rmcp::{
 };
 use serde::Deserialize;
 
-use crate::{AppState, LocateError, authorized, request_location};
+use crate::{
+    AppState, UserId, auth,
+    locate::{LocateError, request_location},
+};
 
 #[derive(Deserialize, schemars::JsonSchema)]
 struct LocationParams {
@@ -42,15 +39,20 @@ impl Whereabouts {
     )]
     async fn get_phone_location(
         &self,
+        // rmcp copies the HTTP request parts into the request context; the middleware put UserId inside them.
+        Extension(parts): Extension<Parts>,
         Parameters(params): Parameters<LocationParams>,
     ) -> CallToolResult {
+        let Some(UserId(user_id)) = parts.extensions.get::<UserId>().copied() else {
+            return CallToolResult::error(vec![ContentBlock::text("Unauthorized.")]);
+        };
         let timeout = Duration::from_secs(params.timeout_secs.unwrap_or(30).clamp(1, 120));
-        match request_location(&self.state, timeout).await {
+        match request_location(&self.state, user_id, timeout).await {
             Ok(location) => CallToolResult::success(vec![ContentBlock::text(
                 serde_json::to_string(&location).expect("Location serializes"),
             )]),
             Err(LocateError::Offline) => CallToolResult::error(vec![ContentBlock::text(
-                "The phone is not connected to the relay. Ask the user to open the Whereabouts app.",
+                "The user's phone is not connected. Ask the user to open the Whereabouts app and sign in.",
             )]),
             Err(LocateError::Timeout) => CallToolResult::error(vec![ContentBlock::text(
                 "The phone did not answer in time.",
@@ -85,17 +87,5 @@ pub fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
     );
     Router::new()
         .route_service("/", service)
-        .layer(middleware::from_fn_with_state(state, authorize))
-}
-
-async fn authorize(
-    State(state): State<Arc<AppState>>,
-    headers: HeaderMap,
-    request: Request,
-    next: Next,
-) -> Response {
-    if !authorized(&headers, &state.config.agent_token) {
-        return StatusCode::UNAUTHORIZED.into_response();
-    }
-    next.run(request).await
+        .layer(middleware::from_fn_with_state(state, auth::authorize))
 }
