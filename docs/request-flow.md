@@ -2,7 +2,7 @@
 
 Every state a request passes through, every notification the user can see, and every result the agent gets. Wire formats: [protocol](protocol.md). Components: [architecture](architecture.md).
 
-Legend: rounded boxes are what the user sees; hexagons are relay decisions; `[A]` = answer the agent gets. Steps marked *(next)* are being built and not live yet.
+Legend: rounded boxes are what the user sees; hexagons are relay decisions; `[A]` = answer the agent gets. Steps marked are being built and not live yet.
 
 ```mermaid
 flowchart TD
@@ -14,12 +14,12 @@ flowchart TD
     %% --- App open in front ---
     P -->|no| PROMPT(["In-app prompt:<br/>'Your agent X wants to know your location'<br/>✕ Reject · ✓ Allow · ★ Always allow"])
     P -->|yes| AUTO_FG["Answer at once, no prompt"]
-    AUTO_FG --> BANNER(["In-app banner + history:<br/>'X checked your location' *(next)*"])
+    AUTO_FG --> BANNER(["In-app banner + history:<br/>'X checked your location'"])
     BANNER --> FIX
 
     %% --- App in background or closed ---
     W -->|no| ALERT(["Push notification:<br/>'Your agent X wants to know your location'<br/>Reject · Allow · Always allow"])
-    W -->|"yes *(next)*"| SILENT["Silent push wakes the app<br/>(no banner)"]
+    W -->|"yes"| SILENT["Silent push wakes the app<br/>(no banner)"]
     SILENT -->|app woke| AUTO_BG["Native code reads one fix<br/>and posts it"]
     AUTO_BG --> CHECKED(["Notification:<br/>'X checked your location'<br/>tap opens History"])
     CHECKED --> FIX
@@ -60,8 +60,8 @@ flowchart TD
 | When | Title / body | Buttons | Status |
 |---|---|---|---|
 | Agent not always allowed, app not in front | "Your agent X wants to know your location" | Reject · Allow · Always allow | Live |
-| Always-allowed agent, answered in the background | "X checked your location" — "Shared just now. Manage in Whereabot." | none (tap opens History) | *Next* |
-| Always-allowed agent, iOS did not wake the app | "X is checking your location" | Share | *Next* |
-| App open in front | No system notification; in-app prompt or banner | Reject · Allow · Always allow | Live (banner *next*) |
+| Always-allowed agent, answered in the background | "X checked your location" — "Shared just now. Manage in Whereabot." | none (tap opens History) | Live |
+| Always-allowed agent, iOS did not wake the app | "X is checking your location" | Share | Live |
+| App open in front | No system notification; in-app prompt or banner | Reject · Allow · Always allow | Live |
 
 Every outcome is also written to the in-app **Request history**.
