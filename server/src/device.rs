@@ -3,7 +3,7 @@ use std::{sync::Arc, time::Duration};
 use axum::{
     extract::{
         State, WebSocketUpgrade,
-        ws::{Message, WebSocket},
+        ws::{CloseFrame, Message, WebSocket},
     },
     http::HeaderMap,
     response::Response,
@@ -11,32 +11,41 @@ use axum::{
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
-use crate::{
-    AppState, auth, oauth,
-    protocol::{Answer, FromDevice},
-};
+use crate::{AppState, auth, device_in, oauth, protocol::ToDevice};
 
 pub async fn device(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     ws: WebSocketUpgrade,
 ) -> Response {
-    let Some((user_id, _)) = auth::verify(&state, &headers, false).await else {
+    let Some(token) = auth::verify(&state, &headers, false).await else {
         return oauth::unauthorized(&state.public_url);
     };
-    ws.on_upgrade(move |socket| serve_device(state, user_id, socket))
+    ws.on_upgrade(move |socket| serve_device(state, token.user_id, socket))
 }
 
 async fn serve_device(state: Arc<AppState>, user_id: Uuid, mut socket: WebSocket) {
     let (tx, mut rx) = mpsc::channel(8);
-    // A new connection replaces the user's old one; the old loop ends when its sender drops.
-    state.devices.lock().await.insert(user_id, tx.clone());
+    // A new connection replaces the user's old one. This loop keeps its own `tx` to
+    // tell whether it is still current, so the old loop ends on an explicit Close.
+    let old = state.devices.lock().await.insert(user_id, tx.clone());
+    if let Some(old) = old {
+        let _ = old.try_send(ToDevice::Close {
+            code: 4000,
+            reason: "replaced",
+        });
+    }
     tracing::info!(%user_id, "device connected");
     // Keeps mobile networks and Cloudflare from dropping an idle socket.
     let mut keepalive = tokio::time::interval(Duration::from_secs(25));
     loop {
         tokio::select! {
             Some(msg) = rx.recv() => {
+                if let ToDevice::Close { code, reason } = msg {
+                    let frame = CloseFrame { code, reason: reason.into() };
+                    let _ = socket.send(Message::Close(Some(frame))).await;
+                    break;
+                }
                 let text = serde_json::to_string(&msg).expect("ToDevice serializes");
                 if socket.send(Message::Text(text.into())).await.is_err() {
                     break;
@@ -48,19 +57,7 @@ async fn serve_device(state: Arc<AppState>, user_id: Uuid, mut socket: WebSocket
                 }
             }
             incoming = socket.recv() => match incoming {
-                Some(Ok(Message::Text(text))) => match serde_json::from_str(&text) {
-                    Ok(FromDevice::Location(location)) => {
-                        if let Some(waiter) = state.pending.lock().await.remove(&location.id) {
-                            let _ = waiter.send(Answer::Fix(location));
-                        }
-                    }
-                    Ok(FromDevice::Denied { id }) => {
-                        if let Some(waiter) = state.pending.lock().await.remove(&id) {
-                            let _ = waiter.send(Answer::Denied);
-                        }
-                    }
-                    Err(_) => continue,
-                },
+                Some(Ok(Message::Text(text))) => device_in::handle(&state, user_id, &text).await,
                 Some(Ok(_)) => continue,
                 _ => break,
             },

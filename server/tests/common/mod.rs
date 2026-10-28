@@ -2,21 +2,23 @@
 //! Shared fixtures: relay start-up, OAuth tokens, and the agent-side HTTP helpers.
 
 pub mod agent_rpc;
+pub mod http;
 pub mod jwt;
 pub mod mcp;
 pub mod phone;
+pub mod scripted;
 pub mod supabase;
 
-use std::{
-    sync::{
-        Arc,
-        atomic::{AtomicBool, AtomicUsize},
-    },
-    time::Duration,
+#[allow(unused_imports)]
+pub use http::{locate_once, locate_settled};
+
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, AtomicUsize},
 };
 
 use tokio::net::TcpListener;
-use whereabouts_server::{Config, app};
+use whereabouts_server::{Config, Shutdown, build};
 
 pub const PUBLIC_URL: &str = "https://relay.test";
 /// The `WWW-Authenticate` value every 401 on `/mcp` and `/v1/device` must carry (C2).
@@ -29,9 +31,18 @@ pub struct Relay {
     pub jwks_hits: Arc<AtomicUsize>,
     /// Set to make the fake JWKS endpoint answer 500.
     pub jwks_fail: Arc<AtomicBool>,
+    /// Closes device sockets, as SIGTERM does.
+    pub shutdown: Shutdown,
 }
 
 impl Relay {
+    /// An MCP token that also carries an `email` claim.
+    pub fn mcp_email(&self, user: &str, email: &str) -> String {
+        let mut claims = jwt::claims(&self.issuer, user, true);
+        claims["email"] = email.into();
+        jwt::sign(&claims)
+    }
+
     /// A token an MCP client holds: has `client_id`.
     pub fn mcp(&self, user: &str) -> String {
         jwt::sign(&jwt::claims(&self.issuer, user, true))
@@ -60,33 +71,13 @@ pub async fn spawn(agent_keys: bool) -> Relay {
     };
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap().to_string();
-    tokio::spawn(async move { axum::serve(listener, app(config)).await.unwrap() });
+    let (router, shutdown) = build(config);
+    tokio::spawn(async move { axum::serve(listener, router).await.unwrap() });
     Relay {
+        shutdown,
         addr,
         issuer,
         jwks_hits: fake.jwks_hits,
         jwks_fail: fake.jwks_fail,
     }
-}
-
-/// One `/v1/locate` call with the given bearer token.
-pub async fn locate_once(http: &reqwest::Client, addr: &str, token: &str) -> reqwest::Response {
-    http.post(format!("http://{addr}/v1/locate?timeout_secs=5"))
-        .bearer_auth(token)
-        .send()
-        .await
-        .unwrap()
-}
-
-/// Retries `locate_once` while the phone is offline. Sockets register just after the handshake.
-pub async fn locate_settled(http: &reqwest::Client, addr: &str, token: &str) -> reqwest::Response {
-    let mut res = locate_once(http, addr, token).await;
-    for _ in 0..50 {
-        if res.status() != 503 {
-            break;
-        }
-        tokio::time::sleep(Duration::from_millis(20)).await;
-        res = locate_once(http, addr, token).await;
-    }
-    res
 }

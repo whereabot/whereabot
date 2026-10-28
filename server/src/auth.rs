@@ -5,7 +5,6 @@ use axum::{
     response::Response,
 };
 use std::sync::Arc;
-use uuid::Uuid;
 
 use crate::{Agent, AppState, jwt, oauth};
 
@@ -18,12 +17,12 @@ pub fn bearer(headers: &HeaderMap) -> Option<&str> {
         .strip_prefix("Bearer ")
 }
 
-/// Supabase access token (C3) -> user id and `client_id`. `require_client_id` is set for MCP, not the phone.
+/// Supabase access token (C3) -> user id, `client_id`, email. `require_client_id` is set for MCP, not the phone.
 pub async fn verify(
     state: &AppState,
     headers: &HeaderMap,
     require_client_id: bool,
-) -> Option<(Uuid, Option<String>)> {
+) -> Option<jwt::Verified> {
     let token = bearer(headers)?;
     let kid = jsonwebtoken::decode_header(token).ok()?.kid?;
     let key = state.jwks.key(&kid).await?;
@@ -32,10 +31,11 @@ pub async fn verify(
 
 /// Caller of `/mcp` and `/v1/locate`: an OAuth client token, or an agent key when enabled.
 pub async fn agent_user(state: &AppState, headers: &HeaderMap) -> Option<Agent> {
-    if let Some((user_id, client_id)) = verify(state, headers, true).await {
+    if let Some(token) = verify(state, headers, true).await {
         return Some(Agent {
-            user_id,
-            client_id: client_id?,
+            user_id: token.user_id,
+            client_id: token.client_id?,
+            email: token.email,
         });
     }
     let user_id = state
@@ -47,6 +47,7 @@ pub async fn agent_user(state: &AppState, headers: &HeaderMap) -> Option<Agent> 
     Some(Agent {
         user_id,
         client_id: "agent-key".into(),
+        email: None,
     })
 }
 

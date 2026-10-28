@@ -12,10 +12,7 @@ use rmcp::{
 };
 use serde::Deserialize;
 
-use crate::{
-    Agent, AppState, auth,
-    locate::{LocateError, request_location},
-};
+use crate::{Agent, AppState, auth, locate::request_location};
 
 #[derive(Deserialize, schemars::JsonSchema)]
 struct LocationParams {
@@ -51,15 +48,7 @@ impl Whereabouts {
             Ok(location) => CallToolResult::success(vec![ContentBlock::text(
                 serde_json::to_string(&location).expect("Location serializes"),
             )]),
-            Err(LocateError::Offline) => CallToolResult::error(vec![ContentBlock::text(
-                "The user's phone is not connected. Ask the user to open the Whereabot app and keep it open.",
-            )]),
-            Err(LocateError::Denied) => CallToolResult::error(vec![ContentBlock::text(
-                "The user declined to share their location.",
-            )]),
-            Err(LocateError::Timeout) => CallToolResult::error(vec![ContentBlock::text(
-                "The phone did not answer in time.",
-            )]),
+            Err(error) => CallToolResult::error(vec![ContentBlock::text(error.message())]),
         }
     }
 }

@@ -15,15 +15,20 @@ Every agent call sends a bearer credential: `Authorization: Bearer <token>`. An 
 
 ### HTTP: `POST /v1/locate`
 
-Pings the user's phone and waits for the fix. Query: `timeout_secs`, default 30, capped at 120.
+Pings the user's phone and waits for the fix. Query: `timeout_secs`, default 60, capped at 120. Non-200 bodies are the agent text in the table.
 
-| Status | Meaning |
-|--------|---------|
-| `200` | The fix. The body is a JSON location. |
-| `401` | Missing, unknown, expired or revoked credential. |
-| `403` | The user declined to share their location. |
-| `503` | No phone is connected for this user. |
-| `504` | The phone did not answer before the timeout. |
+| Status | Meaning | Agent text |
+|--------|---------|------------|
+| `200` | The fix. The body is a JSON location. | |
+| `401` | Missing, unknown, expired or revoked credential. | |
+| `403` | The user declined (`denied`, reason `user`). | The user declined to share their location. |
+| `408` | The user did not tap in time (`denied`, reason `no_answer`). | The user did not respond on their phone. Ask them before trying again. |
+| `424` | `unavailable` with reason `permission`. | Location access is off for Whereabot on the user's phone. Ask them to allow it in Settings. |
+| `424` | `unavailable` with reason `no_fix` or `error`. | The phone could not get a location fix. Try again in a moment. |
+| `503` | No phone is connected for this user. | The user's phone is not connected. Ask the user to open the Whereabot app, signed in as EMAIL and keep it open, then retry. |
+| `504` | The phone got the ping but did not answer before the timeout. | The phone did not answer in time. Ask the user to open Whereabot and retry. |
+
+`, signed in as EMAIL` appears only when the token has an `email` claim. It helps when the phone and the agent use different accounts.
 
 Check the fix time. An OS can return a cached position. The fix carries the phone's capture time.
 
@@ -31,9 +36,9 @@ Check the fix time. An OS can return a cached position. The fix carries the phon
 
 Streamable HTTP, with JSON responses and no session. The same bearer header gates it.
 
-- One tool: `get_phone_location`. Optional `timeout_secs`, 1 to 120, default 30.
+- One tool: `get_phone_location`. Optional `timeout_secs`, 1 to 120, default 60.
 - A fix returns as text: the JSON location.
-- Offline, timeout or a declined request returns a tool error with a short message. The HTTP status stays `200`.
+- Every other outcome returns a tool error with the agent text above. The HTTP status stays `200`.
 - A bad credential returns `401` before any tool runs.
 
 ## Agent keys (headless fallback)
@@ -48,9 +53,13 @@ For headless or CI use only. Users do not onboard agents this way.
 
 The phone opens a WebSocket to `/v1/device` with its Supabase access token as a bearer token. A bad token gets `401` before the upgrade.
 
-A new connection replaces the user's old one. The relay sends keep-alive pings, so idle sockets survive mobile networks.
+A new connection replaces the user's old one: the relay closes the old socket with Close `4000 "replaced"`. The app must not reconnect on its own after that. On SIGTERM the relay closes every device socket with Close `1012 "restart"`; the app reconnects at once. The relay sends keep-alive pings, so idle sockets survive mobile networks.
 
-- **Relay to phone:** a ping with a new id and the asking agent's `client_id` (from the token; agent keys use `agent-key`). The relay sends no name: the app maps `client_id` to the client name with `supabase.auth.oauth.listGrants()`. The relay resends the ping to a new socket after a reconnect, so the app handles each id once.
-- **Phone to relay:** a fix with the same id, so the relay matches it to the waiting agent.
-- **Consent:** the app asks the user (Reject, Approve, Always approve) before it answers. Always-approved agents get an answer at once. Reject sends `denied` with the id, and the relay ends the request: MCP tool error `The user declined to share their location.`, HTTP `403`. No answer in about 55 s sends nothing, and the agent times out.
-- **Unknown messages:** the relay ignores them. A fix with an unknown id is dropped.
+- **Phone to relay, first:** `{"type":"hello","app_version":"0.1.6"}`. The relay logs it and needs nothing else.
+- **Relay to phone:** `{"type":"locate","id","client_id","expires_ms"}`. `client_id` comes from the token (agent keys use `agent-key`). The relay sends no name: the app maps `client_id` to the client name with `supabase.auth.oauth.listGrants()`. `expires_ms` is the epoch time when the relay stops waiting; the app aborts the prompt then. The relay resends the ping to a new socket after a reconnect, so the app handles each id once.
+- **Phone to relay, answers** (all carry the ping `id`):
+  - `location`: the fix.
+  - `denied`, optional `reason`: `user` (default) or `no_answer`.
+  - `unavailable`, `reason`: `permission`, `no_fix` or `error`.
+- **Consent:** the app asks the user (Reject, Approve, Always approve) before it answers. Always-approved agents get an answer at once. Reject sends `denied`; no tap sends `denied` with `no_answer`.
+- **Unknown messages:** the relay ignores them. An answer with an unknown id is dropped. An unknown `reason` counts as `user` (denied) or `error` (unavailable).

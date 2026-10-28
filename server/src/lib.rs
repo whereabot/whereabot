@@ -9,16 +9,20 @@ use uuid::Uuid;
 
 mod auth;
 mod device;
+mod device_in;
+mod errors;
 mod jwks;
 mod jwt;
 mod locate;
 mod mcp;
 mod oauth;
 mod protocol;
+mod shutdown;
 mod supabase;
 
 use jwks::JwksCache;
 use protocol::{Answer, ToDevice};
+pub use shutdown::Shutdown;
 use supabase::Supabase;
 
 pub struct Config {
@@ -36,6 +40,8 @@ pub struct Config {
 pub struct Agent {
     pub user_id: Uuid,
     pub client_id: String,
+    /// From the token's `email` claim; names the account in the offline message.
+    pub email: Option<String>,
 }
 
 struct AppState {
@@ -49,6 +55,11 @@ struct AppState {
 }
 
 pub fn app(config: Config) -> Router {
+    build(config).0
+}
+
+/// The router plus a handle that closes device sockets on shutdown.
+pub fn build(config: Config) -> (Router, Shutdown) {
     let state = Arc::new(AppState {
         jwks: JwksCache::new(&config.supabase_url),
         issuer: config.issuer,
@@ -59,7 +70,7 @@ pub fn app(config: Config) -> Router {
         devices: Mutex::default(),
         pending: Mutex::default(),
     });
-    Router::new()
+    let router = Router::new()
         .route("/v1/locate", post(locate::locate))
         .route("/v1/device", any(device::device))
         // Cloud Run's front end reserves paths ending in `z`, so public probes use /health.
@@ -74,7 +85,8 @@ pub fn app(config: Config) -> Router {
             get(oauth::metadata),
         )
         .nest("/mcp", mcp::router(state.clone()))
-        .with_state(state)
+        .with_state(state.clone());
+    (router, Shutdown(state))
 }
 
 async fn healthz() -> &'static str {
