@@ -70,4 +70,6 @@ pub enum FromDevice {
         id: Uuid,
         reason: UnavailableReason,
     },
+    /// App diagnostics (no location data); the relay only logs them.
+    Log { msg: String },
 }

@@ -29,3 +29,6 @@ export const denied = (ping: Ping, reason: "user" | "no_answer") =>
 
 export const unavailable = (ping: Ping, reason: "permission" | "no_fix" | "error") =>
   JSON.stringify({ type: "unavailable", id: ping.id, reason });
+
+/** Step report for relay logs while debugging. Never include location data. */
+export const log = (msg: string) => JSON.stringify({ type: "log", msg });
