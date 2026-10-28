@@ -40,10 +40,18 @@ A push to `main` that touches `server/**` or `infra/**` runs [`deploy.yml`](../.
 
 ## Deploy the landing page
 
-The landing page source is `site/`. Deploy it to Cloudflare Workers static assets.
+The [`site-cloudflare-deploy`](../.github/workflows/site-cloudflare-deploy.yml) workflow deploys `site/` on push to `main`. It deploys a clean copy, so files outside `site/` never publish.
 
-- Copy `site/` into a new empty directory. Deploy that copy with Wrangler, and pass the copy explicitly as the assets path.
-- Never deploy from the repo root. It would publish files outside `site/`.
+- Setup: repo variable `CLOUDFLARE_ACCOUNT_ID` (the job stays idle without it); in environment `production`, secret `CLOUDFLARE_API_TOKEN` (Workers Scripts: Edit) and variables `SUPABASE_URL`, `SUPABASE_ANON_KEY`.
+- Break-glass: copy `site/` into an empty directory and deploy that copy with Wrangler, passing it explicitly as the assets path.
+
+## Release the iOS app
+
+The [`ios-testflight-release`](../.github/workflows/ios-testflight-release.yml) workflow builds, signs and uploads to TestFlight when an `app-vX.Y.Z` tag is pushed.
+
+- Release: run [`scripts/release-app-version.sh`](../scripts/release-app-version.sh) `X.Y.Z`, merge to `main`, then push the tag it prints.
+- Setup, environment `testflight`: secret `ASC_API_KEY_P8`; variables `ASC_KEY_ID`, `ASC_ISSUER_ID`, `APPLE_TEAM_ID`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `RELAY_URL`. The API key needs the App Manager role or higher.
+- A DUPLICATE error means TestFlight has that version: bump and tag again.
 
 ## Migrations
 
