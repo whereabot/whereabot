@@ -31,7 +31,7 @@ A push to `main` that touches `server/**` or `infra/**` runs [`deploy.yml`](../.
 3. Set repo variables from its outputs and your accounts: `WIF_PROVIDER`, `DEPLOYER_SA`, `GCP_PROJECT`, `GCP_REGION`, `SUPABASE_ORGANIZATION_ID`, `GOOGLE_CLIENT_ID`. The workflow lists every name.
 4. Set secrets `GOOGLE_CLIENT_SECRET` and `SUPABASE_ACCESS_TOKEN` in both GitHub environments `dev` and `production`.
 5. In GitHub settings, add required reviewers to the `production` environment.
-6. Add the APNs key: after the first apply creates the secret `apns-key`, run `gcloud secrets versions add apns-key --data-file=<AuthKey.p8>`, then redeploy the relay. Until then push is off. Key id, team and topic are the `apns_*` variables in [`modules/whereabouts/push.tf`](modules/whereabouts/push.tf).
+6. Add the APNs key: after the first apply creates the secret `whereabouts-<env>-APNS_KEY`, add the `.p8` as its first version with `gcloud secrets versions add`, then redeploy the relay. Until then push is off. Key id, team and topic are the `apns_*` variables in [`modules/whereabouts/push.tf`](modules/whereabouts/push.tf).
 
 ## Bootstrap (once per env)
 

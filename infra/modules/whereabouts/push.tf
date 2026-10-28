@@ -35,7 +35,7 @@ locals {
 }
 
 resource "google_secret_manager_secret" "apns_key" {
-  secret_id = "apns-key"
+  secret_id = "whereabouts-${var.env}-APNS_KEY"
   replication {
     auto {}
   }
