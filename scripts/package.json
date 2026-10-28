@@ -1,0 +1,12 @@
+{
+  "name": "whereabot-brand-tooling",
+  "private": true,
+  "type": "module",
+  "description": "Pinned tools for scripts/generate-brand-assets.mjs",
+  "devDependencies": {
+    "@fontsource/inter": "5.3.0",
+    "opentype.js": "2.0.0",
+    "sharp": "0.35.5",
+    "svgo": "4.1.0"
+  }
+}
