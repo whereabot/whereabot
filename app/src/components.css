@@ -1,0 +1,68 @@
+.card {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-label {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.state-label {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--off);
+}
+
+.state-label::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+[data-state="connected"] .state-label {
+  color: var(--ok);
+}
+
+[data-state="waiting"] .state-label {
+  color: var(--wait);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.help {
+  padding: 14px 16px;
+  border-left: 4px solid var(--primary);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.help p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.help-title {
+  font-weight: 600;
+  margin-bottom: 4px !important;
+}

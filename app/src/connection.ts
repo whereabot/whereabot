@@ -1,7 +1,7 @@
 import WebSocket from "@tauri-apps/plugin-websocket";
 import { getCurrentPosition } from "@tauri-apps/plugin-geolocation";
 import { answer, type Ping } from "./protocol";
-import { $, setStatus } from "./dom";
+import { $, setState, setStatus } from "./dom";
 import { checkUrl, relayUrl } from "./config";
 import { ensurePermission } from "./location";
 
@@ -20,6 +20,7 @@ function retry(getToken: TokenSource) {
 async function connect(getToken: TokenSource) {
   clearTimeout(retryTimer);
   setStatus("Connecting…");
+  setState("waiting");
   // Read the current session on every connect. supabase-js refreshes it.
   const token = await getToken();
   if (!token) {
@@ -33,6 +34,7 @@ async function connect(getToken: TokenSource) {
     });
   } catch (e) {
     setStatus(`Connect failed: ${e}. Retrying…`);
+    setState("waiting");
     retry(getToken);
     return;
   }
@@ -42,11 +44,13 @@ async function connect(getToken: TokenSource) {
   }
   ws = socket;
   setStatus("Connected. Waiting for pings.");
+  setState("connected");
   socket.addListener(async (msg) => {
     if (msg.type === "Close") {
       ws = null;
       if (stopped) return;
-      setStatus("Disconnected. Retrying…");
+      setStatus("Connection lost. Retrying…");
+      setState("waiting");
       retry(getToken);
       return;
     }
@@ -71,6 +75,7 @@ export function disconnect() {
   void ws?.disconnect();
   ws = null;
   setStatus("Disconnected.");
+  setState("disconnected");
 }
 
 export async function start(getToken: TokenSource) {
