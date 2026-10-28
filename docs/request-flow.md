@@ -2,7 +2,7 @@
 
 Every state a request passes through, every notification the user can see, and every result the agent gets. Wire formats: [protocol](protocol.md). Components: [architecture](architecture.md).
 
-Legend: rounded boxes are what the user sees; hexagons are relay decisions; `[A]` = answer the agent gets. Steps marked are being built and not live yet.
+Legend: rounded boxes are what the user sees; hexagons are relay decisions; `[A]` = answer the agent gets.
 
 ```mermaid
 flowchart TD
