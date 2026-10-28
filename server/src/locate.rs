@@ -7,7 +7,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use serde::Deserialize;
-use tokio::sync::oneshot;
+use tokio::sync::{mpsc, oneshot};
 use uuid::Uuid;
 
 use crate::{
@@ -31,31 +31,30 @@ pub async fn request_location(
     user_id: Uuid,
     timeout: Duration,
 ) -> Result<Location, LocateError> {
-    // iOS drops the socket in the background; wait for the user to open the app.
+    // iOS drops the socket in the background: wait for the app, and resend the
+    // ping to each new socket so a reconnect does not lose it.
     let deadline = tokio::time::Instant::now() + timeout;
-    let device = loop {
-        if let Some(d) = state.devices.lock().await.get(&user_id).cloned() {
-            break d;
+    let id = Uuid::new_v4();
+    let (tx, mut rx) = oneshot::channel();
+    state.pending.lock().await.insert(id, tx);
+    let mut sent_to: Option<mpsc::Sender<ToDevice>> = None;
+    let result = loop {
+        let current = state.devices.lock().await.get(&user_id).cloned();
+        if let Some(device) = current
+            && !sent_to.as_ref().is_some_and(|s| s.same_channel(&device))
+            && device.send(ToDevice::Locate { id }).await.is_ok()
+        {
+            sent_to = Some(device);
         }
         if tokio::time::Instant::now() >= deadline {
-            return Err(LocateError::Offline);
+            break Err(if sent_to.is_some() { LocateError::Timeout } else { LocateError::Offline });
         }
-        tokio::time::sleep(Duration::from_millis(250)).await;
+        if let Ok(fix) = tokio::time::timeout(Duration::from_millis(250), &mut rx).await {
+            break fix.map_err(|_| LocateError::Timeout);
+        }
     };
-    let id = Uuid::new_v4();
-    let (tx, rx) = oneshot::channel();
-    state.pending.lock().await.insert(id, tx);
-    if device.send(ToDevice::Locate { id }).await.is_err() {
-        state.pending.lock().await.remove(&id);
-        return Err(LocateError::Offline);
-    }
-    match tokio::time::timeout_at(deadline, rx).await {
-        Ok(Ok(location)) => Ok(location),
-        _ => {
-            state.pending.lock().await.remove(&id);
-            Err(LocateError::Timeout)
-        }
-    }
+    state.pending.lock().await.remove(&id);
+    result
 }
 
 pub async fn locate(

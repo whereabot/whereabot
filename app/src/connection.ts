@@ -59,8 +59,11 @@ async function connect(getToken: TokenSource) {
 }
 
 // iOS kills the socket in the background, often without a Close event: reconnect on return.
+// Short hides (location prompt, indicator) keep the socket and any ping in flight.
+let hiddenAt = 0;
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState !== "visible" || stopped || !lastTokenSource) return;
+  if (document.visibilityState === "hidden") return void (hiddenAt = Date.now());
+  if (Date.now() - hiddenAt < 5000 || stopped || !lastTokenSource) return;
   const old = ws;
   ws = null;
   void old?.disconnect().catch(() => {});

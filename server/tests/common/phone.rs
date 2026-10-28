@@ -29,3 +29,16 @@ pub async fn connect_phone(addr: &str, token: &str, latitude: f64) {
         }
     });
 }
+
+/// Connects a phone that never answers. Drop the stream to disconnect it.
+pub async fn connect_silent_phone(
+    addr: &str,
+    token: &str,
+) -> tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>> {
+    let mut req = format!("ws://{addr}/v1/device")
+        .into_client_request()
+        .unwrap();
+    req.headers_mut()
+        .insert("authorization", format!("Bearer {token}").parse().unwrap());
+    tokio_tungstenite::connect_async(req).await.unwrap().0
+}

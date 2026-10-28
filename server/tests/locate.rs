@@ -43,3 +43,18 @@ async fn locate_waits_for_phone_to_connect() {
     connect_phone(&relay.addr, &relay.phone(USER_A), 32.08).await;
     assert_eq!(pending.await.unwrap(), 200);
 }
+
+#[tokio::test]
+async fn locate_resends_ping_after_reconnect() {
+    let relay = start_relay().await;
+    let http = reqwest::Client::new();
+    let token = relay.mcp(USER_A);
+    let _silent = common::phone::connect_silent_phone(&relay.addr, &relay.phone(USER_A)).await;
+    let pending = tokio::spawn({
+        let (http, addr) = (http.clone(), relay.addr.clone());
+        async move { locate_once(&http, &addr, &token).await.status() }
+    });
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    connect_phone(&relay.addr, &relay.phone(USER_A), 32.08).await;
+    assert_eq!(pending.await.unwrap(), 200);
+}
