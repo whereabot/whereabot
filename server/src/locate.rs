@@ -31,8 +31,16 @@ pub async fn request_location(
     user_id: Uuid,
     timeout: Duration,
 ) -> Result<Location, LocateError> {
-    let Some(device) = state.devices.lock().await.get(&user_id).cloned() else {
-        return Err(LocateError::Offline);
+    // iOS drops the socket in the background; wait for the user to open the app.
+    let deadline = tokio::time::Instant::now() + timeout;
+    let device = loop {
+        if let Some(d) = state.devices.lock().await.get(&user_id).cloned() {
+            break d;
+        }
+        if tokio::time::Instant::now() >= deadline {
+            return Err(LocateError::Offline);
+        }
+        tokio::time::sleep(Duration::from_millis(250)).await;
     };
     let id = Uuid::new_v4();
     let (tx, rx) = oneshot::channel();
@@ -41,7 +49,7 @@ pub async fn request_location(
         state.pending.lock().await.remove(&id);
         return Err(LocateError::Offline);
     }
-    match tokio::time::timeout(timeout, rx).await {
+    match tokio::time::timeout_at(deadline, rx).await {
         Ok(Ok(location)) => Ok(location),
         _ => {
             state.pending.lock().await.remove(&id);

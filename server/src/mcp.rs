@@ -21,7 +21,7 @@ use crate::{
 struct LocationParams {
     #[schemars(
         range(min = 1, max = 120),
-        description = "Seconds to wait for the phone. Default 30."
+        description = "Seconds to wait for the phone, including time for the user to open the app. Default 60."
     )]
     timeout_secs: Option<u64>,
 }
@@ -46,13 +46,13 @@ impl Whereabouts {
         let Some(UserId(user_id)) = parts.extensions.get::<UserId>().copied() else {
             return CallToolResult::error(vec![ContentBlock::text("Unauthorized.")]);
         };
-        let timeout = Duration::from_secs(params.timeout_secs.unwrap_or(30).clamp(1, 120));
+        let timeout = Duration::from_secs(params.timeout_secs.unwrap_or(60).clamp(1, 120));
         match request_location(&self.state, user_id, timeout).await {
             Ok(location) => CallToolResult::success(vec![ContentBlock::text(
                 serde_json::to_string(&location).expect("Location serializes"),
             )]),
             Err(LocateError::Offline) => CallToolResult::error(vec![ContentBlock::text(
-                "The user's phone is not connected. Ask the user to open the Whereabouts app and sign in.",
+                "The user's phone is not connected. Ask the user to open the Whereabot app and keep it open.",
             )]),
             Err(LocateError::Timeout) => CallToolResult::error(vec![ContentBlock::text(
                 "The phone did not answer in time.",

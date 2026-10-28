@@ -4,7 +4,7 @@
 use serde_json::{Value, json};
 
 pub const OFFLINE: &str =
-    "The user's phone is not connected. Ask the user to open the Whereabouts app and sign in.";
+    "The user's phone is not connected. Ask the user to open the Whereabot app and keep it open.";
 
 /// Sends one JSON-RPC message to /mcp with the given bearer token. Returns the decoded reply.
 pub async fn rpc(http: &reqwest::Client, addr: &str, key: &str, body: Value) -> Value {

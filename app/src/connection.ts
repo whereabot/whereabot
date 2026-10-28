@@ -1,7 +1,6 @@
 import WebSocket from "@tauri-apps/plugin-websocket";
-import { getCurrentPosition } from "@tauri-apps/plugin-geolocation";
-import { answer, type Ping } from "./protocol";
-import { $, setState, setStatus } from "./dom";
+import { answerPing } from "./ping";
+import { setState, setStatus } from "./dom";
 import { checkUrl, relayUrl } from "./config";
 import { ensurePermission } from "./location";
 
@@ -13,11 +12,11 @@ let ws: WebSocket | null = null;
 let retryTimer: number | undefined;
 let stopped = true;
 
-function retry(getToken: TokenSource) {
-  retryTimer = window.setTimeout(() => connect(getToken), RETRY_MS);
-}
+const retry = (getToken: TokenSource) => (retryTimer = window.setTimeout(() => connect(getToken), RETRY_MS));
 
+let lastTokenSource: TokenSource | null = null;
 async function connect(getToken: TokenSource) {
+  lastTokenSource = getToken;
   clearTimeout(retryTimer);
   setStatus("Connecting…");
   setState("waiting");
@@ -47,6 +46,7 @@ async function connect(getToken: TokenSource) {
   setState("connected");
   socket.addListener(async (msg) => {
     if (msg.type === "Close") {
+      if (ws !== socket) return; // replaced by a newer socket
       ws = null;
       if (stopped) return;
       setStatus("Connection lost. Retrying…");
@@ -54,20 +54,18 @@ async function connect(getToken: TokenSource) {
       retry(getToken);
       return;
     }
-    if (msg.type !== "Text") return;
-    const ping = JSON.parse(msg.data) as Ping;
-    if (ping.type !== "locate") return;
-    let pos;
-    try {
-      pos = await getCurrentPosition({ enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
-    } catch (e) {
-      setStatus(`Location failed: ${e}. No reply sent.`);
-      return;
-    }
-    await socket.send(JSON.stringify(answer(ping, pos)));
-    $("last-ping").textContent = `Last ping answered at ${new Date().toLocaleTimeString()}`;
+    if (msg.type === "Text") await answerPing(socket, msg.data);
   });
 }
+
+// iOS kills the socket in the background, often without a Close event: reconnect on return.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible" || stopped || !lastTokenSource) return;
+  const old = ws;
+  ws = null;
+  void old?.disconnect().catch(() => {});
+  void connect(lastTokenSource);
+});
 
 export function disconnect() {
   stopped = true;
