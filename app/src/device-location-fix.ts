@@ -1,4 +1,4 @@
-import { checkPermissions, clearWatch, watchPosition, type Position } from "@tauri-apps/plugin-geolocation";
+import { checkPermissions, clearWatch, getCurrentPosition, watchPosition, type Position } from "@tauri-apps/plugin-geolocation";
 
 export type Fix = { pos: Position } | { fail: "permission" | "no_fix" };
 
@@ -37,5 +37,9 @@ export async function getFix(): Promise<Fix> {
       });
   });
   if (watchId !== null) void clearWatch(watchId).catch(() => {});
-  return pos ? { pos } : { fail: "no_fix" };
+  if (pos) return { pos };
+  // The watch failed or saw nothing: one plain read still beats no answer.
+  return getCurrentPosition({ enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 })
+    .then((p): Fix => ({ pos: p }))
+    .catch((): Fix => ({ fail: "no_fix" }));
 }
