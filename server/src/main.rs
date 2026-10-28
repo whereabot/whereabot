@@ -22,6 +22,9 @@ async fn main() {
             .unwrap_or_else(|| format!("{supabase_url}/auth/v1")),
         public_url: required("WB_PUBLIC_URL"),
         agent_keys: agent_keys_enabled().then(|| required("SUPABASE_SERVICE_ROLE_KEY")),
+        anon_key: std::env::var("SUPABASE_ANON_KEY")
+            .ok()
+            .filter(|key| !key.is_empty()),
         supabase_url,
     };
     let addr = bind_addr();

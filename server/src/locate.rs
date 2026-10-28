@@ -10,13 +10,14 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use serde::Deserialize;
-use tokio::sync::{mpsc, oneshot};
+use tokio::sync::oneshot;
 use uuid::Uuid;
 
 use crate::{
     Agent, AppState, auth,
+    devices::fanout::Fanout,
     errors::LocateError,
-    protocol::{Answer, Location, ToDevice},
+    protocol::{Answer, Location},
 };
 
 #[derive(Deserialize)]
@@ -39,24 +40,12 @@ pub async fn request_location(
     let id = Uuid::new_v4();
     let (tx, mut rx) = oneshot::channel();
     state.pending.lock().await.insert(id, tx);
-    let mut sent_to: Option<mpsc::Sender<ToDevice>> = None;
+    let mut fanout = Fanout::new(agent.user_id, id, agent.client_id.clone(), expires_ms);
+    let mut winner = Uuid::nil();
     let result = loop {
-        let current = state.devices.lock().await.get(&agent.user_id).cloned();
-        if let Some(device) = current
-            && !sent_to.as_ref().is_some_and(|s| s.same_channel(&device))
-            && device
-                .send(ToDevice::Locate {
-                    id,
-                    client_id: agent.client_id.clone(),
-                    expires_ms,
-                })
-                .await
-                .is_ok()
-        {
-            sent_to = Some(device);
-        }
+        fanout.send_new(&state.devices).await;
         if tokio::time::Instant::now() >= deadline {
-            break Err(if sent_to.is_some() {
+            break Err(if fanout.reached() {
                 LocateError::Timeout
             } else {
                 LocateError::Offline {
@@ -64,16 +53,22 @@ pub async fn request_location(
                 }
             });
         }
-        if let Ok(fix) = tokio::time::timeout(Duration::from_millis(250), &mut rx).await {
-            break match fix {
-                Ok(Answer::Fix(location)) => Ok(location),
-                Ok(Answer::Denied(reason)) => Err(LocateError::Denied(reason)),
-                Ok(Answer::Unavailable(reason)) => Err(LocateError::Unavailable(reason)),
+        if let Ok(answer) = tokio::time::timeout(Duration::from_millis(250), &mut rx).await {
+            break match answer {
+                Ok((from, answer)) => {
+                    winner = from;
+                    match answer {
+                        Answer::Fix(location) => Ok(location),
+                        Answer::Denied(reason) => Err(LocateError::Denied(reason)),
+                        Answer::Unavailable(reason) => Err(LocateError::Unavailable(reason)),
+                    }
+                }
                 Err(_) => Err(LocateError::Timeout),
             };
         }
     };
     state.pending.lock().await.remove(&id);
+    fanout.cancel_others(&state.devices, winner).await;
     result
 }
 

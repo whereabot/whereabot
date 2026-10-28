@@ -9,6 +9,11 @@ Fake data only: every network call is stubbed. Light colour scheme, reduced moti
 | [app-connected-mobile.png](app-connected-mobile.png) | Connected to the relay and waiting for a locate ping. |
 | [app-connecting-mobile.png](app-connecting-mobile.png) | Signed in. Opening the connection to the relay. |
 | [app-connection-lost-mobile.png](app-connection-lost-mobile.png) | The socket closed. Status shows a retry. |
+| [app-devices-empty-mobile.png](app-devices-empty-mobile.png) | Devices page with no devices yet. |
+| [app-devices-error-mobile.png](app-devices-error-mobile.png) | Devices could not be loaded. Shows the reason and Try again. |
+| [app-devices-mobile.png](app-devices-mobile.png) | Devices page: this phone online, others with last seen, a Computer coming soon row and the add-a-phone hint. |
+| [app-devices-remove-mobile.png](app-devices-remove-mobile.png) | Removing another device asks for confirmation first. |
+| [app-devices-rename-mobile.png](app-devices-rename-mobile.png) | Renaming a device inline: a name field with Save and Cancel. |
 | [app-disconnected-mobile.png](app-disconnected-mobile.png) | Disconnect pressed. Shows Disconnected. |
 | [app-history-empty-mobile.png](app-history-empty-mobile.png) | Request history with no items. |
 | [app-history-mobile.png](app-history-mobile.png) | Request history with items and always allowed agents. |

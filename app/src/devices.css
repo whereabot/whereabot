@@ -1,0 +1,44 @@
+/* Devices page. Same one-screen-at-a-time rule as history (layout.css). */
+#devices {
+  display: none;
+}
+[data-screen="devices"] #devices {
+  display: flex;
+}
+[data-screen="devices"] :is(#home, #state-card, .lede) {
+  display: none;
+}
+#devices h2 {
+  margin: 0;
+}
+#devices h2:focus {
+  outline: none;
+}
+
+.btn-danger {
+  background: var(--off);
+  color: #fff;
+}
+
+dialog {
+  width: min(calc(100vw - 40px), 24rem);
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text);
+}
+dialog::backdrop {
+  background: rgb(0 0 0 / 0.5);
+}
+dialog h2,
+dialog p {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #devices * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

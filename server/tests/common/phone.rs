@@ -64,3 +64,35 @@ pub async fn connect_denying_phone(addr: &str, token: &str, client_id: &str) {
         }
     });
 }
+
+pub const DEVICE_1: &str = "11111111-1111-4111-8111-111111111111";
+pub const DEVICE_2: &str = "22222222-2222-4222-8222-222222222222";
+
+type Ws =
+    tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+/// Sends the `hello` that names this install.
+pub async fn hello(ws: &mut Ws, device_id: &str) {
+    let msg = json!({
+        "type": "hello", "app_version": "0.2.0", "device_id": device_id,
+        "device_name": "Test phone", "platform": "ios"
+    });
+    ws.send(Message::Text(msg.to_string().into()))
+        .await
+        .unwrap();
+}
+
+/// The close code and reason of the next Close frame, within 5 s.
+pub async fn next_close(ws: &mut Ws) -> (u16, String) {
+    let wait = async {
+        while let Some(Ok(msg)) = ws.next().await {
+            if let Message::Close(Some(frame)) = msg {
+                return (u16::from(frame.code), frame.reason.to_string());
+            }
+        }
+        panic!("socket ended without a Close frame");
+    };
+    tokio::time::timeout(std::time::Duration::from_secs(5), wait)
+        .await
+        .expect("no Close frame")
+}

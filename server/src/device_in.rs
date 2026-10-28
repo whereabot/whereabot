@@ -6,16 +6,22 @@ use crate::{
 };
 
 /// Handles one text message from a phone. Unknown or malformed messages are ignored.
-pub async fn handle(state: &AppState, user_id: Uuid, text: &str) {
+/// `device` is the socket's registry key. Returns the `device_id` of a `hello`.
+pub async fn handle(state: &AppState, user_id: Uuid, device: Uuid, text: &str) -> Option<Uuid> {
     let (id, answer) = match serde_json::from_str(text) {
-        Ok(FromDevice::Hello { app_version }) => {
-            tracing::info!(%user_id, ?app_version, "device hello");
-            return;
+        Ok(FromDevice::Hello {
+            app_version,
+            device_id,
+            device_name,
+            platform,
+        }) => {
+            tracing::info!(%user_id, ?app_version, ?device_id, ?device_name, ?platform, "device hello");
+            return device_id;
         }
         Ok(FromDevice::Log { msg }) => {
             let msg: String = msg.chars().take(200).collect();
             tracing::info!(%user_id, %msg, "device log");
-            return;
+            return None;
         }
         Ok(FromDevice::Location(location)) => {
             tracing::info!(%user_id, id = %location.id, "device answered with a fix");
@@ -31,10 +37,11 @@ pub async fn handle(state: &AppState, user_id: Uuid, text: &str) {
         }
         Err(e) => {
             tracing::warn!(%user_id, error = %e, "device sent an unknown message");
-            return;
+            return None;
         }
     };
     if let Some(waiter) = state.pending.lock().await.remove(&id) {
-        let _ = waiter.send(answer);
+        let _ = waiter.send((device, answer));
     }
+    None
 }

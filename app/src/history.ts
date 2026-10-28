@@ -2,7 +2,7 @@ import { type Agent, isGeneric } from "./agent";
 import { supabase } from "./supabase";
 
 export type Outcome =
-  | "approved" | "always" | "rejected" | "timeout" | "auto" | "failed" | "unavailable";
+  | "approved" | "always" | "rejected" | "timeout" | "auto" | "failed" | "unavailable" | "elsewhere";
 type Entry = { at: number; agent: Agent; outcome: Outcome };
 
 const REQUESTS = "whereabouts.requests";

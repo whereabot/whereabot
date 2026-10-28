@@ -11,7 +11,7 @@ use axum::{
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
-use crate::{AppState, auth, device_in, oauth, protocol::ToDevice};
+use crate::{AppState, auth, device_in, devices::revoke, oauth, protocol::ToDevice};
 
 pub async fn device(
     State(state): State<Arc<AppState>>,
@@ -21,20 +21,15 @@ pub async fn device(
     let Some(token) = auth::verify(&state, &headers, false).await else {
         return oauth::unauthorized(&state.public_url);
     };
-    ws.on_upgrade(move |socket| serve_device(state, token.user_id, socket))
+    let bearer = auth::bearer(&headers).unwrap_or_default().to_string();
+    ws.on_upgrade(move |socket| serve_device(state, token.user_id, bearer, socket))
 }
 
-async fn serve_device(state: Arc<AppState>, user_id: Uuid, mut socket: WebSocket) {
+async fn serve_device(state: Arc<AppState>, user_id: Uuid, bearer: String, mut socket: WebSocket) {
     let (tx, mut rx) = mpsc::channel(8);
-    // A new connection replaces the user's old one. This loop keeps its own `tx` to
-    // tell whether it is still current, so the old loop ends on an explicit Close.
-    let old = state.devices.lock().await.insert(user_id, tx.clone());
-    if let Some(old) = old {
-        let _ = old.try_send(ToDevice::Close {
-            code: 4000,
-            reason: "replaced",
-        });
-    }
+    // Until `hello` names the device_id, the socket lives under a random key.
+    let mut key = Uuid::new_v4();
+    state.devices.insert(user_id, key, tx.clone()).await;
     tracing::info!(%user_id, "device connected");
     // Keeps mobile networks and Cloudflare from dropping an idle socket.
     let mut keepalive = tokio::time::interval(Duration::from_secs(25));
@@ -57,7 +52,18 @@ async fn serve_device(state: Arc<AppState>, user_id: Uuid, mut socket: WebSocket
                 }
             }
             incoming = socket.recv() => match incoming {
-                Some(Ok(Message::Text(text))) => device_in::handle(&state, user_id, &text).await,
+                Some(Ok(Message::Text(text))) => {
+                    let Some(id) = device_in::handle(&state, user_id, key, &text).await else {
+                        continue;
+                    };
+                    if revoke::is_revoked(&state, &bearer, id).await {
+                        let frame = CloseFrame { code: 4000, reason: "revoked".into() };
+                        let _ = socket.send(Message::Close(Some(frame))).await;
+                        break;
+                    }
+                    state.devices.rekey(user_id, key, id, &tx).await;
+                    key = id;
+                }
                 Some(Ok(_)) => continue,
                 _ => break,
             },
@@ -65,11 +71,5 @@ async fn serve_device(state: Arc<AppState>, user_id: Uuid, mut socket: WebSocket
         }
     }
     tracing::info!(%user_id, "device disconnected");
-    let mut devices = state.devices.lock().await;
-    if devices
-        .get(&user_id)
-        .is_some_and(|current| current.same_channel(&tx))
-    {
-        devices.remove(&user_id);
-    }
+    state.devices.remove(user_id, key, &tx).await;
 }

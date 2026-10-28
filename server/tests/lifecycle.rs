@@ -1,35 +1,21 @@
 mod common;
 
 use common::{
-    locate_settled, phone::connect_silent_phone, scripted::connect_scripted, start_relay,
+    locate_settled,
+    phone::{DEVICE_1, connect_silent_phone, hello, next_close},
+    scripted::connect_scripted,
+    start_relay,
     supabase::USER_A,
 };
-use futures_util::StreamExt;
 use serde_json::{Value, json};
-use tokio_tungstenite::tungstenite::Message;
-
-/// The close code and reason of the next Close frame, within 5 s.
-async fn next_close(
-    ws: &mut (impl StreamExt<Item = Result<Message, tokio_tungstenite::tungstenite::Error>> + Unpin),
-) -> (u16, String) {
-    let wait = async {
-        while let Some(Ok(msg)) = ws.next().await {
-            if let Message::Close(Some(frame)) = msg {
-                return (u16::from(frame.code), frame.reason.to_string());
-            }
-        }
-        panic!("socket ended without a Close frame");
-    };
-    tokio::time::timeout(std::time::Duration::from_secs(5), wait)
-        .await
-        .expect("no Close frame")
-}
 
 #[tokio::test]
-async fn new_phone_closes_the_old_socket_with_4000() {
+async fn same_device_id_closes_the_old_socket_with_4000() {
     let relay = start_relay().await;
     let mut old = connect_silent_phone(&relay.addr, &relay.phone(USER_A)).await;
-    let _new = connect_silent_phone(&relay.addr, &relay.phone(USER_A)).await;
+    hello(&mut old, DEVICE_1).await;
+    let mut new = connect_silent_phone(&relay.addr, &relay.phone(USER_A)).await;
+    hello(&mut new, DEVICE_1).await;
     assert_eq!(next_close(&mut old).await, (4000, "replaced".into()));
 }
 

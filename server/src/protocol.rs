@@ -48,6 +48,8 @@ pub enum ToDevice {
         client_id: String,
         expires_ms: u64,
     },
+    /// Another device answered `id`: close the prompt.
+    Cancel { id: Uuid },
     /// Not a message: the socket loop sends a Close frame with this code and reason.
     #[serde(skip)]
     Close { code: u16, reason: &'static str },
@@ -59,6 +61,9 @@ pub enum ToDevice {
 pub enum FromDevice {
     Hello {
         app_version: Option<String>,
+        device_id: Option<Uuid>,
+        device_name: Option<String>,
+        platform: Option<String>,
     },
     Location(Location),
     Denied {
@@ -71,5 +76,7 @@ pub enum FromDevice {
         reason: UnavailableReason,
     },
     /// App diagnostics (no location data); the relay only logs them.
-    Log { msg: String },
+    Log {
+        msg: String,
+    },
 }

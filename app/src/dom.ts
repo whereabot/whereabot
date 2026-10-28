@@ -12,7 +12,7 @@ const LABELS: Record<ConnState, string> = {
 
 /** States that explain themselves in the status line. */
 const NOTES: Partial<Record<ConnState, string>> = {
-  replaced: "Another phone is now connected for this account.",
+  replaced: "This device connected from somewhere else.",
   expired: "Sign-in expired. Sign out and sign in again.",
 };
 

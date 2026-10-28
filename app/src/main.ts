@@ -2,6 +2,7 @@ import { $, setState, setStatus, showView } from "./dom";
 import { disconnect, start } from "./connection";
 import { listenForAuthRedirect, signInWithGoogle, signInWithPassword, signOut } from "./auth";
 import { devLogin } from "./config";
+import { initDevices } from "./ui/devices";
 import { initHistory } from "./ui/history";
 import { initHome } from "./ui/home";
 import { initPermissions } from "./ui/permissions";
@@ -33,6 +34,7 @@ window.addEventListener("DOMContentLoaded", () => {
     await signOut();
   });
   initHistory();
+  initDevices();
   initHome();
   initPermissions();
   void listenForAuthRedirect();
@@ -56,7 +58,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // Screenshot builds only: lets scripts/screens drive the UI without a relay.
 if (import.meta.env.VITE_SCREENS) {
-  void Promise.all([import("./ui/request"), import("./ui/history"), import("./ui/view")]).then(([r, h, v]) => {
-    Object.assign(window, { __ui: { ...r, ...h, ...v } });
+  void Promise.all([import("./ui/request"), import("./ui/history"), import("./ui/view"), import("./ui/devices")]).then(([r, h, v, d]) => {
+    Object.assign(window, { __ui: { ...r, ...h, ...v, ...d } });
   });
 }

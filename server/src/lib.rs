@@ -4,12 +4,13 @@ use axum::{
     Router,
     routing::{any, get, post},
 };
-use tokio::sync::{Mutex, mpsc, oneshot};
+use tokio::sync::{Mutex, oneshot};
 use uuid::Uuid;
 
 mod auth;
 mod device;
 mod device_in;
+mod devices;
 mod errors;
 mod jwks;
 mod jwt;
@@ -21,7 +22,7 @@ mod shutdown;
 mod supabase;
 
 use jwks::JwksCache;
-use protocol::{Answer, ToDevice};
+use protocol::Answer;
 pub use shutdown::Shutdown;
 use supabase::Supabase;
 
@@ -33,6 +34,7 @@ pub struct Config {
     pub public_url: String,
     /// Service role key. `Some` turns on the headless agent-key fallback.
     pub agent_keys: Option<String>,
+    pub anon_key: Option<String>,
 }
 
 /// An authenticated agent request: whose phone to ping, and who asks. Set by the MCP auth middleware.
@@ -49,9 +51,10 @@ struct AppState {
     issuer: String,
     public_url: String,
     agent_keys: Option<Supabase>,
-    // One live phone per user.
-    devices: Mutex<HashMap<Uuid, mpsc::Sender<ToDevice>>>,
-    pending: Mutex<HashMap<Uuid, oneshot::Sender<Answer>>>,
+    supabase_url: String,
+    anon_key: Option<String>,
+    devices: devices::registry::Registry,
+    pending: Mutex<HashMap<Uuid, oneshot::Sender<(Uuid, Answer)>>>,
 }
 
 pub fn app(config: Config) -> Router {
@@ -66,8 +69,10 @@ pub fn build(config: Config) -> (Router, Shutdown) {
         public_url: config.public_url,
         agent_keys: config
             .agent_keys
-            .map(|key| Supabase::new(config.supabase_url, key)),
-        devices: Mutex::default(),
+            .map(|key| Supabase::new(config.supabase_url.clone(), key)),
+        supabase_url: config.supabase_url,
+        anon_key: config.anon_key,
+        devices: devices::registry::Registry::default(),
         pending: Mutex::default(),
     });
     let router = Router::new()

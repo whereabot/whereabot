@@ -6,6 +6,7 @@ import { addAlwaysApproved, isAlwaysApproved, recordRequest, type Outcome } from
 import { notify } from "./notify";
 import { getFix } from "./location";
 import { showRequest } from "./ui/request";
+import { cancelRequest, track, untrack, wasCancelled } from "./devices/cancel";
 
 // Used when an older relay sends no expires_ms.
 const FALLBACK_MS = 55_000;
@@ -20,7 +21,8 @@ type Send = (message: string) => Promise<void>;
 
 /** Answers one relay message if it is a locate ping. `send` targets the live socket. */
 export async function answerPing(send: Send, data: string) {
-  const ping = JSON.parse(data) as Ping;
+  const ping = JSON.parse(data) as Ping | { type: "cancel"; id: string };
+  if (ping.type === "cancel") return cancelRequest(ping.id); // another device answered
   if (ping.type !== "locate" || seen.has(ping.id)) return;
   seen.add(ping.id);
   const step = (m: string) => void send(log(`${ping.id.slice(0, 8)} ${m}`)).catch(() => {});
@@ -34,15 +36,19 @@ export async function answerPing(send: Send, data: string) {
 }
 
 async function prompt(send: Send, ping: Ping, agent: Agent, step: (m: string) => void) {
+  if (wasCancelled(ping.id)) return recordRequest(agent, "elsewhere");
   const left = (ping.expires_ms ? ping.expires_ms - Date.now() : FALLBACK_MS) - MARGIN_MS;
   if (left <= 0) return recordRequest(agent, "timeout"); // The relay already stopped waiting.
   const abort = new AbortController();
   const timer = window.setTimeout(() => abort.abort(), left);
+  track(ping.id, abort);
   void notify(`Your agent ${agent.name} wants to know your location`);
   const shown = showRequest(agent, abort.signal, !isGeneric(agent.clientId));
   step(`prompt shown, left=${left}ms, screen=${document.body.dataset.screen}, visible=${document.visibilityState}`);
   const choice = await shown;
   clearTimeout(timer);
+  untrack(ping.id);
+  if (wasCancelled(ping.id)) return recordRequest(agent, "elsewhere");
   step(`choice=${choice}`);
   if (choice === "reject") {
     recordRequest(agent, "rejected");

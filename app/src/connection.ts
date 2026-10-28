@@ -1,18 +1,17 @@
 import WebSocket from "@tauri-apps/plugin-websocket";
 import { answerPing } from "./ping";
 import { setState, setStatus } from "./dom";
-import { appVersion, checkUrl, relayUrl } from "./config";
+import { checkUrl, relayUrl } from "./config";
 import { backoffMs } from "./backoff";
 import { dropLive, getLive, noteExpiry, send, setLive } from "./outbox";
 import { touch, watchLiveness } from "./liveness";
+import { onCloseFrame, onOpen, stopHeartbeat } from "./devices/session";
 import { authOk, EXPIRED, isAuthError, refreshOnce } from "./reauth";
 
-export { send };
 type TokenSource = () => Promise<string | null>;
 
 let retryTimer: number | undefined;
-let attempt = 0;
-let connecting = false;
+let attempt = 0, connecting = false;
 let tokenSource: TokenSource | null = null;
 // True after Disconnect, "replaced" or "expired": only a manual start() clears it.
 let halted = false;
@@ -21,6 +20,7 @@ function halt(state: "disconnected" | "replaced" | "expired", status: string) {
   halted = true;
   clearTimeout(retryTimer);
   dropLive();
+  stopHeartbeat();
   setStatus(status);
   setState(state);
 }
@@ -57,21 +57,21 @@ async function open(getToken: TokenSource) {
   touch();
   setStatus("Connected. Waiting for pings.");
   setState("connected");
-  void socket.send(JSON.stringify({ type: "hello", app_version: appVersion })).catch(() => {});
+  onOpen(socket);
   socket.addListener((msg) => {
     if (getLive() !== socket) return;
     touch();
-    if (msg.type === "Close") return onClose(msg.data?.code);
+    if (msg.type === "Close") return onClose(msg.data?.code, msg.data?.reason);
     if (msg.type !== "Text") return;
     noteExpiry(msg.data);
     answerPing(send, msg.data).catch((e) => setStatus(`Request failed: ${e}`));
   });
 }
 
-function onClose(code?: number) {
+function onClose(code?: number, reason?: string) {
   setLive(null);
-  if (halted) return;
-  if (code === 4000) return halt("replaced", "Another phone is now connected for this account.");
+  if (onCloseFrame(code, reason) || halted) return;
+  if (code === 4000) return halt("replaced", "This device connected from somewhere else.");
   setStatus("Connection lost. Retrying…");
   setState("waiting");
   retry(code === 1012 ? 0 : backoffMs(attempt++));

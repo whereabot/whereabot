@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <link rel="stylesheet" href="/src/styles.css" /><link rel="stylesheet" href="/src/layout.css" /><link rel="stylesheet" href="/src/buttons.css" />
-    <link rel="stylesheet" href="/src/components.css" /><link rel="stylesheet" href="/src/request.css" /><link rel="stylesheet" href="/src/history.css" /><link rel="stylesheet" href="/src/home.css" /><link rel="stylesheet" href="/src/permissions.css" />
+    <link rel="stylesheet" href="/src/components.css" /><link rel="stylesheet" href="/src/request.css" /><link rel="stylesheet" href="/src/history.css" /><link rel="stylesheet" href="/src/home.css" /><link rel="stylesheet" href="/src/permissions.css" /><link rel="stylesheet" href="/src/devices.css" /><link rel="stylesheet" href="/src/device-row.css" />
     <title>Whereabot</title>
     <script type="module" src="/src/main.ts" defer></script>
   </head>
@@ -52,7 +52,7 @@
           <div class="actions">
             <button id="connect" class="btn btn-primary" type="button">Connect</button><button id="disconnect" class="btn btn-secondary" type="button" hidden>Disconnect</button>
           </div>
-          <button id="open-history" class="btn btn-secondary" type="button">Request history</button>
+          <div class="actions"><button id="open-history" class="btn btn-secondary" type="button">Request history</button><button id="open-devices" class="btn btn-secondary" type="button">Devices</button></div>
           <p id="last-ping" class="muted"></p>
           <section id="notif-banner" class="help warn" aria-labelledby="notif-title" hidden>
             <p id="notif-title" class="help-title">Notifications are off &mdash; you may miss requests</p><button id="notif-fix" class="btn btn-secondary" type="button">Fix</button>
@@ -81,6 +81,11 @@
             <button id="allow" class="tile tile-allow" type="button"><span class="tile-icon" aria-hidden="true">✓</span>Allow</button>
             <button id="always-allow" class="tile tile-always" type="button"><span class="tile-icon" aria-hidden="true">★</span>Always allow<span id="always-name" class="sr-only"></span></button>
           </div>
+        </section>
+        <section id="devices" class="stack" aria-labelledby="devices-title">
+          <button id="devices-back" class="btn btn-ghost back" type="button">&larr; Back</button><h2 id="devices-title" tabindex="-1">Devices</h2>
+          <p id="devices-status" class="muted" role="status" aria-live="polite"></p><button id="devices-retry" class="btn btn-secondary" type="button" hidden>Try again</button>
+          <ul id="devices-list" class="list"></ul><p id="devices-empty" class="muted" hidden>No devices yet. Open Whereabot on your phone and connect.</p><aside class="help" aria-labelledby="add-title"><p id="add-title" class="help-title">Add another phone</p><p>Install Whereabot and sign in with the same Google account.</p></aside>
         </section>
         <section id="history" class="stack" aria-labelledby="history-title">
           <button id="history-back" class="btn btn-ghost back" type="button">&larr; Back</button><h2 id="history-title" tabindex="-1">Request history</h2><button id="history-clear" class="btn btn-secondary" type="button">Clear history</button>

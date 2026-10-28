@@ -14,9 +14,26 @@ const ask = (page) => page.evaluate((a) => { window.__ui.showRequest(a, new Abor
 const history = (page, entries, always) =>
   page.evaluate(([e, al]) => { window.__ui.renderHistory(e, al, () => {}); window.__ui.setScreen('history'); }, [entries, always]);
 
+// Ages, not dates: the page clock is fixed, so the page turns them into timestamps.
+const DEVICES = [
+  { id: 'd1', name: 'iPhone', platform: 'ios', created_at: 9e9, seen_ago: 20e3, revoked_at: null },
+  { id: 'd2', name: 'Pixel 8 (work)', platform: 'android', created_at: 8e9, seen_ago: 3 * 3600e3, revoked_at: null },
+  { id: 'd3', name: 'Old Galaxy', platform: 'android', created_at: 7e9, seen_ago: 5 * 86400e3, revoked_at: null },
+];
+// d1 is "this device". The real actions are passed in, so Remove opens the real dialog.
+const devices = (page, view) => page.evaluate((v) => {
+  const at = (ms) => new Date(Date.now() - ms).toISOString();
+  if (v.devices) v = { ...v, devices: v.devices.map((d) => ({ ...d, created_at: at(d.created_at), last_seen_at: at(d.seen_ago) })) };
+  window.__ui.renderDevices(v, 'd1', window.__ui.deviceActions); window.__ui.setScreen('devices'); }, view);
+
 export const UI_CASES = [
   { name: 'request', session: true, desc: 'An agent asks for the location. Three tiles: Reject, Allow, Always allow.', run: ask },
   { name: 'history', session: true, desc: 'Request history with items and always allowed agents.', run: (p) => history(p, SEED, [AGENT, { clientId: 'c3', name: 'Cron agent' }]) },
+  { name: 'devices', session: true, desc: 'Devices page: this phone online, others with last seen, a Computer coming soon row and the add-a-phone hint.', run: (p) => devices(p, { kind: 'ready', devices: DEVICES }) },
+  { name: 'devices-empty', session: true, desc: 'Devices page with no devices yet.', run: (p) => devices(p, { kind: 'ready', devices: [] }) },
+  { name: 'devices-rename', session: true, desc: 'Renaming a device inline: a name field with Save and Cancel.', run: async (p) => { await devices(p, { kind: 'ready', devices: DEVICES }); await p.click('[data-id="d2"] button:has-text("Rename")'); } },
+  { name: 'devices-remove', session: true, desc: 'Removing another device asks for confirmation first.', run: async (p) => { await devices(p, { kind: 'ready', devices: DEVICES }); await p.click('[data-id="d3"] button:has-text("Remove")'); } },
+  { name: 'devices-error', session: true, desc: 'Devices could not be loaded. Shows the reason and Try again.', run: (p) => devices(p, { kind: 'error', message: 'Failed to fetch' }) },
   { name: 'history-empty', session: true, desc: 'Request history with no items.', run: (p) => history(p, [], []) },
 ];
 

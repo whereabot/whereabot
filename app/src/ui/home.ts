@@ -41,9 +41,10 @@ function initBackButton() {
   }).observe(document.body, { attributes: true, attributeFilter: ["data-screen"] });
   window.addEventListener("popstate", () => {
     if (screen() === "request") history.pushState({ screen: "request" }, "");
-    else if (screen() === "history") {
+    else if (screen() === "history" || screen() === "devices") {
+      const opener = screen() === "history" ? "open-history" : "open-devices";
       document.body.dataset.screen = "home";
-      $("open-history").focus();
+      $(opener).focus();
     }
   });
 }

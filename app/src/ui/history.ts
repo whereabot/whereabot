@@ -11,6 +11,7 @@ const OUTCOME: Record<string, string> = {
   rejected: "Rejected",
   timeout: "No answer",
   auto: "Allowed automatically",
+  elsewhere: "Answered on another device",
 };
 
 const stamp = (at: number) =>

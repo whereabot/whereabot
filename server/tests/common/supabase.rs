@@ -2,16 +2,16 @@
 //! Fake Supabase: the JWKS endpoint and the agent-key RPC.
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     sync::{
-        Arc,
+        Arc, Mutex,
         atomic::{AtomicBool, AtomicUsize, Ordering},
     },
 };
 
 use axum::{
     Json, Router,
-    extract::State,
+    extract::{Query, State},
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::{get, post},
@@ -33,9 +33,12 @@ pub struct Fake {
     pub jwks_hits: Arc<AtomicUsize>,
     /// While set, the JWKS endpoint answers 500.
     pub jwks_fail: Arc<AtomicBool>,
+    /// Device ids whose `devices` row has `revoked_at` set.
+    pub revoked: Arc<Mutex<HashSet<String>>>,
 }
 
 pub struct Shared {
+    pub revoked: Arc<Mutex<HashSet<String>>>,
     pub keys: HashMap<String, &'static str>,
     pub jwks_hits: Arc<AtomicUsize>,
     pub jwks_fail: Arc<AtomicBool>,
@@ -45,13 +48,16 @@ pub struct Shared {
 pub async fn start() -> Fake {
     let jwks_hits = Arc::new(AtomicUsize::new(0));
     let jwks_fail = Arc::new(AtomicBool::new(false));
+    let revoked = Arc::new(Mutex::new(HashSet::new()));
     let shared = Arc::new(Shared {
+        revoked: revoked.clone(),
         keys: key_hashes(),
         jwks_hits: jwks_hits.clone(),
         jwks_fail: jwks_fail.clone(),
     });
     let app = Router::new()
         .route("/rest/v1/rpc/agent_key_user", post(agent_key_user))
+        .route("/rest/v1/devices", get(device_row))
         .route("/auth/v1/.well-known/jwks.json", get(jwks))
         .with_state(shared);
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -61,7 +67,18 @@ pub async fn start() -> Fake {
         url: format!("http://{addr}"),
         jwks_hits,
         jwks_fail,
+        revoked,
     }
+}
+
+/// PostgREST `devices?id=eq.<id>&select=revoked_at`.
+async fn device_row(
+    State(shared): State<Arc<Shared>>,
+    Query(q): Query<HashMap<String, String>>,
+) -> Json<serde_json::Value> {
+    let id = q["id"].trim_start_matches("eq.");
+    let revoked = shared.revoked.lock().unwrap().contains(id);
+    Json(serde_json::json!([{ "revoked_at": revoked.then_some("2026-10-28T00:00:00Z") }]))
 }
 
 async fn jwks(State(shared): State<Arc<Shared>>) -> Response {

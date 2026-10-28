@@ -31,6 +31,8 @@ pub struct Relay {
     pub jwks_hits: Arc<AtomicUsize>,
     /// Set to make the fake JWKS endpoint answer 500.
     pub jwks_fail: Arc<AtomicBool>,
+    /// Device ids the fake `devices` table marks revoked.
+    pub revoked: Arc<std::sync::Mutex<std::collections::HashSet<String>>>,
     /// Closes device sockets, as SIGTERM does.
     pub shutdown: Shutdown,
 }
@@ -68,6 +70,7 @@ pub async fn spawn(agent_keys: bool) -> Relay {
         issuer: issuer.clone(),
         public_url: PUBLIC_URL.into(),
         agent_keys: agent_keys.then(|| supabase::SERVICE_KEY.into()),
+        anon_key: None,
     };
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap().to_string();
@@ -79,5 +82,6 @@ pub async fn spawn(agent_keys: bool) -> Relay {
         issuer,
         jwks_hits: fake.jwks_hits,
         jwks_fail: fake.jwks_fail,
+        revoked: fake.revoked,
     }
 }
