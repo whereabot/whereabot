@@ -1,59 +1,84 @@
 # Whereabouts
 
-Let your AI agent ask **your phone** where you are — on demand, through a relay you host yourself.
+Let your AI agent ask **your phone** where you are, on demand. You host the relay. Sign-in and user data live in Supabase.
 
 ```
-agent ──HTTP──▶ relay (Rust) ──WebSocket──▶ phone app (Tauri) ──GPS fix──▶ relay ──▶ agent
+agent ──HTTP / MCP──▶ relay (Rust) ──WebSocket──▶ phone app (Tauri) ──GPS fix──▶ relay ──▶ agent
 ```
 
-The agent never sees a stored location history. It sends a ping, the phone reads its GPS right now, and the answer goes back to the agent.
+The relay keeps no location history. It sends a ping, the phone reads its GPS now, and the answer goes back to the agent.
 
 ## Status
 
-Early MVP. The phone answers pings **while the app is open**. Waking a closed app needs push notifications (APNs / FCM) — see [docs/roadmap.md](docs/roadmap.md).
+Early MVP. The phone answers pings **while the app is open**. Waking a closed app needs push notifications. See [the roadmap](docs/roadmap.md).
 
 ## Repo layout
 
 | Path | What |
 |------|------|
-| [`server/`](server) | Rust relay (axum). Agents call it over HTTP; the phone holds a WebSocket to it. |
-| [`app/`](app) | Tauri v2 phone app (Android / iOS). Answers pings with a GPS fix. |
-| [`docs/`](docs) | Architecture, wire protocol, prior art, roadmap. |
+| [`server/`](server) | Rust relay (axum). Agents call it over HTTP or MCP; the phone holds a WebSocket to it. |
+| [`app/`](app) | Tauri v2 phone app (Android / iOS). Signs in, then answers pings with a GPS fix. |
+| [`supabase/`](supabase) | Database migrations for agent keys. |
+| [`infra/`](infra) | OpenTofu for the dev and prod environments. |
+| [`scripts/`](scripts) | Local dev, end-to-end check, deploy, hook install. |
+| [`docs/`](docs) | Architecture, protocol, prior art, roadmap. |
 
-## Quick start
+## Quick start (local)
 
-```bash
-# 1. Run the relay
-cd server
-WHEREABOUTS_AGENT_TOKEN=$(openssl rand -hex 32) \
-WHEREABOUTS_DEVICE_TOKEN=$(openssl rand -hex 32) \
-cargo run
+1. Start Supabase and the relay locally. The relay runs in the foreground, so keep this terminal open:
 
-# 2. Run the phone app (needs Android SDK or Xcode)
-cd app && npm install
-npm run tauri android init && npm run tauri android dev   # or: ios init / ios dev
-# After init, add location permissions (generated projects are not committed):
-#   iOS:     NSLocationWhenInUseUsageDescription in gen/apple/app_iOS/Info.plist
-#   Android: ACCESS_FINE_LOCATION + ACCESS_COARSE_LOCATION in gen/android/app/src/main/AndroidManifest.xml
-# In the app: enter the relay URL and the device token, tap Connect.
+   ```bash
+   scripts/dev-up.sh
+   ```
 
-# 3. Ask for the location as the agent
-curl -X POST -H "Authorization: Bearer $WHEREABOUTS_AGENT_TOKEN" \
-  "http://127.0.0.1:8787/v1/locate?timeout_secs=30"
-```
+   It writes `server/.env.local` (gitignored) and prints the `app/.env.local` lines. The relay listens on `WB_PORT` (default 8787).
 
-Expose the relay with TLS (`wss://`) before you use it outside your LAN — see [docs/architecture.md](docs/architecture.md#security).
+2. In a second terminal, run the phone app in the Android emulator. Copy the template, then fill in the values that `dev-up.sh` prints:
+
+   ```bash
+   cp app/.env.example app/.env.local
+   cd app && npm install && npm run tauri android dev
+   ```
+
+   Sign in with the dev email and password form.
+
+3. Check the whole path, from agent key to phone and back. Run it in the second terminal. The stack and the relay must already run. It needs `curl`, `jq`, `openssl`, `node` and `npm`. It prints PASS or FAIL for 12 checks and exits 1 on failure. For another port, set the same value: `WB_PORT=8788 scripts/e2e-local.sh`:
+
+   ```bash
+   scripts/e2e-local.sh
+   ```
+
+## Use it from your agent
+
+1. In the app, create an agent key. The key starts with `wb_`. The app shows it once.
+2. Add the relay as an MCP server in Claude Code:
+
+   ```bash
+   claude mcp add --transport http whereabouts <relay-url>/mcp --header "Authorization: Bearer wb_..."
+   ```
+
+   The tool is `get_phone_location`. Details: [protocol](docs/protocol.md).
+
+3. Or call the relay directly:
+
+   ```bash
+   curl -X POST -H "Authorization: Bearer wb_..." "<relay-url>/v1/locate?timeout_secs=30"
+   ```
+
+For a local relay, `<relay-url>` is `http://127.0.0.1:8787`.
 
 ## Docs
 
-- [Architecture](docs/architecture.md) — components, flow, security
-- [Protocol](docs/protocol.md) — HTTP and WebSocket messages
-- [Prior art](docs/prior-art.md) — what exists and why this project
+- [Architecture](docs/architecture.md): components, sign-in and ping flow, security, limits
+- [Protocol](docs/protocol.md): HTTP, MCP and WebSocket at intent level
+- [Prior art](docs/prior-art.md): what exists and why this project
 - [Roadmap](docs/roadmap.md)
+- [Infrastructure](infra/README.md): deploy steps per environment
 
 ## Contributing
 
-Run `scripts/install-hooks.sh` once; the pre-push hook then runs `linecheck` (needs `cargo install linecheck`).
+- Run `scripts/install-hooks.sh` once. The pre-push hook runs `linecheck .` (install with `cargo install linecheck`).
+- Every file stays at 100 lines or fewer. Split a file by its job when it grows.
 
 ## License
 
