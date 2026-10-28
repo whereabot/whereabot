@@ -1,7 +1,7 @@
 import type { Position } from "@tauri-apps/plugin-geolocation";
 
 /** Server -> device. See docs/protocol.md. */
-export type Ping = { type: "locate"; id: string; client_id: string };
+export type Ping = { type: "locate"; id: string; client_id?: string; expires_ms?: number };
 
 /** Device -> server. */
 export type LocationReply = {
@@ -23,3 +23,9 @@ export function answer(ping: Ping, pos: Position): LocationReply {
     captured_at_ms: Math.round(pos.timestamp),
   };
 }
+
+export const denied = (ping: Ping, reason: "user" | "no_answer") =>
+  JSON.stringify({ type: "denied", id: ping.id, reason });
+
+export const unavailable = (ping: Ping, reason: "permission" | "no_fix" | "error") =>
+  JSON.stringify({ type: "unavailable", id: ping.id, reason });
