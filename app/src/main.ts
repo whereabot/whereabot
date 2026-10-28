@@ -6,6 +6,7 @@ import { initDevices } from "./ui/devices";
 import { initHistory } from "./ui/history";
 import { initHome } from "./ui/home";
 import { initPermissions } from "./ui/permissions";
+import { forgetPush, initPush } from "./push/register";
 import { clearLocalData } from "./history";
 import { getAccessToken, supabase } from "./supabase";
 
@@ -30,6 +31,7 @@ window.addEventListener("DOMContentLoaded", () => {
   $("disconnect").addEventListener("click", () => disconnect());
   $("sign-out").addEventListener("click", async () => {
     disconnect(true);
+    await forgetPush(); // needs the session, so before signOut
     clearLocalData();
     await signOut();
   });
@@ -37,6 +39,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initDevices();
   initHome();
   initPermissions();
+  initPush();
   void listenForAuthRedirect();
 
   supabase.auth.onAuthStateChange((event, session) => {

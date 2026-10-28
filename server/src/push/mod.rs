@@ -12,6 +12,7 @@ mod config;
 #[cfg(test)]
 mod fake;
 mod jwt;
+pub mod schedule;
 #[cfg(test)]
 mod tests;
 mod tokens;

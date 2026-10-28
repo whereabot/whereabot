@@ -10,7 +10,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use serde::Deserialize;
-use tokio::sync::oneshot;
+use tokio::{sync::oneshot, task::JoinHandle};
 use uuid::Uuid;
 
 use crate::{
@@ -18,6 +18,7 @@ use crate::{
     devices::fanout::Fanout,
     errors::LocateError,
     protocol::{Answer, Location},
+    push::schedule,
 };
 
 #[derive(Deserialize)]
@@ -40,6 +41,14 @@ pub async fn request_location(
     let id = Uuid::new_v4();
     let (tx, mut rx) = oneshot::channel();
     state.pending.lock().await.insert(id, tx);
+    let connected = !state.devices.senders(agent.user_id).await.is_empty();
+    let wake = schedule::start(
+        state.push.as_ref(),
+        agent.bearer.as_deref(),
+        connected,
+        id,
+        expires_ms,
+    );
     let mut fanout = Fanout::new(agent.user_id, id, agent.client_id.clone(), expires_ms);
     let mut winner = Uuid::nil();
     let result = loop {
@@ -68,6 +77,7 @@ pub async fn request_location(
         }
     };
     state.pending.lock().await.remove(&id);
+    wake.inspect(JoinHandle::abort);
     fanout.cancel_others(&state.devices, winner).await;
     result
 }

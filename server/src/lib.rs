@@ -7,6 +7,7 @@ use axum::{
 use tokio::sync::{Mutex, oneshot};
 use uuid::Uuid;
 
+mod agent;
 mod auth;
 mod device;
 mod device_in;
@@ -19,6 +20,7 @@ mod mcp;
 mod oauth;
 mod protocol;
 pub mod push;
+pub use agent::Agent;
 mod shutdown;
 mod supabase;
 
@@ -38,16 +40,8 @@ pub struct Config {
     pub anon_key: Option<String>,
 }
 
-/// An authenticated agent request: whose phone to ping, and who asks. Set by the MCP auth middleware.
-#[derive(Clone)]
-pub struct Agent {
-    pub user_id: Uuid,
-    pub client_id: String,
-    /// From the token's `email` claim; names the account in the offline message.
-    pub email: Option<String>,
-}
-
 struct AppState {
+    push: Option<Arc<push::Push>>,
     jwks: JwksCache,
     issuer: String,
     public_url: String,
@@ -65,6 +59,7 @@ pub fn app(config: Config) -> Router {
 /// The router plus a handle that closes device sockets on shutdown.
 pub fn build(config: Config) -> (Router, Shutdown) {
     let state = Arc::new(AppState {
+        push: push::Push::from_env().map(Arc::new),
         jwks: JwksCache::new(&config.supabase_url),
         issuer: config.issuer,
         public_url: config.public_url,
