@@ -73,7 +73,7 @@ For a local relay, `<relay-url>` is `http://127.0.0.1:8787`.
 - [Protocol](docs/protocol.md): HTTP, MCP and WebSocket at intent level
 - [Prior art](docs/prior-art.md): what exists and why this project
 - [Roadmap](docs/roadmap.md)
-- [Infrastructure](infra/README.md): deploy steps per environment
+- [Infrastructure](infra/README.md): deploy steps per environment, and [migrations](infra/README.md#migrations) (applied by GitHub Actions)
 
 ## Contributing
 

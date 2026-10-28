@@ -8,7 +8,7 @@ case "$ENV" in
   *) echo "usage: $0 <dev|prod>" >&2; exit 2 ;;
 esac
 
-for tool in tofu docker supabase git gcloud; do
+for tool in tofu docker git gcloud; do
   command -v "$tool" >/dev/null || { echo "missing tool: $tool" >&2; exit 1; }
 done
 
@@ -25,8 +25,5 @@ docker buildx build --platform linux/amd64 --tag "$IMAGE" --push "$ROOT/server"
 
 tofu -chdir="$TF_DIR" apply -var "image=$IMAGE"
 
-# Output is sensitive: read it into a variable, never echo it.
-DB_URL="$(tofu -chdir="$TF_DIR" output -raw db_url)"
-supabase db push --db-url "$DB_URL" --workdir "$ROOT"
-
+# Migrations deploy via .github/workflows/migrations.yml, not here.
 echo "deployed $ENV at $SHA"

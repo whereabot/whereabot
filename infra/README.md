@@ -3,7 +3,7 @@
 OpenTofu. Per env: Supabase project, Cloud Run relay, Artifact Registry, secrets.
 
 ## Prerequisites
-- `tofu`, `gcloud`, `docker` (buildx), `supabase` CLI.
+- `tofu`, `gcloud`, `docker` (buildx).
 - `SUPABASE_ACCESS_TOKEN` in env. Never in tfvars.
 - `gcloud auth application-default login` (ADC for Google).
 - `TF_VAR_google_client_secret` in env.
@@ -18,5 +18,10 @@ OpenTofu. Per env: Supabase project, Cloud Run relay, Artifact Registry, secrets
 - Dev: `scripts/deploy.sh dev`
 - Prod: `scripts/deploy.sh prod`
 
-The script builds and pushes the image, applies, then runs `supabase db push`.
+The script builds and pushes the image, then applies.
 Relay runs `min=max=1` instance: it holds WebSockets in memory.
+
+## Migrations
+- Migrations apply via the `migrations` workflow on push to `main` (dev, then production).
+- Never run `supabase db push` by hand.
+- Each GitHub environment (`dev`, `production`) needs secret `SUPABASE_ACCESS_TOKEN`, secret `SUPABASE_DB_PASSWORD` and variable `SUPABASE_PROJECT_REF`.
