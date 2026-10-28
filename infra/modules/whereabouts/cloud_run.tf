@@ -32,26 +32,16 @@ resource "google_cloud_run_v2_service" "relay" {
         value = "https://${local.ref}.supabase.co"
       }
       env {
+        name  = "SUPABASE_ISSUER"
+        value = "https://${local.ref}.supabase.co/auth/v1"
+      }
+      env {
+        name  = "WB_PUBLIC_URL"
+        value = var.relay_public_url
+      }
+      env {
         name  = "RUST_LOG"
         value = "info"
-      }
-      env {
-        name = "SUPABASE_ANON_KEY"
-        value_source {
-          secret_key_ref {
-            secret  = google_secret_manager_secret.relay["SUPABASE_ANON_KEY"].secret_id
-            version = google_secret_manager_secret_version.relay["SUPABASE_ANON_KEY"].version
-          }
-        }
-      }
-      env {
-        name = "SUPABASE_SERVICE_ROLE_KEY"
-        value_source {
-          secret_key_ref {
-            secret  = google_secret_manager_secret.relay["SUPABASE_SERVICE_ROLE_KEY"].secret_id
-            version = google_secret_manager_secret_version.relay["SUPABASE_SERVICE_ROLE_KEY"].version
-          }
-        }
       }
 
       startup_probe {

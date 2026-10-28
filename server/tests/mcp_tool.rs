@@ -4,15 +4,16 @@ use common::{
     mcp::{OFFLINE, call_location, call_settled, rpc},
     phone::connect_phone,
     start_relay,
-    supabase::agent_key_a,
+    supabase::USER_A,
 };
 use serde_json::{Value, json};
 
 #[tokio::test]
 async fn mcp_lists_and_calls_location_tool() {
-    let addr = start_relay().await;
+    let relay = start_relay().await;
+    let addr = relay.addr.clone();
     let http = reqwest::Client::new();
-    let key = agent_key_a();
+    let key = relay.mcp(USER_A);
 
     let init = rpc(
         &http,
@@ -48,7 +49,7 @@ async fn mcp_lists_and_calls_location_tool() {
     assert_eq!(offline["result"]["isError"], true);
     assert_eq!(offline["result"]["content"][0]["text"], OFFLINE);
 
-    connect_phone(&addr, "phone-a", 32.08).await;
+    connect_phone(&addr, &relay.phone(USER_A), 32.08).await;
     let res = call_settled(&http, &addr, &key, 4).await;
     assert!(res["result"]["isError"].is_null() || res["result"]["isError"] == false);
     let text = res["result"]["content"][0]["text"].as_str().unwrap();

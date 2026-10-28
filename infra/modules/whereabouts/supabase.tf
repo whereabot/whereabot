@@ -17,13 +17,18 @@ resource "supabase_project" "this" {
 resource "supabase_settings" "this" {
   project_ref = local.ref
 
+  # OAuth server keys: PATCH /v1/projects/{ref}/config/auth, UpdateAuthConfigBody
+  # (https://api.supabase.com/api/v1-json, checked 2026-10-28).
   auth = jsonencode({
-    site_url                  = "whereabouts://auth-callback"
-    uri_allow_list            = "whereabouts://auth-callback"
-    disable_signup            = false
-    external_google_enabled   = true
-    external_google_client_id = var.google_client_id
-    external_google_secret    = var.google_client_secret
+    site_url                                = "https://${var.site_host}"
+    uri_allow_list                          = "whereabouts://auth-callback,https://${var.site_host}/oauth/consent/"
+    disable_signup                          = false
+    external_google_enabled                 = true
+    external_google_client_id               = var.google_client_id
+    external_google_secret                  = var.google_client_secret
+    oauth_server_enabled                    = true
+    oauth_server_authorization_path         = "/oauth/consent/"
+    oauth_server_allow_dynamic_registration = true
   })
 }
 

@@ -40,6 +40,16 @@ variable "google_client_secret" {
   sensitive   = true
 }
 
+variable "site_host" {
+  description = "Landing site host (no scheme). Serves the OAuth consent page at /oauth/consent/."
+  type        = string
+}
+
+variable "relay_public_url" {
+  description = "Relay public URL, https://<service-uri>. Set per env; a Cloud Run service cannot read its own URI."
+  type        = string
+}
+
 variable "image" {
   description = "Relay container image, full path with tag (set by scripts/deploy.sh)."
   type        = string

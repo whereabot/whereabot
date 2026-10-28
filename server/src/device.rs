@@ -5,21 +5,21 @@ use axum::{
         State, WebSocketUpgrade,
         ws::{Message, WebSocket},
     },
-    http::{HeaderMap, StatusCode},
-    response::{IntoResponse, Response},
+    http::HeaderMap,
+    response::Response,
 };
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
-use crate::{AppState, auth, protocol::FromDevice};
+use crate::{AppState, auth, oauth, protocol::FromDevice};
 
 pub async fn device(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     ws: WebSocketUpgrade,
 ) -> Response {
-    let Some(user_id) = auth::device_user(&state, &headers).await else {
-        return StatusCode::UNAUTHORIZED.into_response();
+    let Some(user_id) = auth::verify(&state, &headers, false).await else {
+        return oauth::unauthorized(&state.public_url);
     };
     ws.on_upgrade(move |socket| serve_device(state, user_id, socket))
 }

@@ -1,34 +1,23 @@
 use std::time::Duration;
 
-use serde::{Deserialize, de::DeserializeOwned};
+use serde::de::DeserializeOwned;
 use serde_json::json;
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
-/// Client for the two Supabase endpoints the relay needs.
+/// Agent-key lookup. Only built when `WB_AGENT_KEYS` is on.
 #[derive(Clone)]
 pub struct Supabase {
     http: reqwest::Client,
     url: String,
-    anon_key: String,
     service_role_key: String,
 }
 
-#[derive(Deserialize)]
-struct AuthUser {
-    id: Uuid,
-}
-
 impl Supabase {
-    pub fn new(url: String, anon_key: String, service_role_key: String) -> Self {
-        let http = reqwest::Client::builder()
-            .timeout(Duration::from_secs(5))
-            .build()
-            .expect("http client builds");
+    pub fn new(url: String, service_role_key: String) -> Self {
         Self {
-            http,
+            http: http(),
             url,
-            anon_key,
             service_role_key,
         }
     }
@@ -47,22 +36,18 @@ impl Supabase {
         // The RPC returns the uuid as a JSON string, or null for an unknown key.
         call::<Option<Uuid>>("agent_key_user", res).await.flatten()
     }
+}
 
-    /// Maps a phone access token to its user. None when invalid or unreachable.
-    pub async fn device_user(&self, access_token: &str) -> Option<Uuid> {
-        let res = self
-            .http
-            .get(format!("{}/auth/v1/user", self.url))
-            .header("apikey", &self.anon_key)
-            .bearer_auth(access_token)
-            .send()
-            .await;
-        call::<AuthUser>("auth_user", res).await.map(|user| user.id)
-    }
+/// HTTP client for Supabase calls, capped at 5 s.
+pub fn http() -> reqwest::Client {
+    reqwest::Client::builder()
+        .timeout(Duration::from_secs(5))
+        .build()
+        .expect("http client builds")
 }
 
 /// Reads a successful JSON response. Logs the failure without any secret.
-async fn call<T: DeserializeOwned>(
+pub async fn call<T: DeserializeOwned>(
     what: &str,
     res: reqwest::Result<reqwest::Response>,
 ) -> Option<T> {

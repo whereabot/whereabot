@@ -1,57 +1,52 @@
 mod common;
 
-use common::{
-    start_relay,
-    supabase::{agent_key_a, unknown_key},
-};
+use common::{CHALLENGE, agent_rpc::agent_key_a, start_relay, supabase::USER_A};
 use serde_json::json;
 
 const ACCEPT: &str = "application/json, text/event-stream";
 
+async fn list_tools(addr: &str, token: Option<&str>) -> reqwest::Response {
+    let mut req = reqwest::Client::new()
+        .post(format!("http://{addr}/mcp"))
+        .header("Accept", ACCEPT)
+        .json(&json!({ "jsonrpc": "2.0", "id": 1, "method": "tools/list" }));
+    if let Some(token) = token {
+        req = req.bearer_auth(token);
+    }
+    req.send().await.unwrap()
+}
+
+fn challenge(res: &reqwest::Response) -> &str {
+    res.headers()["www-authenticate"].to_str().unwrap()
+}
+
 #[tokio::test]
-async fn mcp_rejects_missing_or_unknown_key() {
-    let addr = start_relay().await;
-    let http = reqwest::Client::new();
-    let url = format!("http://{addr}/mcp");
-    let body = json!({ "jsonrpc": "2.0", "id": 1, "method": "tools/list" });
+async fn mcp_without_token_gets_challenge() {
+    let relay = start_relay().await;
+    let res = list_tools(&relay.addr, None).await;
+    assert_eq!(res.status(), 401);
+    assert_eq!(challenge(&res), CHALLENGE);
+}
 
-    let none = http
-        .post(&url)
-        .header("Accept", ACCEPT)
-        .json(&body)
-        .send()
-        .await
-        .unwrap();
-    assert_eq!(none.status(), 401);
+#[tokio::test]
+async fn mcp_accepts_oauth_client_token() {
+    let relay = start_relay().await;
+    let res = list_tools(&relay.addr, Some(&relay.mcp(USER_A))).await;
+    assert_eq!(res.status(), 200);
+}
 
-    let unknown = http
-        .post(&url)
-        .bearer_auth(unknown_key())
-        .header("Accept", ACCEPT)
-        .json(&body)
-        .send()
-        .await
-        .unwrap();
-    assert_eq!(unknown.status(), 401);
+#[tokio::test]
+async fn mcp_rejects_phone_token_without_client_id() {
+    let relay = start_relay().await;
+    let res = list_tools(&relay.addr, Some(&relay.phone(USER_A))).await;
+    assert_eq!(res.status(), 401);
+    assert_eq!(challenge(&res), CHALLENGE);
+}
 
-    // A phone token is not an agent key.
-    let phone = http
-        .post(&url)
-        .bearer_auth("phone-a")
-        .header("Accept", ACCEPT)
-        .json(&body)
-        .send()
-        .await
-        .unwrap();
-    assert_eq!(phone.status(), 401);
-
-    let ok = http
-        .post(&url)
-        .bearer_auth(agent_key_a())
-        .header("Accept", ACCEPT)
-        .json(&body)
-        .send()
-        .await
-        .unwrap();
-    assert_eq!(ok.status(), 200);
+#[tokio::test]
+async fn mcp_rejects_agent_key_when_fallback_off() {
+    let relay = start_relay().await;
+    let res = list_tools(&relay.addr, Some(&agent_key_a())).await;
+    assert_eq!(res.status(), 401);
+    assert_eq!(challenge(&res), CHALLENGE);
 }

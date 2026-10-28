@@ -4,9 +4,9 @@ use common::start_relay;
 
 #[tokio::test]
 async fn healthz_is_ok_without_auth() {
-    let addr = start_relay().await;
+    let relay = start_relay().await;
     let res = reqwest::Client::new()
-        .get(format!("http://{addr}/healthz"))
+        .get(format!("http://{}/healthz", relay.addr))
         .send()
         .await
         .unwrap();
@@ -16,9 +16,9 @@ async fn healthz_is_ok_without_auth() {
 
 #[tokio::test]
 async fn health_is_ok_without_auth() {
-    let addr = start_relay().await;
+    let relay = start_relay().await;
     let res = reqwest::Client::new()
-        .get(format!("http://{addr}/health"))
+        .get(format!("http://{}/health", relay.addr))
         .send()
         .await
         .unwrap();
