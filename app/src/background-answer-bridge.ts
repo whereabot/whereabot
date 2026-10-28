@@ -1,8 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import { relayUrl } from "./build-config";
+import { inTauri } from "./tauri-runtime";
 
-/** Only iOS has the native handler that answers from a notification action. */
-export const backgroundAnswerSupported = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+/** Only the iOS app has the native handler that answers from a notification action; the PWA answers while open. */
+export const backgroundAnswerSupported = inTauri && /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const call = <T>(cmd: string, args?: Record<string, unknown>) =>
   invoke<T>(`plugin:background-answer|${cmd}`, args);

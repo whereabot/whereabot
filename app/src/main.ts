@@ -15,6 +15,7 @@ import { initAlwaysAllowedSync } from "./always-allowed-sync";
 import { initAutoSharedHistory } from "./auto-shared-history";
 import { clearLocalData } from "./request-history-store";
 import { getAccessToken, supabase } from "./supabase-client";
+import { registerServiceWorker } from "./pwa-service-worker-registration";
 
 /** Read on every (re)connect. No session means the sign-in screen shows. */
 async function currentToken() {
@@ -54,6 +55,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initAlwaysAllowedSync();
   initAutoSharedHistory();
   void listenForAuthRedirect();
+  registerServiceWorker();
 
   supabase.auth.onAuthStateChange((event, session) => {
     // Deferred: supabase calls must not run inside the auth callback.

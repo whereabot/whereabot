@@ -40,6 +40,7 @@ export function installTauri(cfg) {
   };
   // The notification plugin reads window.Notification first.
   window.Notification = { permission: (cfg.notifications ?? 'granted') === 'granted' ? 'granted' : 'default', requestPermission: async () => 'default' };
+  window.isTauri = true; // app/src/tauri-runtime.ts: take the native code paths
   window.__TAURI_INTERNALS__ = {
     metadata: { currentWindow: { label: 'main' }, currentWebview: { windowLabel: 'main', label: 'main' } },
     transformCallback(cb) {

@@ -12,8 +12,13 @@ use tokio::sync::mpsc;
 use uuid::Uuid;
 
 use crate::{
-    AppState, agent_bearer_auth, devices::device_revocation_check,
-    oauth_protected_resource_metadata, phone_message_handler, relay_wire_protocol::ToDevice,
+    AppState, agent_bearer_auth,
+    devices::{
+        device_revocation_check,
+        websocket_subprotocol_bearer::{BEARER_PROTOCOL, with_subprotocol_bearer},
+    },
+    oauth_protected_resource_metadata, phone_message_handler,
+    relay_wire_protocol::ToDevice,
 };
 
 pub async fn device(
@@ -21,13 +26,15 @@ pub async fn device(
     headers: HeaderMap,
     ws: WebSocketUpgrade,
 ) -> Response {
+    let headers = with_subprotocol_bearer(headers);
     let Some(token) = agent_bearer_auth::verify(&state, &headers, false).await else {
         return oauth_protected_resource_metadata::unauthorized(&state.public_url, &headers);
     };
     let bearer = agent_bearer_auth::bearer(&headers)
         .unwrap_or_default()
         .to_string();
-    ws.on_upgrade(move |socket| serve_device(state, token.user_id, bearer, socket))
+    ws.protocols([BEARER_PROTOCOL])
+        .on_upgrade(move |socket| serve_device(state, token.user_id, bearer, socket))
 }
 
 async fn serve_device(state: Arc<AppState>, user_id: Uuid, bearer: String, mut socket: WebSocket) {

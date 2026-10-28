@@ -1,4 +1,4 @@
-# GitOps for the landing page and docs (one Worker): build docs, fill consent config, deploy the "whereabouts" Worker, smoke-test.
+# GitOps for the landing page, docs and the browser app at /app (one Worker): build docs and app, fill consent config, deploy the "whereabouts" Worker, smoke-test.
 name: site-cloudflare-deploy
 on:
   push:
@@ -11,6 +11,10 @@ on:
       - "server/src/mcp_location_tool.rs"
       - "server/src/relay_wire_protocol.rs"
       - "README.md"
+      - "app/src/**"
+      - "app/public/**"
+      - "app/index.html"
+      - "app/package*.json"
       - ".github/workflows/site-cloudflare-deploy.yml"
   workflow_dispatch:
 permissions:
@@ -20,6 +24,7 @@ concurrency:
   cancel-in-progress: false
 env:
   SITE_URL: https://whereabot.io
+  RELAY_URL: wss://relay.whereabot.io
 jobs:
   deploy:
     # Idle until the Cloudflare settings exist (infra/README.md).
@@ -32,7 +37,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: docs-site/package-lock.json
+          cache-dependency-path: "**/package-lock.json"
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: server
@@ -43,6 +48,18 @@ jobs:
           npm ci
           npm run build
           test -f .vitepress/dist/index.html
+      - name: Build the browser app (PWA, served at /app)
+        working-directory: app
+        env:
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          VITE_RELAY_URL: ${{ env.RELAY_URL }}
+        run: |
+          set -euo pipefail
+          : "${VITE_SUPABASE_URL:?set environment var SUPABASE_URL}" "${VITE_SUPABASE_ANON_KEY:?set environment var SUPABASE_ANON_KEY}"
+          npm ci
+          npm run build:web
+          test -f dist-web/index.html -a -f dist-web/sw.js -a -f dist-web/app.webmanifest
       - name: Stage site in a fresh temp dir and fill supabase-config.js
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
@@ -60,6 +77,7 @@ jobs:
           if grep -rEn '__[A-Z0-9_]+__' "$STAGE/site"; then echo "unfilled placeholder" >&2; exit 1; fi
           # After the placeholder check: the docs bundle contains names like __VP_HASH_MAP__.
           cp -R docs-site/.vitepress/dist "$STAGE/site/docs"
+          cp -R app/dist-web "$STAGE/site/app"
           echo "STAGE=$STAGE" >> "$GITHUB_ENV"
       - name: Deploy from the empty stage dir (wrangler 4 publishes cwd otherwise)
         working-directory: ${{ env.STAGE }}
@@ -73,9 +91,10 @@ jobs:
       - name: Smoke test
         run: |
           set -euo pipefail
-          for p in / /docs/ /docs/reference/mcp-tools /oauth/consent/; do
+          for p in / /docs/ /docs/reference/mcp-tools /oauth/consent/ /app/ /app/sw.js /app/app.webmanifest; do
             code=$(curl -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 3 --retry-all-errors "$SITE_URL$p")
             echo "$p -> $code"; [ "$code" = 200 ]
           done
           curl -sI "$SITE_URL/" | grep -i '^content-security-policy:'
           curl -sI "$SITE_URL/docs/" | grep -i "^content-security-policy:.*script-src 'self';"
+          curl -sI "$SITE_URL/app/" | grep -i "^permissions-policy:.*geolocation=(self)"

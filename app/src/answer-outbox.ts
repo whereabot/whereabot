@@ -1,4 +1,4 @@
-import type WebSocket from "@tauri-apps/plugin-websocket";
+import type { RelaySocket as WebSocket } from "./browser-relay-socket";
 
 let live: WebSocket | null = null;
 let deadline = 0; // latest ping expires_ms: how long an answer may wait for a live socket

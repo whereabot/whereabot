@@ -1,6 +1,7 @@
-import { isPermissionGranted } from "@tauri-apps/plugin-notification";
 import { checkPermissions, requestPermissions } from "@tauri-apps/plugin-geolocation";
-import { requestNotificationPermission } from "../local-notification";
+import { notificationsGranted, requestNotificationPermission } from "../local-notification";
+import { browserLocationPermission, requestBrowserLocation } from "../browser-location-fix";
+import { inTauri } from "../tauri-runtime";
 import { backgroundAnswerSupported, locationAuthorization, requestAlwaysLocation } from "../background-answer-bridge";
 
 export type Step = "location" | "background" | "notifications";
@@ -45,7 +46,7 @@ export const COPY = {
 export async function permState(step: Step): Promise<Perm> {
   try {
     if (step === "location") {
-      const s = (await checkPermissions()).location;
+      const s = inTauri ? (await checkPermissions()).location : await browserLocationPermission();
       return s === "granted" || s === "denied" ? s : "prompt";
     }
     if (step === "background") {
@@ -55,7 +56,7 @@ export async function permState(step: Step): Promise<Perm> {
       // iOS shows the Always prompt once; after that only Settings can change it.
       return s === "denied" || localStorage.getItem(ASKED_ALWAYS) ? "denied" : "prompt";
     }
-    if (await isPermissionGranted()) return "granted";
+    if (await notificationsGranted()) return "granted";
   } catch {
     return "denied";
   }
@@ -64,7 +65,7 @@ export async function permState(step: Step): Promise<Perm> {
 
 export async function askPermission(step: Step) {
   try {
-    if (step === "location") await requestPermissions(["location"]);
+    if (step === "location") await (inTauri ? requestPermissions(["location"]) : requestBrowserLocation());
     else if (step === "background") {
       localStorage.setItem(ASKED_ALWAYS, "1");
       await requestAlwaysLocation();

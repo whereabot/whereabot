@@ -3,3 +3,4 @@
 pub mod device_connection_registry;
 pub mod device_revocation_check;
 pub mod location_request_fanout;
+pub mod websocket_subprotocol_bearer;

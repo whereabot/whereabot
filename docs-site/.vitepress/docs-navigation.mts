@@ -6,7 +6,13 @@ export const nav = [
 ]
 
 export const sidebar = [
-  { text: 'Get started', items: [{ text: 'Connect your agent', link: '/getting-started' }] },
+  {
+    text: 'Get started',
+    items: [
+      { text: 'Connect your agent', link: '/getting-started' },
+      { text: 'Install from the browser', link: '/install-from-browser' },
+    ],
+  },
   {
     text: 'Guide',
     items: [
