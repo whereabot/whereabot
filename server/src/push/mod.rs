@@ -50,11 +50,13 @@ impl Push {
     pub async fn wake(&self, bearer: &str, alert: &Alert<'_>) -> usize {
         let tokens = self.tokens.list(bearer).await;
         if tokens.is_empty() {
+            tracing::info!(request_id = %alert.request_id, "push skipped: no push token for this user");
             return 0;
         }
         let name = self.names.name(bearer, alert.client_id).await;
         let body = payload(alert, name.as_deref());
         let mut accepted = 0;
+        let total = tokens.len();
         for token in tokens {
             match self.apns.send(&token, &body, alert.expires_ms / 1000).await {
                 Sent::Ok => accepted += 1,
@@ -62,6 +64,7 @@ impl Push {
                 Sent::Failed => {}
             }
         }
+        tracing::info!(request_id = %alert.request_id, total, accepted, "push sent");
         accepted
     }
 
