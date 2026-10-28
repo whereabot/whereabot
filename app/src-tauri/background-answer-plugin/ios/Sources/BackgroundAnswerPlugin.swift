@@ -50,6 +50,10 @@ public class BackgroundAnswerPlugin: Plugin {
     invoke.resolve(["clientIds": AlwaysAllowedAgents.take()])
   }
 
+  @objc public func takeAutoShared(_ invoke: Invoke) {
+    invoke.resolve(AutoSharedLog.take())
+  }
+
   @objc public func locationAuthorization(_ invoke: Invoke) {
     DispatchQueue.main.async {
       invoke.resolve(["status": AlwaysLocationPermission.shared.status()])
@@ -66,5 +70,10 @@ public class BackgroundAnswerPlugin: Plugin {
 @_cdecl("init_plugin_background_answer")
 func initPlugin() -> Plugin {
   LocationRequestNotifications.install()
+  if Thread.isMainThread {
+    SilentPushHook.install()
+  } else {
+    DispatchQueue.main.async { SilentPushHook.install() }
+  }
   return BackgroundAnswerPlugin()
 }

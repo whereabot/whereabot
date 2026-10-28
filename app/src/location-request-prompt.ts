@@ -1,6 +1,7 @@
 import { isGeneric, type Agent } from "./agent-identity";
 import { answer, denied, log, unavailable, type Ping } from "./relay-wire-protocol";
 import { $, setStatus } from "./status-display-dom";
+import { announce } from "./ui/screen-view-helpers";
 import { resolveAgent } from "./agent-display-name";
 import { addAlwaysApproved, isAlwaysApproved, recordRequest, type Outcome } from "./request-history-store";
 import { notify } from "./local-notification";
@@ -58,7 +59,7 @@ async function prompt(send: Send, ping: Ping, agent: Agent, step: (m: string) =>
     recordRequest(agent, "timeout");
     return send(denied(ping, "no_answer"));
   }
-  if (choice === "always") addAlwaysApproved(agent);
+  if (choice === "always") void addAlwaysApproved(agent);
   await sendFix(send, ping, agent, choice === "always" ? "always" : "approved");
 }
 
@@ -72,4 +73,11 @@ async function sendFix(send: Send, ping: Ping, agent: Agent, outcome: Outcome) {
   recordRequest(agent, outcome);
   await send(JSON.stringify(answer(ping, fix.pos)));
   $("last-ping").textContent = `Last ping answered at ${new Date().toLocaleTimeString()}`;
+  if (outcome !== "auto") return;
+  // Always allowed: nothing to decide, so say what happened (same words as the native handler).
+  const checked = `${agent.name} checked your location`;
+  setStatus(`${checked}.`);
+  announce(checked);
+  // Hidden (a background launch): the native handler owns the notice, so no second one.
+  if (document.visibilityState === "visible") void notify("Shared just now. Manage in Whereabot.", checked);
 }

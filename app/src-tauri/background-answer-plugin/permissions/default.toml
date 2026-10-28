@@ -1,7 +1,7 @@
 "$schema" = "schemas/schema.json"
 
 [default]
-description = "Every background-answer command: session hand-off, settings, always-allowed list, Always location permission."
+description = "Every background-answer command: session hand-off, settings, always-allowed list, automatic answers, Always location permission."
 permissions = [
   "allow-configure",
   "allow-save-session",
@@ -10,6 +10,7 @@ permissions = [
   "allow-device-id",
   "allow-reset-device-id",
   "allow-take-always-allowed",
+  "allow-take-auto-shared",
   "allow-location-authorization",
   "allow-request-always-location",
 ]

@@ -39,7 +39,7 @@ The relay keeps one phone connection per user. If the user has no connected phon
 
 ## Consent on the phone
 
-Each ping carries the agent's OAuth client id and an `expires_ms` deadline. The phone shows a consent prompt for that agent. The user can allow once, deny, or choose always-allow for that agent, which skips the prompt next time. The phone then answers with one of:
+Each ping carries the agent's OAuth client id and an `expires_ms` deadline. The phone shows a consent prompt for that agent. The user can allow once, deny, or choose always-allow for that agent. An always-allowed agent is never asked again: the phone answers and shows "<Agent> checked your location" ([Always allow](always-allow.md)). The phone then answers with one of:
 
 - a location;
 - `denied`: the user declined, or did not respond before `expires_ms`;
@@ -60,7 +60,7 @@ The relay turns each answer into a distinct agent-facing error. If the phone is 
 ## Limits today
 
 - **One relay instance.** Phone connections live in memory, so the relay runs as exactly one instance.
-- **Answers need a tap.** With the app closed the user answers from the notification (below). An always-allowed agent still gets the push and needs Allow: a tapless answer would need a silent push (iOS throttles it) or Apple's location push entitlement (`com.apple.developer.location.push`, granted on request). Not built.
+- **Answers need a tap,** except for always-allowed agents: those get a silent push and the phone answers on its own ([Always allow](always-allow.md)). iOS skips silent pushes for a force-quit app and throttles them, so a "checking" alert with Share is the fallback. Apple's location push entitlement (`com.apple.developer.location.push`) would remove that gap. Not requested.
 - **One phone per user.** A new phone connection replaces the old one. See [protocol](protocol.md#phone-to-relay).
 - **Timeouts.** Ping waits are bounded. See [protocol](protocol.md#http-post-v1locate).
 
@@ -90,7 +90,7 @@ sequenceDiagram
 
 - **Native code:** a local Tauri plugin, [`app/src-tauri/background-answer-plugin/`](../app/src-tauri/background-answer-plugin). Its Swift package builds with the Rust crate, so `tauri ios build` regenerating `gen/apple` does not drop it. At launch it registers the category and puts its notification delegate in front of the delegates of the push and notification plugins; everything that is not one of its three actions goes on to them.
 - **Session:** supabase-js stores its session through the plugin in the iOS Keychain (`AfterFirstUnlock`), see [`app/src/native-session-storage.ts`](../app/src/native-session-storage.ts). The handler reads the same item and writes back a refreshed session. One refresh token for both sides, so a rotation never revokes the other side's token. Tokens are never logged.
-- **Always allow:** the handler answers like Allow and keeps the `client_id` in `UserDefaults`. On the next launch the app takes those ids and adds them to the signed-in user's always-allowed list ([`app/src/background-answer-bridge.ts`](../app/src/background-answer-bridge.ts)).
+- **Always allow:** the handler answers like Allow and saves the `client_id` to Supabase `always_allowed_agents` at once, so the next request is tapless ([Always allow](always-allow.md)). A `UserDefaults` copy lets the app retry the save on its next launch ([`app/src/always-allowed-sync.ts`](../app/src/always-allowed-sync.ts)).
 - **Permission:** a read with the app closed needs location access "Always". The permissions screen asks for it after When In Use, and shows Settings steps when it is refused. Without it the handler answers `unavailable` with reason `permission`. There is no `location` background mode: the app never tracks.
 
 Every state and notification of one request, as a diagram: [request flow](request-flow.md).

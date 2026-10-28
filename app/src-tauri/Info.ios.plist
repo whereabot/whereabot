@@ -8,5 +8,9 @@
 	<string>Whereabot reads your location only when you approve an agent's request, even when the app is closed.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Whereabot shares your location with your AI agent only when it asks.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

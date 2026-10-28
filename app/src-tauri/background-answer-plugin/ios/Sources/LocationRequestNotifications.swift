@@ -1,10 +1,13 @@
 import UserNotifications
 
-/// Owns the LOCATION_REQUEST category and its three actions. Every other notification event
-/// goes on to the delegate another plugin set (mobile-push or notification): `inner`.
+/// Owns the LOCATION_REQUEST category (three actions) and LOCATION_AUTO (Share), and notes taps
+/// on LOCATION_CHECKED. Every other notification event goes on to the delegate another plugin
+/// set (mobile-push or notification): `inner`.
 final class LocationRequestNotifications: NSObject, UNUserNotificationCenterDelegate {
   static let shared = LocationRequestNotifications()
   static let category = "LOCATION_REQUEST"
+  /// Fallback alert for an always-allowed agent: "<Agent> is checking your location".
+  static let autoCategory = "LOCATION_AUTO"
   var inner: UNUserNotificationCenterDelegate?
 
   /// Call at launch, before iOS hands over the action that launched the app.
@@ -22,11 +25,18 @@ final class LocationRequestNotifications: NSObject, UNUserNotificationCenterDele
       UNNotificationAction(
         identifier: LocationRequestAction.always, title: "Always allow", options: []),
     ]
-    let ours = UNNotificationCategory(
-      identifier: category, actions: actions, intentIdentifiers: [], options: [])
+    let share = UNNotificationAction(
+      identifier: LocationRequestAction.share, title: "Share", options: [])
+    let ours: Set = [
+      UNNotificationCategory(
+        identifier: category, actions: actions, intentIdentifiers: [], options: []),
+      UNNotificationCategory(
+        identifier: autoCategory, actions: [share], intentIdentifiers: [], options: []),
+    ]
+    let ids = Set(ours.map(\.identifier))
     let center = UNUserNotificationCenter.current()
     center.getNotificationCategories { existing in
-      center.setNotificationCategories(existing.filter { $0.identifier != category }.union([ours]))
+      center.setNotificationCategories(existing.filter { !ids.contains($0.identifier) }.union(ours))
     }
   }
 
@@ -35,7 +45,10 @@ final class LocationRequestNotifications: NSObject, UNUserNotificationCenterDele
     withCompletionHandler done: @escaping () -> Void
   ) {
     let content = response.notification.request.content
-    if content.categoryIdentifier == Self.category,
+    if content.categoryIdentifier == CheckedNotification.category {
+      AutoSharedLog.markOpenHistory()
+    }
+    if [Self.category, Self.autoCategory].contains(content.categoryIdentifier),
       LocationRequestAction.all.contains(response.actionIdentifier)
     {
       let userInfo = content.userInfo

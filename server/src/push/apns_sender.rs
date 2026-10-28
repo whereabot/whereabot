@@ -11,6 +11,14 @@ pub enum Sent {
     Failed,
 }
 
+/// Alert: shown to the user, priority 10. Background: silent `content-available`, priority 5
+/// (APNs requires 5 for background pushes; iOS may delay or drop them).
+#[derive(Clone, Copy)]
+pub enum Kind {
+    Alert,
+    Background,
+}
+
 pub struct Apns {
     http: reqwest::Client,
     url: String,
@@ -35,8 +43,14 @@ impl Apns {
         })
     }
 
-    /// One alert push. `expires_secs` is epoch seconds: APNs drops it after that.
-    pub async fn send(&self, device_token: &str, body: &Value, expires_secs: u64) -> Sent {
+    /// One push. `expires_secs` is epoch seconds: APNs drops it after that.
+    pub async fn send(
+        &self,
+        device_token: &str,
+        body: &Value,
+        kind: Kind,
+        expires_secs: u64,
+    ) -> Sent {
         let Some(jwt) = self.jwt.get().await else {
             return Sent::Failed;
         };
@@ -45,8 +59,20 @@ impl Apns {
             .post(format!("{}/3/device/{device_token}", self.url))
             .bearer_auth(jwt)
             .header("apns-topic", &self.topic)
-            .header("apns-push-type", "alert")
-            .header("apns-priority", "10")
+            .header(
+                "apns-push-type",
+                match kind {
+                    Kind::Alert => "alert",
+                    Kind::Background => "background",
+                },
+            )
+            .header(
+                "apns-priority",
+                match kind {
+                    Kind::Alert => "10",
+                    Kind::Background => "5",
+                },
+            )
             .header("apns-expiration", expires_secs.to_string())
             .json(body)
             .send()

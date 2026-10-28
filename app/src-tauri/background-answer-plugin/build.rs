@@ -7,6 +7,7 @@ const COMMANDS: &[&str] = &[
     "device_id",
     "reset_device_id",
     "take_always_allowed",
+    "take_auto_shared",
     "location_authorization",
     "request_always_location",
 ];

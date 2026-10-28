@@ -10,7 +10,7 @@ const OUTCOME: Record<string, string> = {
   always: "Always allowed",
   rejected: "Rejected",
   timeout: "No answer",
-  auto: "Allowed automatically",
+  auto: "Shared automatically",
   elsewhere: "Answered on another device",
 };
 
@@ -48,12 +48,15 @@ function refresh() {
   });
 }
 
+/** Also opened by a tap on a "checked your location" notification. */
+export function openHistory() {
+  refresh();
+  setScreen("history");
+  $("history-title").focus();
+}
+
 export function initHistory() {
-  $("open-history").addEventListener("click", () => {
-    refresh();
-    setScreen("history");
-    $("history-title").focus();
-  });
+  $("open-history").addEventListener("click", openHistory);
   $("history-clear").addEventListener("click", () => {
     clearHistory();
     refresh();

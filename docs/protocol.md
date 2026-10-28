@@ -61,7 +61,7 @@ A user can have several devices connected at once, each named by its `device_id`
   - `location`: the fix.
   - `denied`, optional `reason`: `user` (default) or `no_answer`.
   - `unavailable`, `reason`: `permission`, `no_fix` or `error`.
-- **Consent:** the app asks the user (Reject, Allow, Always allow) before it answers. Always-allowed agents get an answer at once while the app is open; from a notification the user still taps Allow. Reject sends `denied`; no tap sends `denied` with `no_answer`.
+- **Consent:** the app asks the user (Reject, Allow, Always allow) before it answers. Always-allowed agents get an answer with no question, also with the app closed: see [Always allow](always-allow.md). Reject sends `denied`; no tap sends `denied` with `no_answer`.
 - **Unknown messages:** the relay ignores them. An answer with an unknown id is dropped. An unknown `reason` counts as `user` (denied) or `error` (unavailable).
 
 ## Devices
@@ -73,9 +73,9 @@ Each install has a stable random `device_id` (uuid, kept across sign-out; on iOS
 
 ## Push wake-up
 
-iOS suspends the app in the background, so a waiting request needs a nudge. When a request starts and no phone answers within about 2 s (or none is connected), the relay sends one APNs alert push per request to each token in `push_tokens`. Retries and reconnect resends send no more pushes.
+iOS suspends the app in the background, so a waiting request needs a nudge. When a request starts and no phone answers within about 2 s (or none is connected), the relay sends one APNs alert push per request to each token in `push_tokens`. Retries and reconnect resends send no more pushes. An always-allowed agent gets a silent push instead, and a "checking" alert only if that gets no answer: see [Always allow](always-allow.md#what-the-relay-sends).
 
-- **Alert:** title `Whereabot`, body `Your agent NAME wants to know your location` (or `An agent wants to know your location` when the name lookup fails), sound default, `thread-id`, and `category` `LOCATION_REQUEST`. Custom keys: `request_id`, `client_id`, `expires_ms` (same meaning as in `locate`). `apns-push-type` is `alert`, priority `10`, and `apns-expiration` is the request deadline. Shape: [`server/src/push/apns_sender.rs`](../server/src/push/apns_sender.rs).
+- **Alert** (other agents): title `Whereabot`, body `Your agent NAME wants to know your location` (or `An agent wants to know your location` when the name lookup fails), sound default, `thread-id`, and `category` `LOCATION_REQUEST`. Custom keys: `request_id`, `client_id`, `agent_name`, `expires_ms` (same meaning as in `locate`). `apns-push-type` is `alert`, priority `10`, and `apns-expiration` is the request deadline. Shape: [`server/src/push/apns_sender.rs`](../server/src/push/apns_sender.rs).
 - **Name:** the relay reads the user's OAuth grants (`GET /auth/v1/user/oauth/grants`) with the agent's user JWT and takes the client name, as the app does.
 - **Actions:** the app registers the `LOCATION_REQUEST` category with Reject, Allow and Always allow. None opens the app: the phone answers in the background with `POST /v1/device/answer` (below). See [architecture](architecture.md#background-answer).
 - **Tap:** opens the app. The app reconnects on return to the foreground, and the relay resends the waiting `locate` to the new socket. The app needs no handling for `request_id`.

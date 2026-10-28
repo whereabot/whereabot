@@ -1,6 +1,10 @@
-//! Test double: one server plays PostgREST (two tokens, `bb22` is dead), the grants list, and APNs.
+//! Test double: one server plays PostgREST (two tokens, `bb22` is dead; `trusted-agent` is
+//! always allowed), the grants list, and APNs.
 
-use std::sync::{Arc, Mutex};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use axum::{
     Json, Router,
@@ -32,7 +36,19 @@ async fn list() -> Json<Value> {
 }
 
 async fn grants() -> Json<Value> {
-    Json(json!([{ "client": { "id": "claude-code", "name": "Claude Code" } }]))
+    Json(json!([
+        { "client": { "id": "claude-code", "name": "Claude Code" } },
+        { "client": { "id": "trusted-agent", "name": "Trusted Bot" } },
+    ]))
+}
+
+async fn always(RawQuery(q): RawQuery) -> Json<Value> {
+    let hit = q.unwrap_or_default().contains("client_id=eq.trusted-agent");
+    Json(if hit {
+        json!([{ "client_id": "trusted-agent" }])
+    } else {
+        json!([])
+    })
 }
 
 async fn drop_token(State(f): Shared, RawQuery(q): RawQuery) {
@@ -58,6 +74,7 @@ pub async fn start() -> (Push, Arc<Fake>) {
     let fake = Arc::new(Fake::default());
     let app = Router::new()
         .route("/rest/v1/push_tokens", get(list).delete(drop_token))
+        .route("/rest/v1/always_allowed_agents", get(always))
         .route("/auth/v1/user/oauth/grants", get(grants))
         .route("/3/device/{token}", post(apns))
         .with_state(fake.clone());
@@ -77,5 +94,7 @@ pub async fn start() -> (Push, Arc<Fake>) {
         supabase_url: url,
         anon_key: "anon".into(),
     };
-    (Push::new(&config).unwrap(), fake)
+    let mut push = Push::new(&config).unwrap();
+    push.silent_window = Duration::from_millis(300);
+    (push, fake)
 }

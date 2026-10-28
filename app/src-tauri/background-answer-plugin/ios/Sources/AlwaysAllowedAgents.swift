@@ -1,7 +1,7 @@
 import Foundation
 
-/// Agents the user chose "Always allow" for from a notification. The web view owns the real
-/// list (per user, in localStorage); it takes these ids on its next launch and merges them.
+/// Agents the user chose "Always allow" for from a notification. They also go to Supabase at
+/// once (AlwaysAllowedServer); this queue lets the web view retry on its next launch.
 enum AlwaysAllowedAgents {
   private static let key = "whereabouts.native.alwaysAllowed"
   /// Ids shared by many agents (app/src/agent-identity.ts): never always-allowed.

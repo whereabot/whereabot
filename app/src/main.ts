@@ -9,6 +9,8 @@ import { initHome } from "./ui/home-screen";
 import { initPermissions } from "./ui/permissions-screen";
 import { forgetPush, initPush } from "./push/push-token-registration";
 import { initBackgroundAnswer } from "./background-answer-bridge";
+import { initAlwaysAllowedSync } from "./always-allowed-sync";
+import { initAutoSharedHistory } from "./auto-shared-history";
 import { clearLocalData } from "./request-history-store";
 import { getAccessToken, supabase } from "./supabase-client";
 
@@ -45,6 +47,8 @@ window.addEventListener("DOMContentLoaded", () => {
   initPermissions();
   initPush();
   initBackgroundAnswer();
+  initAlwaysAllowedSync();
+  initAutoSharedHistory();
   void listenForAuthRedirect();
 
   supabase.auth.onAuthStateChange((event, session) => {

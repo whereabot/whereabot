@@ -6,7 +6,9 @@ enum LocationRequestAction {
   static let reject = "LOCATION_REJECT"
   static let allow = "LOCATION_ALLOW"
   static let always = "LOCATION_ALWAYS"
-  static let all: Set<String> = [reject, allow, always]
+  /// The one action on the "is checking" fallback for an always-allowed agent; works like Allow.
+  static let share = "LOCATION_SHARE"
+  static let all: Set<String> = [reject, allow, always, share]
 
   /// Main thread. Calls `done` once the relay answered, failed, or iOS ends the background time.
   static func handle(_ action: String, userInfo: [AnyHashable: Any], done: @escaping () -> Void) {
@@ -34,6 +36,7 @@ enum LocationRequestAction {
     }
     if action == always, let clientId = userInfo["client_id"] as? String {
       AlwaysAllowedAgents.add(clientId)
+      AlwaysAllowedServer.add(clientId, name: userInfo["agent_name"] as? String)
     }
     let fix = BackgroundLocationFix()
     fix.read { location in
@@ -42,7 +45,8 @@ enum LocationRequestAction {
     }
   }
 
-  private static func answer(_ id: String, _ location: CLLocation?) -> [String: Any] {
+  /// The relay answer for one read; also used by the silent push handler.
+  static func answer(_ id: String, _ location: CLLocation?) -> [String: Any] {
     guard let location = location else {
       // When In Use cannot read in the background: tell the agent it is a permission gap.
       let always = CLLocationManager().authorizationStatus == .authorizedAlways

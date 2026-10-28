@@ -13,6 +13,7 @@ export const sidebar = [
       { text: 'Architecture', link: '/architecture' },
       { text: 'Protocol', link: '/protocol' },
       { text: 'Request flow', link: '/request-flow' },
+      { text: 'Always allow', link: '/always-allow' },
       { text: 'Prior art', link: '/prior-art' },
       { text: 'Roadmap', link: '/roadmap' },
       { text: 'Contributing', link: '/contributing' },

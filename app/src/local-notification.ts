@@ -11,9 +11,9 @@ export async function requestNotificationPermission(): Promise<string> {
 }
 
 /** Local notice so the user sees the prompt when the app is not in focus. Best effort. */
-export async function notify(body: string) {
+export async function notify(body: string, title = "Whereabot") {
   try {
-    if (await isPermissionGranted()) sendNotification({ title: "Whereabot", body });
+    if (await isPermissionGranted()) sendNotification({ title, body });
   } catch {
     // The in-app prompt still shows.
   }

@@ -1,8 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
 import { relayUrl } from "./build-config";
-import { resolveAgent } from "./agent-display-name";
-import { addAlwaysApproved } from "./request-history-store";
-import { supabase } from "./supabase-client";
 
 /** Only iOS has the native handler that answers from a notification action. */
 export const backgroundAnswerSupported = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -18,13 +15,15 @@ export const locationAuthorization = () =>
 export const requestAlwaysLocation = () =>
   call<{ status: string }>("request_always_location").then((r) => r.status);
 
-/** "Always allow" taps on a notification wait natively; they join this user's list here. */
-async function mergeAlwaysAllowed() {
-  const { data } = await supabase.auth.getSession();
-  if (!data.session) return;
-  const res = await call<{ clientIds: string[] }>("take_always_allowed").catch(() => null);
-  for (const id of res?.clientIds ?? []) addAlwaysApproved(await resolveAgent(id));
-}
+/** Client ids the user chose "Always allow" for on a notification; cleared once taken. */
+export const takeAlwaysAllowed = () =>
+  call<{ clientIds: string[] }>("take_always_allowed").then((r) => r.clientIds, () => [] as string[]);
+
+export type AutoShared = { clientId: string; name: string; at: number };
+
+/** Answers the native handler sent on its own (silent push), and whether a "checked" tap opened the app. */
+export const takeAutoShared = () =>
+  call<{ shared: AutoShared[]; openHistory: boolean }>("take_auto_shared").catch(() => ({ shared: [], openHistory: false }));
 
 /** Call once at start: gives the native handler the relay and Supabase addresses. */
 export function initBackgroundAnswer() {
@@ -34,9 +33,4 @@ export function initBackgroundAnswer() {
     supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
     anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
   }).catch(() => {});
-  document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && void mergeAlwaysAllowed());
-  supabase.auth.onAuthStateChange((event) => {
-    // Deferred: the history store switches to this user's storage in its own listener first.
-    if (event === "SIGNED_IN" || event === "INITIAL_SESSION") setTimeout(() => void mergeAlwaysAllowed(), 0);
-  });
 }
