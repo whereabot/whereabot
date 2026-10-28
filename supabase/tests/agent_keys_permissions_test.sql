@@ -6,10 +6,14 @@ select plan(4);
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'a@test.local');
 
-set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
-select set_config('test.key_a', public.create_agent_key('laptop'), true);
-reset role;
+-- Seed a known key as postgres. Users cannot create keys now.
+select set_config('test.key_a', 'wb_' || repeat('a', 48), true);
+insert into public.agent_keys (user_id, name, prefix, key_hash) values (
+  '00000000-0000-0000-0000-00000000000a',
+  'laptop',
+  left(current_setting('test.key_a'), 11),
+  encode(extensions.digest(current_setting('test.key_a'), 'sha256'), 'hex')
+);
 
 select set_config('test.hash_a', encode(extensions.digest(current_setting('test.key_a'), 'sha256'), 'hex'), true);
 select is(
