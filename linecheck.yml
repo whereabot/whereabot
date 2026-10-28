@@ -4,7 +4,7 @@ rules:
   # Ratchet: lower error step by step (186 -> 150 -> 120 -> 100). Never raise it.
   - pattern: "**/*"
     warn: 100
-    error: 150
+    error: 120
     error_message: "Split this file by responsibility. Target is 100 lines (ratchet: see linecheck.yml)"
 
 exclude:
