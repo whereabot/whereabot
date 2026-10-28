@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { FAKE, OUT_DIR, ROOT, shoot } from './playwright-browser.mjs';
 import { sessionInit, withScene } from './static-site-scene.mjs';
 import { installTauri } from './tauri-stub.mjs';
-import { PERM_CASES, UI_CASES } from './app-request-history-cases.mjs';
+import { PERM_CASES, SHARING_CASES, UI_CASES } from './app-request-history-cases.mjs';
 
 const APP = join(ROOT, 'app');
 const VITE = join(APP, 'node_modules', 'vite', 'bin', 'vite.js');
@@ -48,7 +48,7 @@ const CASES = [
   { name: 'disconnected', session: true, click: '#disconnect', status: 'Disconnected.', desc: 'Disconnect pressed. Shows Disconnected.' },
 ];
 
-CASES.push(...[...UI_CASES, ...PERM_CASES].map((c) => ({ ...c, status: CONNECTED })));
+CASES.push(...[...UI_CASES, ...SHARING_CASES, ...PERM_CASES].map((c) => ({ ...c, status: CONNECTED })));
 
 const waitStatus = (page, text) => page.waitForFunction((t) => document.getElementById('status').textContent === t, text);
 

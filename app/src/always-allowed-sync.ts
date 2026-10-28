@@ -1,4 +1,4 @@
-import type { Agent } from "./agent-identity";
+import { type Agent, sameAgent } from "./agent-identity";
 import { resolveAgent } from "./agent-display-name";
 import { backgroundAnswerSupported, takeAlwaysAllowed } from "./background-answer-bridge";
 import { fetchAlwaysAllowed, saveAlwaysAllowed } from "./always-allowed-server";
@@ -7,7 +7,7 @@ import { supabase } from "./supabase-client";
 
 let running: Promise<void> | null = null;
 
-const union = (a: Agent[], b: Agent[]) => [...a.filter((x) => !b.some((y) => y.clientId === x.clientId)), ...b];
+const union = (a: Agent[], b: Agent[]) => [...a.filter((x) => !b.some((y) => sameAgent(x, y))), ...b];
 
 /**
  * Supabase owns the always-allowed list (the relay reads it); localStorage is a cache.

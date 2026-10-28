@@ -48,3 +48,4 @@ export const PERM_CASES = [
   { session: true, name: 'perm-notifications', tauri: { notifications: 'prompt' }, wait: '#perms', desc: 'Step 2 of 2. Asks for notifications. Skip for now is allowed.' },
   { session: true, name: 'perm-notifications-banner', tauri: { notifications: 'prompt' }, click: '#perm-skip', wait: '#notif-banner:not([hidden])', desc: 'Notifications skipped. Home shows a banner with a Fix button.' },
 ];
+export { SHARING_CASES } from './app-sharing-cases.mjs';

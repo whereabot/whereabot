@@ -5,8 +5,12 @@ import Foundation
 /// the relay alone can never make the phone share without the user's own choice.
 enum AlwaysAllowedServer {
   /// The stored agent name ("" when none) if the user always-allowed `clientId`, else nil.
-  static func lookup(_ clientId: String, done: @escaping (String?) -> Void) {
-    let query = [("select", "client_name"), ("client_id", "eq.\(clientId)")]
+  /// `requesterId` is set for a shared request: only a row for that requester counts.
+  static func lookup(_ clientId: String, requesterId: String?, done: @escaping (String?) -> Void) {
+    let query = [
+      ("select", "client_name"), ("client_id", "eq.\(clientId)"),
+      ("requester_user_id", requesterId.map { "eq.\($0)" } ?? "is.null"),
+    ]
     request("GET", query: query, body: nil) { data in
       guard let data = data,
         let rows = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]],
@@ -17,11 +21,11 @@ enum AlwaysAllowedServer {
   }
 
   /// "Always allow" tapped on a notification: the relay must know before the next request.
-  static func add(_ clientId: String, name: String?) {
-    var body: [String: Any] = ["client_id": clientId]
+  static func add(_ clientId: String, name: String?, requesterId: String? = nil) {
+    var body: [String: Any] = ["client_id": clientId, "requester_user_id": requesterId ?? NSNull()]
     // Left out when unknown, so an upsert never blanks a stored name.
     if let name = name, !name.isEmpty { body["client_name"] = name }
-    let query = [("on_conflict", "user_id,client_id")]
+    let query = [("on_conflict", "user_id,client_id,requester_user_id")]
     request("POST", query: query, body: body, prefer: "resolution=merge-duplicates,return=minimal") {
       NSLog("[background-answer] always-allowed save %@", $0 == nil ? "failed" : "ok")
     }

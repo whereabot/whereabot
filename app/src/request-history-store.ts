@@ -1,4 +1,4 @@
-import { type Agent, isGeneric } from "./agent-identity";
+import { type Agent, isGeneric, sameAgent } from "./agent-identity";
 import { supabase } from "./supabase-client";
 import { deleteAlwaysAllowed, saveAlwaysAllowed } from "./always-allowed-server";
 
@@ -43,19 +43,19 @@ export function recordRequest(agent: Agent, outcome: Outcome, at = Date.now()) {
 
 export const listAlwaysApproved = (): Agent[] => read<Agent>(ALWAYS);
 
-export const isAlwaysApproved = (clientId: string) =>
-  !isGeneric(clientId) && listAlwaysApproved().some((a) => a.clientId === clientId);
+export const isAlwaysApproved = (agent: Agent) =>
+  !isGeneric(agent.clientId) && listAlwaysApproved().some((a) => sameAgent(a, agent));
 
 /** The local list is a cache of Supabase `always_allowed_agents`; writes go to both. */
 export function addAlwaysApproved(agent: Agent) {
   if (isGeneric(agent.clientId)) return Promise.resolve(true);
-  write(ALWAYS, [...listAlwaysApproved().filter((a) => a.clientId !== agent.clientId), agent]);
+  write(ALWAYS, [...listAlwaysApproved().filter((a) => !sameAgent(a, agent)), agent]);
   return saveAlwaysAllowed([agent]);
 }
 
-export function removeAlwaysApproved(clientId: string) {
-  write(ALWAYS, listAlwaysApproved().filter((a) => a.clientId !== clientId));
-  void deleteAlwaysAllowed(clientId);
+export function removeAlwaysApproved(agent: Agent) {
+  write(ALWAYS, listAlwaysApproved().filter((a) => !sameAgent(a, agent)));
+  void deleteAlwaysAllowed(agent);
 }
 
 export const replaceAlwaysApproved = (agents: Agent[]) => write(ALWAYS, agents.filter((a) => !isGeneric(a.clientId)));

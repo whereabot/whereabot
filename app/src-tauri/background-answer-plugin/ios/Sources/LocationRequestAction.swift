@@ -35,8 +35,15 @@ enum LocationRequestAction {
       return RelayAnswerPost.send(["type": "denied", "id": id, "reason": "user"]) { _ in finish() }
     }
     if action == always, let clientId = userInfo["client_id"] as? String {
-      AlwaysAllowedAgents.add(clientId)
-      AlwaysAllowedServer.add(clientId, name: userInfo["agent_name"] as? String)
+      let agent = userInfo["agent_name"] as? String
+      if let requester = RequesterInfo(userInfo) {
+        // Only for that requester. Not queued for the web view: it retries own agents only.
+        AlwaysAllowedServer.add(
+          clientId, name: requester.label(agent: agent), requesterId: requester.userId)
+      } else {
+        AlwaysAllowedAgents.add(clientId)
+        AlwaysAllowedServer.add(clientId, name: agent)
+      }
     }
     let fix = BackgroundLocationFix()
     fix.read { location in

@@ -1,4 +1,4 @@
-import { isGeneric, type Agent } from "./agent-identity";
+import { agentTitle, isGeneric, withRequester, type Agent } from "./agent-identity";
 import { answer, denied, log, unavailable, type Ping } from "./relay-wire-protocol";
 import { $, setStatus } from "./status-display-dom";
 import { announce } from "./ui/screen-view-helpers";
@@ -28,9 +28,9 @@ export async function answerPing(send: Send, data: string) {
   seen.add(ping.id);
   const step = (m: string) => void send(log(`${ping.id.slice(0, 8)} ${m}`)).catch(() => {});
   step("ping received");
-  const agent = await resolveAgent(ping.client_id);
-  step(`agent resolved, always=${isAlwaysApproved(agent.clientId)}`);
-  if (isAlwaysApproved(agent.clientId)) return sendFix(send, ping, agent, "auto");
+  const agent = withRequester(await resolveAgent(ping.client_id), ping.requester);
+  step(`agent resolved, always=${isAlwaysApproved(agent)}`);
+  if (isAlwaysApproved(agent)) return sendFix(send, ping, agent, "auto");
   const turn = queue.then(() => prompt(send, ping, agent, step));
   queue = turn.catch(() => {});
   return turn;
@@ -43,7 +43,7 @@ async function prompt(send: Send, ping: Ping, agent: Agent, step: (m: string) =>
   const abort = new AbortController();
   const timer = window.setTimeout(() => abort.abort(), left);
   track(ping.id, abort);
-  void notify(`Your agent ${agent.name} wants to know your location`);
+  void notify(`${agentTitle(agent)} wants to know your location`);
   const shown = showRequest(agent, abort.signal, !isGeneric(agent.clientId));
   step(`prompt shown, left=${left}ms, screen=${document.body.dataset.screen}, visible=${document.visibilityState}`);
   const choice = await shown;

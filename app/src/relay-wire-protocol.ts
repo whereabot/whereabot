@@ -1,7 +1,8 @@
 import type { Position } from "@tauri-apps/plugin-geolocation";
+import type { Requester } from "./agent-identity";
 
 /** Server -> device. See docs/protocol.md. */
-export type Ping = { type: "locate"; id: string; client_id?: string; expires_ms?: number };
+export type Ping = { type: "locate"; id: string; client_id?: string; expires_ms?: number; requester?: Requester | null };
 
 /** Device -> server. */
 export type LocationReply = {

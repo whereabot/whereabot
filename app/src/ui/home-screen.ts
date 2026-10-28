@@ -41,8 +41,8 @@ function initBackButton() {
   }).observe(document.body, { attributes: true, attributeFilter: ["data-screen"] });
   window.addEventListener("popstate", () => {
     if (screen() === "request") history.pushState({ screen: "request" }, "");
-    else if (screen() === "history" || screen() === "devices") {
-      const opener = screen() === "history" ? "open-history" : "open-devices";
+    else if (["history", "devices", "sharing"].includes(screen() ?? "")) {
+      const opener = `open-${screen()}`;
       document.body.dataset.screen = "home";
       $(opener).focus();
     }

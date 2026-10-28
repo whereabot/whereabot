@@ -18,7 +18,7 @@ const stamp = (at: number) =>
   new Date(at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
 /** Draws both lists. Data comes in as arguments so screenshots can seed it. */
-export function renderHistory(requests: Entries, always: Agent[], onRemove: (id: string) => void) {
+export function renderHistory(requests: Entries, always: Agent[], onRemove: (agent: Agent) => void) {
   const list = $("history-list");
   list.replaceChildren(...[...requests].sort((a, b) => b.at - a.at).map((r) => {
     const row = el("li", "row");
@@ -35,15 +35,15 @@ export function renderHistory(requests: Entries, always: Agent[], onRemove: (id:
     const rm = el("button", "btn btn-secondary btn-small", "Remove");
     rm.setAttribute("type", "button");
     rm.setAttribute("aria-label", `Remove ${a.name} from always allowed`);
-    rm.addEventListener("click", () => onRemove(a.clientId));
+    rm.addEventListener("click", () => onRemove(a));
     row.append(el("span", "row-name", a.name), rm);
     return row;
   }));
 }
 
 function refresh() {
-  renderHistory(listRequests(), listAlwaysApproved(), (id) => {
-    removeAlwaysApproved(id);
+  renderHistory(listRequests(), listAlwaysApproved(), (agent) => {
+    removeAlwaysApproved(agent);
     refresh();
   });
 }

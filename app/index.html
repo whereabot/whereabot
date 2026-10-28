@@ -51,7 +51,7 @@
           <div class="actions">
             <button id="connect" class="btn btn-primary" type="button">Connect</button><button id="disconnect" class="btn btn-secondary" type="button" hidden>Disconnect</button>
           </div>
-          <div class="actions"><button id="open-history" class="btn btn-secondary" type="button">Request history</button><button id="open-devices" class="btn btn-secondary" type="button">Devices</button></div>
+          <div class="actions"><button id="open-history" class="btn btn-secondary" type="button">Request history</button><button id="open-devices" class="btn btn-secondary" type="button">Devices</button><button id="open-sharing" class="btn btn-secondary" type="button">Sharing</button></div>
           <p id="last-ping" class="muted"></p>
           <section id="notif-banner" class="banner banner-warn" aria-labelledby="notif-title" hidden>
             <p id="notif-title" class="banner-title">Notifications are off &mdash; you may miss requests</p><button id="notif-fix" class="btn btn-secondary" type="button">Fix</button>
@@ -72,7 +72,7 @@
           <button id="sign-out" class="btn btn-ghost" type="button">Sign out</button>
         </div>
         <section id="request" class="stack" aria-labelledby="request-title">
-          <h2 id="request-title" class="request-title" tabindex="-1">Your agent <strong id="req-name"></strong> wants to know your location</h2>
+          <h2 id="request-title" class="request-title" tabindex="-1"><span id="req-prefix">Your agent </span><strong id="req-name"></strong> wants to know your location</h2>
           <div class="tiles">
             <button id="reject" class="tile tile-danger" type="button"><span class="tile-icon" aria-hidden="true">✕</span>Reject</button>
             <button id="allow" class="tile tile-primary" type="button"><span class="tile-icon" aria-hidden="true">✓</span>Allow</button>

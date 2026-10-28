@@ -16,13 +16,14 @@ enum SilentLocationAnswer {
       return done(.noData)
     }
     // The relay's word is not enough: the user's own row must say "always allowed".
-    AlwaysAllowedServer.lookup(clientId) { stored in
+    let requester = RequesterInfo(userInfo)
+    AlwaysAllowedServer.lookup(clientId, requesterId: requester?.userId) { stored in
       DispatchQueue.main.async {
         guard let stored = stored else {
           NSLog("[background-answer] silent push for an agent that is not always allowed")
           return done(.noData)
         }
-        answer(id, clientId: clientId, name: stored.isEmpty ? "Your agent" : stored, done: done)
+        answer(id, clientId: clientId, name: stored.isEmpty ? (requester?.label(agent: nil) ?? "Your agent") : stored, done: done)
       }
     }
   }

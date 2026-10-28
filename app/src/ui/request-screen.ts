@@ -1,4 +1,4 @@
-import type { Agent } from "../agent-identity";
+import { agentTitle, type Agent } from "../agent-identity";
 import { $ } from "../status-display-dom";
 import { announce, setScreen } from "./screen-view-helpers";
 
@@ -20,19 +20,21 @@ export function showRequest(agent: Agent, signal: AbortSignal, canAlways = true)
     const finish = (choice: Choice | null) => {
       ui.abort();
       always.hidden = false;
+    $("req-prefix").hidden = false;
       delete box.dataset.noAlways;
       setScreen("home");
       before?.focus?.();
       resolve(choice);
     };
 
+    $("req-prefix").hidden = !!agent.requesterId; // a shared name already says whose agent it is
     $("req-name").textContent = agent.name;
     $("always-name").textContent = ` ${agent.name}`;
     always.hidden = !canAlways;
     if (canAlways) delete box.dataset.noAlways;
     else box.dataset.noAlways = "1";
     setScreen("request");
-    announce(`Your agent ${agent.name} wants to know your location. Choose Reject, Allow or Always allow.`);
+    announce(`${agentTitle(agent)} wants to know your location. Choose Reject, Allow or Always allow.`);
     $("request-title").focus();
 
     allow.addEventListener("click", () => finish("approve"), opts);

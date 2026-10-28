@@ -1,6 +1,6 @@
 import { $ } from "../status-display-dom";
 
-export type Screen = "home" | "history" | "request" | "permissions" | "devices";
+export type Screen = "home" | "history" | "request" | "permissions" | "devices" | "sharing";
 
 /** CSS shows the section that matches body[data-screen]. */
 export function setScreen(screen: Screen) {

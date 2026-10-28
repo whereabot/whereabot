@@ -2,25 +2,28 @@
 #request,
 #history,
 #devices,
+#sharing,
 #perms {
   display: none;
 }
 [data-screen="request"] #request,
 [data-screen="history"] #history,
 [data-screen="devices"] #devices,
+[data-screen="sharing"] #sharing,
 [data-screen="permissions"] #perms {
   display: flex;
 }
-:is([data-screen="request"], [data-screen="history"], [data-screen="devices"], [data-screen="permissions"])
+:is([data-screen="request"], [data-screen="history"], [data-screen="devices"], [data-screen="sharing"], [data-screen="permissions"])
   :is(#home, #state-card, .lede) {
   display: none;
 }
 
 /* Sub-screen headings: the page title size, with a little room above list subheadings. */
-:is(#history, #devices) h2 {
+:is(#history, #devices, #sharing) h2 {
   font-size: var(--text-xl);
 }
-#history h3 {
+#history h3,
+#sharing h3 {
   margin-top: var(--space-3);
   font-size: var(--text-md);
 }

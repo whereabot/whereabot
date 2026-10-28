@@ -4,6 +4,8 @@ import { listenForAuthRedirect, signInWithGoogle, signInWithPassword, signOut } 
 import { devLogin } from "./build-config";
 import { initDeviceIdentity } from "./devices/device-identity";
 import { initDevices } from "./ui/devices-screen";
+import { initSharing } from "./ui/sharing-screen";
+import { initClaimLocationShares } from "./sharing/claim-location-shares";
 import { initHistory } from "./ui/history-screen";
 import { initHome } from "./ui/home-screen";
 import { initPermissions } from "./ui/permissions-screen";
@@ -43,6 +45,8 @@ window.addEventListener("DOMContentLoaded", () => {
   });
   initHistory();
   initDevices();
+  initSharing();
+  initClaimLocationShares();
   initHome();
   initPermissions();
   initPush();
@@ -70,7 +74,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // Screenshot builds only: lets scripts/screens drive the UI without a relay.
 if (import.meta.env.VITE_SCREENS) {
-  void Promise.all([import("./ui/request-screen"), import("./ui/history-screen"), import("./ui/screen-view-helpers"), import("./ui/devices-screen")]).then(([r, h, v, d]) => {
-    Object.assign(window, { __ui: { ...r, ...h, ...v, ...d } });
+  void Promise.all([import("./ui/request-screen"), import("./ui/history-screen"), import("./ui/screen-view-helpers"), import("./ui/devices-screen"), import("./ui/sharing-screen")]).then(([r, h, v, d, s]) => {
+    Object.assign(window, { __ui: { ...r, ...h, ...v, ...d, ...s } });
   });
 }
