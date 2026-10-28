@@ -12,6 +12,7 @@ export const sidebar = [
     items: [
       { text: 'Architecture', link: '/architecture' },
       { text: 'Protocol', link: '/protocol' },
+      { text: 'Request flow', link: '/request-flow' },
       { text: 'Prior art', link: '/prior-art' },
       { text: 'Roadmap', link: '/roadmap' },
       { text: 'Contributing', link: '/contributing' },

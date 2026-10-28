@@ -92,3 +92,5 @@ sequenceDiagram
 - **Session:** supabase-js stores its session through the plugin in the iOS Keychain (`AfterFirstUnlock`), see [`app/src/native-session-storage.ts`](../app/src/native-session-storage.ts). The handler reads the same item and writes back a refreshed session. One refresh token for both sides, so a rotation never revokes the other side's token. Tokens are never logged.
 - **Always allow:** the handler answers like Allow and keeps the `client_id` in `UserDefaults`. On the next launch the app takes those ids and adds them to the signed-in user's always-allowed list ([`app/src/background-answer-bridge.ts`](../app/src/background-answer-bridge.ts)).
 - **Permission:** a read with the app closed needs location access "Always". The permissions screen asks for it after When In Use, and shows Settings steps when it is refused. Without it the handler answers `unavailable` with reason `permission`. There is no `location` background mode: the app never tracks.
+
+Every state and notification of one request, as a diagram: [request flow](request-flow.md).
