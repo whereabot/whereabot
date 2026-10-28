@@ -1,0 +1,7 @@
+[hidden] { display: none !important; }
+
+.consent { max-width: 32rem; margin: 0 auto; padding: 1.5rem 1rem; }
+.consent dl > div { margin-bottom: 0.75rem; }
+.consent dt { font-weight: 600; }
+.consent dd { margin: 0; overflow-wrap: anywhere; }
+.consent .actions { flex-wrap: wrap; }
