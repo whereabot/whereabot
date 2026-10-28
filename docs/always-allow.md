@@ -1,6 +1,6 @@
 # Always allow
 
-An always-allowed agent never "wants to know". The phone shares on its own and then tells the user: "<Agent> checked your location".
+An always-allowed agent never "wants to know". The phone shares on its own and then tells the user: "`<Agent>` checked your location".
 
 ## Where the choice lives
 
@@ -34,7 +34,7 @@ sequenceDiagram
     H->>S: Read own always_allowed_agents row for client_id
     H->>H: One location read
     H->>R: POST /v1/device/answer with the fix
-    H->>H: Local notice "<Agent> checked your location"
+    H->>H: Local notice "Agent checked your location"
 ```
 
 - **Second check.** The native handler answers only if the user's own row exists; the relay's word alone never shares a location.

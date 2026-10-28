@@ -30,6 +30,7 @@ module "whereabouts" {
   google_client_id         = var.google_client_id
   google_client_secret     = var.google_client_secret
   image                    = var.image
+  apns_enabled             = true
   site_host                = "whereabouts.ofek-gabay-he.workers.dev"
   relay_public_url         = "https://whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app"
 }

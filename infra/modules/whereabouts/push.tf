@@ -1,6 +1,12 @@
 # APNs push (wakes the phone for a location request). The key value is added by hand, never in state:
 # see infra/README.md, "Add the APNs key".
 
+variable "apns_enabled" {
+  description = "Wire the APNs key into the relay. Turn on only after the secret has a version."
+  type        = bool
+  default     = false
+}
+
 variable "apns_key_id" {
   description = "APNs auth key id (Apple Developer > Keys)."
   type        = string
@@ -26,7 +32,7 @@ variable "apns_production" {
 }
 
 locals {
-  apns_env = {
+  apns_env = !var.apns_enabled ? {} : {
     APNS_KEY_ID     = var.apns_key_id
     APNS_TEAM_ID    = var.apns_team_id
     APNS_TOPIC      = var.apns_topic
