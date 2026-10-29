@@ -1,4 +1,4 @@
-# Deploy only: applies supabase/migrations; tests run locally
+# Applies supabase/migrations after full CI on the commit passes
 name: migrations
 on:
   push:
@@ -9,7 +9,10 @@ concurrency:
   group: migrations
   cancel-in-progress: false
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
   dev:
+    needs: ci
     runs-on: ubuntu-latest
     environment: dev
     env:
