@@ -3,6 +3,7 @@ import { disconnect, start } from "./relay-connection";
 import { listenForAuthRedirect, signInWithGoogle, signInWithPassword, signOut } from "./supabase-sign-in";
 import { devLogin } from "./build-config";
 import { initDeviceIdentity } from "./devices/device-identity";
+import { takeOverOldDeviceRow } from "./devices/reinstall-device-takeover";
 import { initDevices } from "./ui/devices-screen";
 import { initSharing } from "./ui/sharing-screen";
 import { initClaimLocationShares } from "./sharing/claim-location-shares";
@@ -23,6 +24,7 @@ async function currentToken() {
   await initDeviceIdentity(); // the hello that follows needs the Keychain id
   const token = await getAccessToken();
   if (!token) showView("signed-out");
+  else await takeOverOldDeviceRow().catch(() => {}); // a reinstall reuses its row; the hello must carry that id
   return token;
 }
 
