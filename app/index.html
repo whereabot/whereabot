@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="/src/app-style-entry.css" />
     <title>Whereabot</title>
     <link rel="manifest" href="/app.webmanifest" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- Relative paths: Vite copies these to assets/ with a content hash, so a new icon gets a new URL iOS has not cached. -->
+    <link rel="apple-touch-icon" href="../site/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <script type="module" src="/src/main.ts" defer></script>
   </head>
@@ -15,9 +16,7 @@
   <body data-screen="home">
     <main class="page-shell">
       <header class="brand">
-        <svg class="brand-mark" viewBox="0 0 128 128" aria-hidden="true" focusable="false">
-                    <path fill="#2F5BEA" d="M64 122C64 122 26 86 26 52A38 38 0 0 1 102 52C102 86 64 122 64 122Z" /> <circle fill="#FFFFFF" cx="64" cy="35" r="3.5" /> <path fill="#FFFFFF" d="M64 40C52 40 47 48 47 58L43 68H85L81 58C81 48 76 40 64 40Z" /> <rect fill="#FFFFFF" x="41" y="66" width="46" height="5" rx="2.5" /> <circle fill="#FFB020" cx="64" cy="77" r="4.5" />
-        </svg>
+        <img class="brand-mark" src="../site/mark.svg" alt="" />
         <span class="brand-name">Whereabot</span>
       </header>
 

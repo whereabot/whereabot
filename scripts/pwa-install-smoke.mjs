@@ -36,7 +36,10 @@ try {
   assert.equal(manifest.start_url, '/app/');
   assert.equal(manifest.display, 'standalone');
   assert.ok(manifest.icons.some((i) => i.sizes === '512x512'), 'needs a 512 px icon');
-  assert.ok(await page.locator('link[rel="apple-touch-icon"]').count(), 'apple-touch-icon');
+  // Content-hashed icon URLs: iOS caches Home Screen icons by URL, so a new icon must get a new URL.
+  const hashed = /^\/app\/assets\/[\w-]+-[\w-]{8}\.(png|svg)$/;
+  assert.match(await page.locator('link[rel="apple-touch-icon"]').getAttribute('href'), hashed);
+  assert.match(await page.locator('.brand-mark').getAttribute('src'), hashed);
   assert.equal(await page.locator('meta[name="apple-mobile-web-app-capable"]').getAttribute('content'), 'yes');
   const scope = await page.evaluate(() => navigator.serviceWorker.ready.then((r) => r.scope));
   assert.equal(scope, `${base}/app/`);
