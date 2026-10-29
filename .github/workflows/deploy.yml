@@ -1,4 +1,4 @@
-# GitOps for the relay: test, build once, apply dev, then apply prod (approval gate).
+# GitOps for the relay: full CI, build once, apply dev, then apply prod (approval gate).
 name: deploy
 on:
   push:
@@ -16,17 +16,14 @@ env:
   REGISTRY: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT }}
   TAG: ${{ inputs.image_sha || github.sha }}
 jobs:
-  test:
-    # Idle until the one-time bootstrap sets WIF_PROVIDER (infra/README.md).
-    if: ${{ vars.WIF_PROVIDER != '' }}
-    runs-on: ubuntu-latest
-    defaults: { run: { working-directory: server } }
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - run: cargo test --locked
-  image:
-    needs: test
+  ci:
+    # Full CI on this commit; a rollback skips it (the image was tested when it was built).
     if: ${{ !inputs.image_sha }}
+    uses: ./.github/workflows/ci.yml
+  image:
+    needs: ci
+    # Idle until the one-time bootstrap sets WIF_PROVIDER (infra/README.md).
+    if: ${{ !inputs.image_sha && vars.WIF_PROVIDER != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -44,8 +41,8 @@ jobs:
           docker push "$REGISTRY/whereabouts/relay:$TAG"
           docker push "$REGISTRY/whereabouts-prod/relay:$TAG"
   dev:
-    needs: [test, image]
-    # Run when image was skipped (rollback); never when it failed.
+    needs: [ci, image]
+    # Run when ci and image were skipped (rollback); never when either failed.
     if: ${{ !cancelled() && !failure() && vars.WIF_PROVIDER != '' }}
     runs-on: ubuntu-latest
     environment: dev

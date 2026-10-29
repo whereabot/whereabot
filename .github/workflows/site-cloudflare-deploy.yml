@@ -1,4 +1,4 @@
-# GitOps for the landing page, docs and the browser app at /app (one Worker): build docs and app, fill consent config, deploy the "whereabouts" Worker, smoke-test.
+# GitOps for the landing page, docs and the browser app at /app (one Worker): full CI, build docs and app, fill consent config, deploy the "whereabouts" Worker, smoke-test.
 name: site-cloudflare-deploy
 on:
   push:
@@ -26,7 +26,10 @@ env:
   SITE_URL: https://whereabot.io
   RELAY_URL: wss://relay.whereabot.io
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
   deploy:
+    needs: ci
     # Idle until the Cloudflare settings exist (infra/README.md).
     if: ${{ vars.CLOUDFLARE_ACCOUNT_ID != '' }}
     runs-on: ubuntu-latest
