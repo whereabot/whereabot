@@ -99,7 +99,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          npx --yes "$WRANGLER" deploy --name "$WORKER" --assets ./site --workers-dev --compatibility-date 2026-10-01 2>&1 | tee "$RUNNER_TEMP/wrangler.log"
+          npx --yes "$WRANGLER" deploy --name "$WORKER" --assets ./site --compatibility-date 2026-10-01 2>&1 | tee "$RUNNER_TEMP/wrangler.log"
           grep -E "Read [0-9]+ files? from the assets directory ${STAGE}/site" "$RUNNER_TEMP/wrangler.log"
           url=$(grep -oE "https://${WORKER}\.[a-z0-9-]+\.workers\.dev" "$RUNNER_TEMP/wrangler.log" | head -1)
           [ -n "$url" ]
