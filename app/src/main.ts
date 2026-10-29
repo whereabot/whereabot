@@ -16,6 +16,7 @@ import { initAutoSharedHistory } from "./auto-shared-history";
 import { clearLocalData } from "./request-history-store";
 import { getAccessToken, supabase } from "./supabase-client";
 import { registerServiceWorker } from "./pwa-service-worker-registration";
+import { initPwaLimitsNotice } from "./ui/pwa-limits-notice";
 
 /** Read on every (re)connect. No session means the sign-in screen shows. */
 async function currentToken() {
@@ -56,6 +57,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initAutoSharedHistory();
   void listenForAuthRedirect();
   registerServiceWorker();
+  initPwaLimitsNotice();
 
   supabase.auth.onAuthStateChange((event, session) => {
     // Deferred: supabase calls must not run inside the auth callback.

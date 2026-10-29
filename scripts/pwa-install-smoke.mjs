@@ -40,7 +40,15 @@ try {
   assert.equal(await page.locator('meta[name="apple-mobile-web-app-capable"]').getAttribute('content'), 'yes');
   const scope = await page.evaluate(() => navigator.serviceWorker.ready.then((r) => r.scope));
   assert.equal(scope, `${base}/app/`);
-  console.log('PWA smoke passed: manifest ok, service worker active at', scope);
+  // The browser version states its limits in the app, before sign-in.
+  await page.locator('#signed-out .pwa-limits').getByText('answers only after you tap the notification').waitFor();
+  // iPhone Safari, not installed: the Add to Home Screen steps show.
+  const iphone = await browser.newPage({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1' });
+  await iphone.route((url) => !url.href.startsWith(base), (route) => route.abort());
+  await iphone.goto(`${base}/app/`);
+  await iphone.locator('#signed-out .pwa-install').getByText('Add to Home Screen to get notifications (iOS 16.4+)').waitFor();
+  assert.equal(await page.locator('.pwa-install').count(), 0, 'desktop shows no iPhone install steps');
+  console.log('PWA smoke passed: manifest, service worker at', scope, 'and the in-app limits notice');
 } finally {
   await browser.close();
   server.close();

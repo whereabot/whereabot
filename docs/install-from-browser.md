@@ -21,6 +21,8 @@ The browser app is the same code as the iOS app ([`app/src`](../app/src)). Where
 - **Settings.** If you denied location, change it in the browser settings (on iPhone: Settings > Apps > Safari > Location). The app cannot open Settings for you.
 - **The relay token.** A browser cannot set an `Authorization` header on a WebSocket. The browser app sends the Supabase token as a WebSocket subprotocol instead ([`app/src/browser-relay-socket.ts`](../app/src/browser-relay-socket.ts), [`server/src/devices/websocket_subprotocol_bearer.rs`](../server/src/devices/websocket_subprotocol_bearer.rs)).
 
+The app shows these limits too: on the sign-in screen, on Home, in the permission steps and next to Always allow ([`app/src/ui/pwa-limits-notice.ts`](../app/src/ui/pwa-limits-notice.ts)).
+
 ## How it ships
 
 The site deploy builds `app/` with `npm run build:web` and serves it at `/app/` ([`.github/workflows/site-cloudflare-deploy.yml`](../.github/workflows/site-cloudflare-deploy.yml)). Supabase allows `https://whereabot.io/app/` as a sign-in redirect ([`infra/modules/whereabouts/supabase.tf`](../infra/modules/whereabouts/supabase.tf)).
