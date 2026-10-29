@@ -1,4 +1,4 @@
-import WebSocket from "@tauri-apps/plugin-websocket";
+import { openRelaySocket, type RelaySocket } from "./relay-socket-open";
 import { answerPing } from "./location-request-prompt";
 import { setState, setStatus } from "./status-display-dom";
 import { checkUrl, relayUrl } from "./build-config";
@@ -42,9 +42,9 @@ async function open(getToken: TokenSource) {
   setState("waiting");
   const token = await getToken(); // supabase-js refreshes the session as needed
   if (!token) return halt("disconnected", "Signed out.");
-  let socket: WebSocket;
+  let socket: RelaySocket;
   try {
-    socket = await WebSocket.connect(`${relayUrl}/v1/device`, { headers: { Authorization: `Bearer ${token}` } });
+    socket = await openRelaySocket(`${relayUrl}/v1/device`, token);
   } catch (e) {
     if (isAuthError(e)) return (await refreshOnce()) ? retry(0) : halt("expired", EXPIRED);
     setStatus(`Connect failed: ${e}. Retrying…`);

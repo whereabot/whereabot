@@ -2,8 +2,10 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { supabase } from "./supabase-client";
 import { $, setStatus } from "./status-display-dom";
+import { inTauri } from "./tauri-runtime";
 
-const REDIRECT = "whereabouts://auth-callback";
+// The PWA comes back to its own page; Supabase allows https://<site>/app/ (infra supabase.tf).
+const REDIRECT = inTauri ? "whereabouts://auth-callback" : new URL(import.meta.env.BASE_URL, location.origin).href;
 
 /** One browser tab at a time: the button stays off until the user is back. */
 function setBusy(busy: boolean) {
@@ -15,13 +17,13 @@ export async function signInWithGoogle() {
   setBusy(true);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: REDIRECT, skipBrowserRedirect: true },
+    options: { redirectTo: REDIRECT, skipBrowserRedirect: inTauri },
   });
   if (error) {
     setBusy(false);
     return setStatus(`Sign-in failed: ${error.message}`);
   }
-  await openUrl(data.url);
+  if (inTauri) await openUrl(data.url); // the browser build navigates by itself
 }
 
 /** Dev only: local Supabase testing with email and password. */
@@ -56,6 +58,12 @@ async function completeRedirect(urls: string[]) {
 
 /** Handles the redirect while the app runs, and when the redirect starts the app. */
 export async function listenForAuthRedirect() {
+  if (!inTauri) {
+    if (!location.search && !location.hash) return;
+    const url = location.href;
+    history.replaceState(null, "", location.pathname); // the code is single-use: keep it out of history
+    return completeRedirect([url]);
+  }
   await onOpenUrl(completeRedirect);
   const initial = await getCurrent();
   if (initial) await completeRedirect(initial);

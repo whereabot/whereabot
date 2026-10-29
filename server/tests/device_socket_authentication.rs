@@ -41,3 +41,27 @@ async fn device_rejects_agent_key_even_when_fallback_on() {
     let relay = spawn(true).await;
     assert!(!handshake(&relay.addr, Some(&agent_key_a())).await);
 }
+
+/// The browser app (PWA) cannot set Authorization: it sends the token as a subprotocol.
+#[tokio::test]
+async fn device_accepts_token_in_subprotocol() {
+    let relay = start_relay().await;
+    let mut req = format!("ws://{}/v1/device", relay.addr)
+        .into_client_request()
+        .unwrap();
+    let offer = format!("whereabot.bearer, {}", relay.phone(USER_A));
+    req.headers_mut()
+        .insert("sec-websocket-protocol", offer.parse().unwrap());
+    let (_, res) = tokio_tungstenite::connect_async(req)
+        .await
+        .expect("handshake");
+    assert_eq!(res.headers()["sec-websocket-protocol"], "whereabot.bearer");
+    let mut bad = format!("ws://{}/v1/device", relay.addr)
+        .into_client_request()
+        .unwrap();
+    bad.headers_mut().insert(
+        "sec-websocket-protocol",
+        "whereabot.bearer, phone-x".parse().unwrap(),
+    );
+    assert!(tokio_tungstenite::connect_async(bad).await.is_err());
+}

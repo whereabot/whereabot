@@ -2,9 +2,10 @@ import { isPermissionGranted } from "@tauri-apps/plugin-notification";
 import { getToken, onTokenRefresh } from "tauri-plugin-mobile-push-api";
 import { supabase } from "../supabase-client";
 import { forgetToken, storeToken } from "./push-token-storage";
+import { inTauri } from "../tauri-runtime";
 
-// Android would need FCM, which this app does not ship.
-const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+// Android would need FCM, which this app does not ship. The PWA has no Web Push (docs/install-from-browser.md).
+const ios = inTauri && /iPhone|iPad|iPod/i.test(navigator.userAgent);
 let refreshListening = false;
 
 async function register() {

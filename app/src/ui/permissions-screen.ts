@@ -1,4 +1,5 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { inTauri } from "../tauri-runtime";
 import { $ } from "../status-display-dom";
 import { COPY, STEPS, askPermission, permState, type Perm, type Step } from "./permission-step-content";
 import { announce, setScreen } from "./screen-view-helpers";
@@ -16,11 +17,12 @@ function render(step: Step, state: Perm) {
   $("perm-status").textContent = denied ? "Not allowed. Turn it on in Settings." : "Not allowed yet";
   $("perm-ico-location").toggleAttribute("hidden", step === "notifications");
   $("perm-ico-notifications").toggleAttribute("hidden", step !== "notifications");
-  $("perm-how").hidden = !denied;
+  $("perm-how").hidden = !denied || !inTauri;
   $("perm-how").replaceChildren(...c.how.map((t) => Object.assign(document.createElement("li"), { textContent: t })));
   $("perm-allow").hidden = denied;
   $("perm-allow").textContent = c.button;
-  $("perm-settings").hidden = !denied;
+  // A web page cannot open Settings: the PWA user changes it in the browser settings.
+  $("perm-settings").hidden = !denied || !inTauri;
   $("perm-skip").hidden = step === "location";
 }
 
