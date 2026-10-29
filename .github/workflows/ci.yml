@@ -30,6 +30,11 @@ jobs:
         working-directory: app
       - run: npm i --prefix /tmp/pw playwright@1.64.0 && /tmp/pw/node_modules/.bin/playwright install --with-deps chromium
       - run: node scripts/screens/app-no-scroll-check.mjs "$RUNNER_TEMP/no-scroll"
+      # PWA smoke: manifest, worker, content-hashed icon URLs (fake config; every outside request is refused).
+      - run: npm run build:web
+        working-directory: app
+        env: { VITE_SUPABASE_URL: "https://fake-project.supabase.co", VITE_SUPABASE_ANON_KEY: fake-anon-key, VITE_RELAY_URL: "wss://relay.invalid" }
+      - run: node scripts/pwa-install-smoke.mjs
       - if: always()
         uses: actions/upload-artifact@v4
         with: { name: no-scroll-screens, path: "${{ runner.temp }}/no-scroll" }
