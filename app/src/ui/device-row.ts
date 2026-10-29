@@ -1,5 +1,6 @@
 import { isOnline, seenText } from "../devices/device-online-status";
 import type { Device } from "../devices/device-list-store";
+import { appKindLabel } from "../devices/app-kind";
 import { el } from "./screen-view-helpers";
 
 export type RowActions = {
@@ -52,7 +53,7 @@ export function deviceRow(d: Device, isThis: boolean, act: RowActions, oldInstal
   icon.setAttribute("aria-hidden", "true");
   icon.innerHTML = `<svg viewBox="0 0 24 24">${d.platform === "desktop" ? COMPUTER : PHONE}</svg>`;
   const title = el("div", "device-title");
-  title.append(el("span", "row-name", d.name));
+  title.append(el("span", "row-name", d.name), el("span", "badge", appKindLabel(d.app_kind)));
   if (isThis) title.append(el("span", "badge is-accent", "This device"));
   const meta = el("span", `device-meta${isOnline(d) ? " status-dot is-success" : ""}`, `${PLATFORM[d.platform]} · ${seenText(d)}`);
   const actions = el("div", "row-actions");

@@ -1,5 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { appVersion } from "../build-config";
+import { inTauri } from "../tauri-runtime";
+import { detectAppKind } from "./app-kind";
 
 export type Platform = "ios" | "android" | "desktop";
 
@@ -49,6 +51,9 @@ export function platform(): Platform {
   if (/iPhone|iPad|iPod/.test(ua)) return "ios";
   return /Android/.test(ua) ? "android" : "desktop";
 }
+
+const standalone = () => matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
+export const appKind = () => detectAppKind(inTauri, standalone());
 
 const DEFAULT_NAME: Record<Platform, string> = { ios: "iPhone", android: "Android phone", desktop: "Computer" };
 
