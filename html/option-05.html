@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Option 5: Device auto-detect</title>
+<link rel="stylesheet" href="site/css/landing-page.css">
+<link rel="stylesheet" href="options.css">
+<style>
+.auto { display: grid; gap: var(--space-3); }
+.auto h3 { font-size: var(--text-xl); }
+.here { border: var(--border-thick) solid var(--color-accent); }
+.other h3 { font-size: var(--text-md); }
+.other h3 .ico { color: var(--color-accent-text); }
+.link-s { color: var(--color-accent-text); font-size: var(--text-sm); font-weight: var(--weight-semibold); min-height: var(--size-touch); }
+.mini { display: grid; gap: var(--space-2); margin: var(--space-2) 0 0; font-size: var(--text-sm); }
+.mini dt { font-weight: var(--weight-semibold); } .mini dd { margin: 0; color: var(--color-text-muted); }
+.mini .copy-row { margin-block: var(--space-1); }
+@media (min-width: 50rem) { .auto { grid-template-columns: 3fr 2fr; align-items: start; } .other-dev { grid-column: 1 / -1; } }</style>
+<script type="module" src="copy-anywhere.js"></script>
+<script type="module" src="site/js/landing-install-help.js"></script>
+<script type="module">
+const ua = navigator.userAgent;
+const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+const android = /Android/.test(ua);
+const mobile = ios || android;
+const show = (id, on) => (document.getElementById(id).hidden = !on);
+function render(m) { show("here-phone", m); show("other-agent", m); show("here-desk", !m); show("other-phone", !m);
+  document.querySelector("#here-phone .card-label").textContent = android ? "On this phone" : "On this iPhone";
+  document.getElementById("swap").textContent = m ? "On a computer? Show the computer setup" : "On your phone now? Show the phone setup"; }
+let m = mobile; render(m);
+document.getElementById("swap").onclick = (e) => { e.preventDefault(); m = !m; render(m); };</script>
+</head>
+<body>
+<main id="main">
+<section id="start" aria-labelledby="start-title" data-option="5" data-name="Device auto-detect" data-states='["#swap"]'>
+  <h2 id="start-title">Get started</h2>
+  <p class="lede">You need both: your agent asks, your phone answers.</p>
+
+<div class="auto">
+  <div class="card here" id="here-phone">
+    <p class="card-label">On this iPhone</p>
+    <h3>Install Whereabot</h3>
+    <a class="btn btn-primary btn-big" href="#app-store"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg> Get it on the App Store</a>
+    <p class="sub">Answers in the background. In beta. <span class="badge is-accent">Recommended</span></p>
+    <details><summary class="label-row link-s">Or add the browser app to your Home Screen <svg class="ico chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="stack-2" style="margin-top:var(--space-2)"><p class="sub">Answers after you tap the notification.</p><div id="install-help"></div><a class="btn btn-secondary btn-small" href="app/">Open the browser app</a><p class="note"><a href="docs/install-from-browser">Install from the browser</a>: steps and limits.</p></div></details>
+  </div>
+  <div class="card here" id="here-desk">
+    <p class="card-label">On this computer</p>
+    <h3>Add to your agent</h3>
+    <p class="sub">Claude Code</p><div class="copy-row"><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code></div><p class="sub">Then run <code>/mcp</code> and sign in.</p>
+    <p class="sub">Relay URL, for other clients</p><div class="copy-row"><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code></div>
+  </div>
+  <div class="card other" id="other-agent">
+    <h3 class="label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg> Then, on your computer</h3>
+    <p class="sub">Add the relay to your agent:</p><div class="copy-row"><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code></div>
+    <details><summary class="label-row link-s">Steps for Claude Code, Claude.ai and others <svg class="ico chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><dl class="mini">
+      <div><dt>Claude Code</dt><dd><div class="copy-row"><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code></div>Then run <code>/mcp</code> and sign in.</dd></div><div><dt>Claude.ai and Claude Desktop</dt><dd>Settings → Connectors → Add custom connector. Paste the relay URL, then sign in.</dd></div><div><dt>Other MCP clients</dt><dd>Add the relay URL as a streamable HTTP server. The client opens the sign-in page.</dd></div></dl></details>
+    <p class="note">You sign in in the browser (OAuth). No API keys. Use the same Google account as on your phone. <a href="docs/getting-started">More in the docs</a>.</p>
+  </div>
+  <div class="card other" id="other-phone">
+    <h3 class="label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg> Then, on your phone</h3>
+    <div class="actions"><a class="btn btn-primary" href="#app-store"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg> App Store</a><a class="btn btn-secondary" href="app/"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> Browser app</a></div>
+    <p class="sub">iPhone: Answers in the background. In beta. Browser: Answers after you tap the notification.</p>
+    <p class="note">Google Play: coming soon. <a href="docs/install-from-browser">Install from the browser</a>: steps and limits.</p>
+  </div>
+  <p class="note other-dev"><a href="#" id="swap">Not on an iPhone? See other devices</a></p>
+</div>
+</section>
+</main>
+</body>
+</html>

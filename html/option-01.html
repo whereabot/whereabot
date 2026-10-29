@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Option 1: Segmented tabs</title>
+<link rel="stylesheet" href="site/css/landing-page.css">
+<link rel="stylesheet" href="options.css">
+<style>
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-1); padding: var(--space-1); margin-bottom: var(--space-3);
+  border-radius: var(--radius-md); background: var(--color-surface-sunken); border: var(--border-thin) solid var(--color-border); max-width: 28rem; }
+.seg button { display: flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--size-touch);
+  border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-text-muted); font: inherit; font-weight: var(--weight-semibold); cursor: pointer; }
+.seg button b { color: inherit; opacity: .7; }
+.seg button[aria-selected="true"] { background: var(--color-surface); color: var(--color-accent-text); box-shadow: var(--shadow-raised), 0 0 0 1px var(--color-border); }
+.panel h3 { font-size: var(--text-lg); }
+.cols { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+.mini { display: grid; gap: var(--space-2); margin: 0; font-size: var(--text-sm); }
+.mini dt { font-weight: var(--weight-semibold); }
+.mini dd { margin: 0; color: var(--color-text-muted); }
+.link-s { min-height: var(--size-touch); color: var(--color-accent-text); font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.panel .note { padding-top: var(--space-2); border-top: var(--border-thin) solid var(--color-border); }
+@media (min-width: 50rem) { .cols { gap: var(--space-6); } }</style>
+<script type="module" src="copy-anywhere.js"></script>
+<script type="module" src="site/js/landing-install-help.js"></script>
+<script type="module">
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function pick(t) { for (const x of tabs) { const on = x === t; x.setAttribute("aria-selected", on); x.tabIndex = on ? 0 : -1;
+  document.getElementById(x.getAttribute("aria-controls")).hidden = !on; } }
+tabs.forEach((t, i) => { t.onclick = () => pick(t);
+  t.onkeydown = (e) => { const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; pick(n); n.focus(); } }; });</script>
+</head>
+<body>
+<main id="main">
+<section id="start" aria-labelledby="start-title" data-option="1" data-name="Segmented tabs" data-states='["#t2"]'>
+  <h2 id="start-title">Get started</h2>
+  <p class="lede">You need both: your agent asks, your phone answers.</p>
+
+<div class="seg" role="tablist" aria-label="Get started">
+  <button type="button" role="tab" id="t1" aria-controls="p1" aria-selected="true"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span><b>1</b> Agent</span></button>
+  <button type="button" role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><span><b>2</b> Device</span></button>
+</div>
+<div class="card panel" role="tabpanel" id="p1" aria-labelledby="t1">
+  <h3>Add to your agent</h3>
+  <div class="cols">
+    <div class="stack-2"><p class="card-label">Relay URL</p><div class="copy-row"><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code></div><p class="card-label">Claude Code</p><div class="copy-row"><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code></div><p class="sub">Then run <code>/mcp</code> and sign in.</p></div>
+    <dl class="mini">
+      <div><dt>Claude.ai and Claude Desktop</dt><dd>Settings → Connectors → Add custom connector. Paste the relay URL, then sign in.</dd></div>
+      <div><dt>Other MCP clients</dt><dd>Add the relay URL as a streamable HTTP server. The client opens the sign-in page.</dd></div>
+    </dl>
+  </div>
+  <p class="note">You sign in in the browser (OAuth). No API keys. Use the same Google account as on your phone. <a href="docs/getting-started">More in the docs</a>.</p>
+</div>
+<div class="card panel" role="tabpanel" id="p2" aria-labelledby="t2" hidden>
+  <h3>Install on your device</h3>
+  <div class="cols"><ul class="list">
+  <li class="row"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg> App Store (iPhone) <span class="badge is-accent">Recommended</span></span><span class="row-meta">Answers in the background. In beta.</span></li>
+  <li class="row row-muted"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l12 8-12 8z"/></svg> Google Play <span class="badge">Coming soon</span></span></li>
+  <li class="row"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> Use in your browser</span><a class="btn btn-primary btn-small" href="app/">Open the browser app</a><span class="row-meta">Answers after you tap the notification.</span></li>
+</ul><details><summary class="label-row link-s">How to install from the browser <svg class="ico chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="stack-2"><div id="install-help"></div><p class="note"><a href="docs/install-from-browser">Install from the browser</a>: steps and limits.</p></div></details></div>
+</div>
+</section>
+</main>
+</body>
+</html>

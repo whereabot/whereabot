@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Option 9: QR to phone</title>
+<link rel="stylesheet" href="site/css/landing-page.css">
+<link rel="stylesheet" href="options.css">
+<style>
+.hand { display: grid; gap: var(--space-3); }
+.hand h3 { font-size: var(--text-lg); }
+.hand .card { padding: var(--space-4); }
+.side-phone { order: -1; }
+.only-desk { display: none !important; }
+.link-s { color: var(--color-accent-text); font-size: var(--text-sm); font-weight: var(--weight-semibold); min-height: var(--size-touch); }
+.mini { display: grid; gap: var(--space-2); margin: 0; font-size: var(--text-sm); } .mini dt { font-weight: var(--weight-semibold); } .mini dd { margin: 0; color: var(--color-text-muted); }
+.qr-row { display: flex; gap: var(--space-4); align-items: center; }
+.qr-box { flex: none; width: 9rem; padding: var(--space-2); border: var(--border-thin) solid var(--color-border); border-radius: var(--radius-md); background: #fff; }
+.qr { display: block; width: 100%; height: auto; }
+@media (min-width: 50rem) {
+  .hand { grid-template-columns: 3fr 2fr; align-items: start; }
+  .side-phone { order: 0; }
+  .only-desk { display: flex !important; } .only-phone { display: none !important; }
+  .only-desk.stack-2 { display: flex !important; }
+}</style>
+<script type="module" src="copy-anywhere.js"></script>
+<script type="module" src="site/js/landing-install-help.js"></script>
+<script type="module">
+const s = document.getElementById("share");
+if (navigator.share) s.onclick = () => navigator.share({ title: "Whereabot setup", text: "Relay URL: https://relay.whereabot.io/mcp", url: "https://whereabot.io/#start" });
+else s.hidden = true;</script>
+</head>
+<body>
+<main id="main">
+<section id="start" aria-labelledby="start-title" data-option="9" data-name="QR to phone" data-states='[".side-agent details summary"]'>
+  <h2 id="start-title">Get started</h2>
+  <p class="lede">You need both: your agent asks, your phone answers.</p>
+
+<div class="hand">
+  <div class="card side-agent">
+    <p class="card-label label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg> <span class="only-desk">On this computer</span><span class="only-phone">Later, on your computer</span></p>
+    <h3>Add to your agent</h3>
+    <div class="only-desk stack-2"><p class="sub">Claude Code</p><div class="copy-row"><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code></div><p class="sub">Then run <code>/mcp</code> and sign in.</p><p class="sub">Claude.ai, Claude Desktop and other clients: paste the relay URL.</p><div class="copy-row"><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code></div>
+      <details><summary class="link-s label-row">Client steps <svg class="ico chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><dl class="mini"><div><dt>Claude.ai and Claude Desktop</dt><dd>Settings → Connectors → Add custom connector. Paste the relay URL, then sign in.</dd></div><div><dt>Other MCP clients</dt><dd>Add the relay URL as a streamable HTTP server. The client opens the sign-in page.</dd></div></dl></details></div>
+    <div class="only-phone stack-2"><p class="sub">Your agent runs on your computer. Send the setup there:</p>
+      <div class="actions"><a class="btn btn-secondary" href="mailto:?subject=Whereabot%20setup&body=Relay%20URL%3A%20https%3A%2F%2Frelay.whereabot.io%2Fmcp%0AClaude%20Code%3A%20claude%20mcp%20add%20--transport%20http%20whereabot%20https%3A%2F%2Frelay.whereabot.io%2Fmcp%0ASteps%3A%20https%3A%2F%2Fwhereabot.io%2F%23start">Email it to me</a><button type="button" class="btn btn-secondary" id="share">Share</button></div>
+      <details><summary class="link-s label-row">Show the setup here <svg class="ico chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="stack-2"><p class="card-label">Relay URL</p><div class="copy-row"><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code></div><p class="card-label">Claude Code</p><div class="copy-row"><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code></div><p class="sub">Then run <code>/mcp</code> and sign in.</p><p class="sub"><b>Claude.ai / Desktop:</b> Settings → Connectors → Add custom connector. Paste the relay URL, then sign in.</p><p class="sub"><b>Other:</b> Add the relay URL as a streamable HTTP server. The client opens the sign-in page.</p></div></details></div>
+    <p class="note">You sign in in the browser (OAuth). No API keys. Use the same Google account as on your phone. <a href="docs/getting-started">More in the docs</a>.</p>
+  </div>
+  <div class="card side-phone">
+    <p class="card-label label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg> <span class="only-desk">On your phone</span><span class="only-phone">On this phone</span></p>
+    <h3>Install on your device</h3>
+    <div class="only-desk qr-row"><div class="qr-box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29" class="qr" role="img" aria-label="QR code for whereabot.io/app"><path fill="#fff" d="M0 0h29v29h-29z"/><path stroke="#14171f" d="M2 2.5h7m1 0h1m2 0h1m2 0h1m1 0h1m1 0h7m-25 1h1m5 0h1m4 0h1m1 0h2m3 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h3m2 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h3m1 0h2m1 0h1m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m3 0h1m3 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m1 0h1m1 0h3m3 0h1m1 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-14 1h2m1 0h3m-17 1h1m1 0h1m3 0h2m1 0h1m1 0h1m4 0h1m2 0h1m2 0h1m1 0h1m-24 1h2m1 0h1m2 0h1m4 0h2m1 0h2m1 0h2m1 0h1m1 0h2m-25 1h3m2 0h3m1 0h1m1 0h1m3 0h3m3 0h2m1 0h1m-25 1h2m1 0h3m1 0h3m1 0h1m2 0h2m3 0h1m1 0h1m-22 1h1m3 0h1m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1m5 0h1m-23 1h1m6 0h1m3 0h1m1 0h2m1 0h2m3 0h2m-25 1h2m1 0h1m2 0h2m1 0h1m1 0h2m2 0h1m2 0h1m2 0h2m1 0h1m-23 1h1m1 0h1m2 0h1m1 0h1m4 0h1m2 0h1m1 0h3m-22 1h3m2 0h2m1 0h2m1 0h2m2 0h6m2 0h1m-16 1h1m7 0h1m3 0h1m3 0h1m-25 1h7m1 0h4m1 0h2m1 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m4 0h2m1 0h3m3 0h1m2 0h1m-24 1h1m1 0h3m1 0h1m2 0h2m1 0h1m2 0h6m2 0h1m-24 1h1m1 0h3m1 0h1m4 0h1m2 0h2m1 0h1m2 0h1m1 0h2m-24 1h1m1 0h3m1 0h1m1 0h7m1 0h1m2 0h3m1 0h2m-25 1h1m5 0h1m2 0h2m5 0h1m2 0h2m-21 1h7m1 0h4m4 0h2m3 0h1m2 0h1"/></svg>
+</div><p class="sub">Scan with your phone camera. It opens <b>whereabot.io/app</b>, with the App Store link and Home Screen steps.</p></div>
+    <div class="actions"><a class="btn btn-primary" href="#app-store"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg> App Store</a><a class="btn btn-secondary" href="app/"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> Browser app</a></div>
+    <p class="sub">iPhone app: Answers in the background. In beta. Browser: Answers after you tap the notification. Google Play: coming soon.</p>
+    <details class="only-phone"><summary class="link-s label-row">Install from the browser <svg class="ico chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="stack-2"><div id="install-help"></div><p class="note"><a href="docs/install-from-browser">Install from the browser</a>: steps and limits.</p></div></details>
+  </div>
+</div>
+</section>
+</main>
+</body>
+</html>

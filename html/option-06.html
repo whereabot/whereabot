@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Option 6: Swipe cards</title>
+<link rel="stylesheet" href="site/css/landing-page.css">
+<link rel="stylesheet" href="options.css">
+<style>
+.track { display: grid; grid-auto-flow: column; grid-auto-columns: 86%; gap: var(--space-3); margin: 0 calc(-1 * var(--space-5)); padding: var(--space-1) var(--space-5) var(--space-3);
+  list-style: none; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--space-5); scrollbar-width: none; overscroll-behavior-x: contain; }
+.track::-webkit-scrollbar { display: none; }
+.slide { scroll-snap-align: start; }
+.slide h3 { font-size: var(--text-lg); }
+.slide .card-label .ico { color: var(--color-accent-text); }
+.slide .list .btn { margin-top: 0; }
+.car-nav { display: flex; align-items: center; justify-content: center; gap: var(--space-3); }
+.dots { display: flex; gap: var(--space-1); }
+.dots button { width: var(--size-touch); height: var(--size-touch); padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+.dots button::before { content: ""; width: .6rem; height: .6rem; border-radius: var(--radius-pill); background: var(--color-border-strong); transition: width var(--duration-normal) var(--ease-standard); }
+.dots button[aria-current="true"]::before { width: 1.6rem; background: var(--color-accent); }
+@media (min-width: 50rem) { .track { grid-auto-columns: calc((100% - 2 * var(--space-5) - 2 * var(--space-3)) / 3); } }</style>
+<script type="module" src="copy-anywhere.js"></script>
+<script type="module" src="site/js/landing-install-help.js"></script>
+<script type="module">
+const track = document.getElementById("track"), slides = [...track.children], dots = [...document.querySelectorAll(".dots button")];
+const step = () => slides[1].offsetLeft - slides[0].offsetLeft;
+const idx = () => Math.min(slides.length - 1, Math.max(0, Math.round(track.scrollLeft / step()) || 0));
+const goTo = (i) => track.scrollTo({ left: Math.max(0, Math.min(slides.length - 1, i)) * step(), behavior: "smooth" });
+function mark() { const i = idx(); dots.forEach((d, k) => d.setAttribute("aria-current", k === i)); }
+track.addEventListener("scroll", () => requestAnimationFrame(mark)); mark(); addEventListener("load", mark);
+dots.forEach((d, k) => (d.onclick = () => goTo(k)));
+document.getElementById("prev").onclick = () => goTo(idx() - 1);
+document.getElementById("nxt").onclick = () => goTo(idx() + 1);</script>
+</head>
+<body>
+<main id="main">
+<section id="start" aria-labelledby="start-title" data-option="6" data-name="Swipe cards" data-states='["[data-n=\"4\"]"]'>
+  <h2 id="start-title">Get started</h2>
+  <p class="lede">You need both: your agent asks, your phone answers.</p>
+
+<div class="car">
+  <ul class="track" id="track">
+    <li class="card slide" id="s1"><p class="card-label label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg> Agent · 1 of 5</p><h3>Copy the relay URL</h3><div class="copy-row"><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code></div><p class="sub">You sign in in the browser (OAuth). No API keys. Use the same Google account as on your phone. <a href="docs/getting-started">More in the docs</a>.</p></li>
+    <li class="card slide" id="s2"><p class="card-label label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg> Agent · 2 of 5</p><h3>Claude Code</h3><div class="copy-row"><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code></div><p class="sub">Then run <code>/mcp</code> and sign in.</p></li>
+    <li class="card slide" id="s3"><p class="card-label label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg> Agent · 3 of 5</p><h3>Claude.ai and others</h3><p class="sub"><b>Claude.ai and Claude Desktop:</b> Settings → Connectors → Add custom connector. Paste the relay URL, then sign in.</p><p class="sub"><b>Other MCP clients:</b> Add the relay URL as a streamable HTTP server. The client opens the sign-in page.</p></li>
+    <li class="card slide" id="s4"><p class="card-label label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg> Device · 4 of 5</p><h3>Get the app</h3><ul class="list">
+  <li class="row"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg> App Store (iPhone) <span class="badge is-accent">Recommended</span></span><span class="row-meta">Answers in the background. In beta.</span></li>
+  <li class="row row-muted"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l12 8-12 8z"/></svg> Google Play <span class="badge">Coming soon</span></span></li>
+  <li class="row"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> Use in your browser</span><a class="btn btn-primary btn-small" href="app/">Open the browser app</a><span class="row-meta">Answers after you tap the notification.</span></li>
+</ul></li>
+    <li class="card slide" id="s5"><p class="card-label label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> Device · 5 of 5</p><h3>Install from the browser</h3><div id="install-help"></div><p class="note"><a href="docs/install-from-browser">Install from the browser</a>: steps and limits.</p></li>
+  </ul>
+  <div class="car-nav"><button type="button" class="btn btn-secondary btn-small" id="prev" aria-label="Previous card"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+    <div class="dots" role="tablist" aria-label="Cards"><button type="button" aria-label="Card 1" data-n="1"></button><button type="button" aria-label="Card 2" data-n="2"></button><button type="button" aria-label="Card 3" data-n="3"></button><button type="button" aria-label="Card 4" data-n="4"></button><button type="button" aria-label="Card 5" data-n="5"></button></div>
+    <button type="button" class="btn btn-secondary btn-small" id="nxt" aria-label="Next card"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div>
+</div>
+</section>
+</main>
+</body>
+</html>

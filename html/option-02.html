@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Option 2: Stepper 1→2→3</title>
+<link rel="stylesheet" href="site/css/landing-page.css">
+<link rel="stylesheet" href="options.css">
+<style>
+.rail { display: flex; gap: var(--space-2); margin: 0 0 var(--space-3); padding: 0; list-style: none; counter-reset: none; }
+.rail li { flex: 1; display: flex; align-items: center; gap: var(--space-2); cursor: pointer; position: relative; font-size: var(--text-sm); color: var(--color-text-muted); }
+.rail li:not(:last-child)::after { content: ""; flex: 1; height: 2px; background: var(--color-border); }
+.rail li.done:not(:last-child)::after { background: var(--color-accent); }
+.dot { display: grid; place-items: center; width: 2rem; height: 2rem; flex: none; border-radius: var(--radius-round);
+  border: var(--border-thick) solid var(--color-border-strong); font-weight: var(--weight-bold); background: var(--color-surface); }
+.rail li[aria-current] .dot, .rail li.done .dot { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); }
+.rail li[aria-current] { color: var(--color-text); font-weight: var(--weight-semibold); }
+.rail-t { display: none; }
+.rail-t small { display: block; font-weight: var(--weight-regular); color: var(--color-text-muted); }
+.stage h3 { font-size: var(--text-lg); }
+.stage { min-height: 0; }
+.nav { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin-top: var(--space-3); padding-top: var(--space-3); border-top: var(--border-thin) solid var(--color-border); }
+.mini-d summary { min-height: var(--size-touch); font-weight: var(--weight-semibold); color: var(--color-accent-text); }
+@media (min-width: 50rem) {
+  .stepper-wrap { display: grid; grid-template-columns: 15rem 1fr; gap: var(--space-6); align-items: start; }
+  .rail { flex-direction: column; gap: var(--space-5); }
+  .rail li::after { display: none; }
+  .rail-t { display: block; }
+  .stage { min-height: 26rem; }
+  .stage > [data-step] { flex: 1; }
+}</style>
+<script type="module" src="copy-anywhere.js"></script>
+<script type="module" src="site/js/landing-install-help.js"></script>
+<script type="module">
+let cur = 1; const max = 3;
+function go(n) { cur = Math.min(max, Math.max(1, n));
+  for (const s of document.querySelectorAll("[data-step]")) s.hidden = +s.dataset.step !== cur;
+  for (const li of document.querySelectorAll(".rail li")) { const k = +li.dataset.go; li.classList.toggle("done", k < cur);
+    if (k === cur) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current"); li.querySelector(".dot").textContent = k < cur ? "✓" : k; }
+  document.getElementById("count").textContent = "Step " + cur + " of " + max;
+  document.getElementById("back").disabled = cur === 1; document.getElementById("next").hidden = cur === max; }
+document.getElementById("next").onclick = () => go(cur + 1);
+document.getElementById("back").onclick = () => go(cur - 1);
+for (const li of document.querySelectorAll(".rail li")) li.onclick = () => go(+li.dataset.go);
+go(1);</script>
+</head>
+<body>
+<main id="main">
+<section id="start" aria-labelledby="start-title" data-option="2" data-name="Stepper 1→2→3" data-states='["#next","#next"]'>
+  <h2 id="start-title">Get started</h2>
+  <p class="lede">You need both: your agent asks, your phone answers.</p>
+
+<div class="stepper-wrap">
+  <ol class="rail" aria-label="Setup steps">
+    <li data-go="1" aria-current="step"><span class="dot">1</span><span class="rail-t">Install the app<small>On your phone</small></span></li>
+    <li data-go="2"><span class="dot">2</span><span class="rail-t">Add to your agent<small>Relay URL</small></span></li>
+    <li data-go="3"><span class="dot">3</span><span class="rail-t">Sign in<small>Same Google account</small></span></li>
+  </ol>
+  <div class="card stage">
+    <div data-step="1" class="stack-3"><h3>Install on your device</h3><ul class="list">
+  <li class="row"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg> App Store (iPhone) <span class="badge is-accent">Recommended</span></span><span class="row-meta">Answers in the background. In beta.</span></li>
+  <li class="row row-muted"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l12 8-12 8z"/></svg> Google Play <span class="badge">Coming soon</span></span></li>
+  <li class="row"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> Use in your browser</span><a class="btn btn-primary btn-small" href="app/">Open the browser app</a><span class="row-meta">Answers after you tap the notification.</span></li>
+</ul>
+      <details class="mini-d"><summary class="label-row">How to install from the browser <svg class="ico chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="stack-2"><div id="install-help"></div><p class="note"><a href="docs/install-from-browser">Install from the browser</a>: steps and limits.</p></div></details></div>
+    <div data-step="2" class="stack-2" hidden><h3>Add to your agent</h3><p class="card-label">Relay URL</p><div class="copy-row"><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code></div>
+      <p class="card-label">Claude Code</p><div class="copy-row"><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code></div>
+      <p class="sub"><b>Claude.ai and Claude Desktop:</b> Settings → Connectors → Add custom connector. Paste the relay URL, then sign in.</p><p class="sub"><b>Other MCP clients:</b> Add the relay URL as a streamable HTTP server. The client opens the sign-in page.</p></div>
+    <div data-step="3" class="stack-3" hidden><h3>Sign in and ask</h3>
+      <p>Claude Code: Then run <code>/mcp</code> and sign in.</p><p>Claude.ai, Desktop and other clients open the sign-in page for you.</p>
+      <p class="note">You sign in in the browser (OAuth). No API keys. Use the same Google account as on your phone. <a href="docs/getting-started">More in the docs</a>.</p></div>
+    <div class="nav"><button type="button" class="btn btn-secondary" id="back"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg> Back</button><span class="sub" id="count">Step 1 of 3</span><button type="button" class="btn btn-primary" id="next">Next <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div>
+  </div>
+</div>
+</section>
+</main>
+</body>
+</html>

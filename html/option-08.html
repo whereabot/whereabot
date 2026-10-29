@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Option 8: One checklist</title>
+<link rel="stylesheet" href="site/css/landing-page.css">
+<link rel="stylesheet" href="options.css">
+<style>
+.cl { gap: var(--space-3); max-width: 44rem; }
+.cl-head { display: flex; justify-content: space-between; align-items: baseline; }
+.bar { height: .4rem; border-radius: var(--radius-pill); background: var(--color-surface-sunken); overflow: hidden; }
+.bar span { display: block; height: 100%; width: 0; background: var(--color-success); transition: width var(--duration-normal) var(--ease-standard); }
+.cks { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.ck { display: flex; gap: var(--space-3); padding: var(--space-3) 0; }
+.ck + .ck { border-top: var(--border-thin) solid var(--color-border); }
+.ck-box { position: relative; flex: none; display: grid; place-items: center; width: var(--size-touch); height: var(--size-touch); margin: calc(-1 * var(--space-2)) 0 0 calc(-1 * var(--space-2)); cursor: pointer; }
+.ck-box input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.ck-dot { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border: var(--border-thick) solid var(--color-border-strong); border-radius: var(--radius-round); color: transparent; }
+.ck-dot .ico { width: 1rem; height: 1rem; stroke-width: 3; }
+.ck-box input:checked + .ck-dot { background: var(--color-success); border-color: var(--color-success); color: var(--color-on-accent); }
+.ck-box input:focus-visible + .ck-dot { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+.ck-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.ck-t { font-weight: var(--weight-semibold); }
+.ck:has(input:checked) .ck-t { color: var(--color-text-muted); text-decoration: line-through; }
+#client { min-height: var(--size-touch); padding: 0 var(--space-3); border: var(--border-thin) solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); font: inherit; }</style>
+<script type="module" src="copy-anywhere.js"></script>
+<script type="module" src="site/js/landing-install-help.js"></script>
+<script type="module">
+const boxes = [...document.querySelectorAll(".ck input")];
+const saved = JSON.parse(localStorage.getItem("wb-setup") || "[]");
+boxes.forEach((b, i) => (b.checked = !!saved[i]));
+function upd() { const n = boxes.filter((b) => b.checked).length;
+  document.getElementById("prog").textContent = n + " of 3 done"; document.getElementById("bar").style.width = (n * 100) / 3 + "%";
+  localStorage.setItem("wb-setup", JSON.stringify(boxes.map((b) => b.checked))); }
+boxes.forEach((b) => (b.onchange = upd)); upd();
+document.getElementById("client").onchange = (e) => { for (const p of document.querySelectorAll("[data-pane]")) p.hidden = p.dataset.pane !== e.target.value; };
+document.querySelector("[data-help]").onclick = (e) => { e.preventDefault(); document.getElementById("help").showModal(); };</script>
+</head>
+<body>
+<main id="main">
+<section id="start" aria-labelledby="start-title" data-option="8" data-name="One checklist" data-states='["[data-n='1']","#client"]'>
+  <h2 id="start-title">Get started</h2>
+  <p class="lede">You need both: your agent asks, your phone answers.</p>
+
+<div class="card cl">
+  <div class="cl-head"><p class="card-label">Your setup</p><p class="sub" id="prog" aria-live="polite">0 of 3 done</p></div>
+  <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+  <ol class="cks">
+    <li class="ck"><label class="ck-box"><input type="checkbox" data-n="1"><span class="ck-dot" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></span><span class="sr-only">Done: </span></label><div class="ck-body"><p class="ck-t">Get the app on your phone</p><div class="actions"><a class="btn btn-primary btn-small" href="#app-store"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg> App Store</a><a class="btn btn-secondary btn-small" href="app/"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> Browser app</a></div>
+      <p class="sub">iPhone app recommended (in beta). Google Play soon. <a href="#" data-help>Browser steps</a></p></div></li>
+    <li class="ck"><label class="ck-box"><input type="checkbox" data-n="2"><span class="ck-dot" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></span><span class="sr-only">Done: </span></label><div class="ck-body"><p class="ck-t">Add the relay to your agent</p><select id="client" aria-label="Your agent"><option value="cc">Claude Code</option><option value="ai">Claude.ai and Claude Desktop</option><option value="other">Other MCP clients</option></select>
+      <div data-pane="cc" class="stack-2"><div class="copy-row"><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code></div></div><div data-pane="ai" class="stack-2" hidden><div class="copy-row"><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code></div><p class="sub">Settings → Connectors → Add custom connector. Paste the relay URL, then sign in.</p></div><div data-pane="other" class="stack-2" hidden><div class="copy-row"><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code></div><p class="sub">Add the relay URL as a streamable HTTP server. The client opens the sign-in page.</p></div></div></li>
+    <li class="ck"><label class="ck-box"><input type="checkbox" data-n="3"><span class="ck-dot" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></span><span class="sr-only">Done: </span></label><div class="ck-body"><p class="ck-t">Sign in from your agent</p><p class="sub">Claude Code: run <code>/mcp</code>. You sign in in the browser (OAuth). No API keys. Use the same Google account as on your phone. <a href="docs/getting-started">More in the docs</a>.</p></div></li>
+  </ol>
+</div>
+<dialog id="help"><h2>Install from the browser</h2><div class="stack-3" style="margin-top:var(--space-3)"><div id="install-help"></div><p class="note"><a href="docs/install-from-browser">Install from the browser</a>: steps and limits.</p><button type="button" class="btn btn-secondary" onclick="this.closest('dialog').close()">Close</button></div></dialog>
+</section>
+</main>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Option 7: Tiles + bottom sheet</title>
+<link rel="stylesheet" href="site/css/landing-page.css">
+<link rel="stylesheet" href="options.css">
+<style>
+.big-tiles .tile { position: relative; min-height: 11rem; padding: var(--space-4) var(--space-3); border-color: var(--color-border); box-shadow: var(--shadow-raised); }
+.big-tiles .tile:first-child { border-color: var(--color-accent); }
+.big-tiles .tile .ico-lg { color: var(--color-accent-text); width: 2.5rem; height: 2.5rem; }
+.big-tiles small { font-size: var(--text-xs); font-weight: var(--weight-regular); color: var(--color-text-muted); }
+.tile-n { position: absolute; top: var(--space-2); left: var(--space-3); font-size: var(--text-xs); color: var(--color-text-muted); }
+.quick { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); }
+dialog.sheet { width: 100%; max-width: 100%; max-height: 92vh; margin: auto 0 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: 0; padding-top: var(--space-3); }
+dialog.sheet::before { content: ""; display: block; width: 2.5rem; height: .3rem; margin: 0 auto var(--space-2); border-radius: var(--radius-pill); background: var(--color-border-strong); }
+.sheet-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-2); }
+.sheet-h h2 { font-size: var(--text-xl); margin: 0; }
+@media (min-width: 50rem) {
+  .big-tiles .tile { min-height: 14rem; font-size: var(--text-lg); }
+  dialog.sheet { width: 34rem; margin: auto; border-radius: var(--radius-lg); border-bottom: var(--border-thin) solid var(--color-border); }
+  dialog.sheet::before { display: none; }
+  .quick { flex-direction: row; align-items: center; max-width: 36rem; }
+}</style>
+<script type="module" src="copy-anywhere.js"></script>
+<script type="module" src="site/js/landing-install-help.js"></script>
+<script type="module">
+for (const b of document.querySelectorAll("[data-open]")) b.onclick = () => document.getElementById(b.dataset.open).showModal();
+for (const d of document.querySelectorAll("dialog")) { d.addEventListener("click", (e) => { if (e.target === d) d.close(); });
+  d.querySelector("[data-close]").onclick = () => d.close(); }</script>
+</head>
+<body>
+<main id="main">
+<section id="start" aria-labelledby="start-title" data-option="7" data-name="Tiles + bottom sheet" data-states='["[data-open=\"d-agent\"]","[data-open=\"d-device\"]"]'>
+  <h2 id="start-title">Get started</h2>
+  <p class="lede">You need both: your agent asks, your phone answers.</p>
+
+<div class="tiles big-tiles" style="--tile-columns: 2">
+  <button type="button" class="tile" data-open="d-agent"><span class="tile-n">1</span><svg class="ico ico-lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Add to your agent</span><small>Claude Code, Claude.ai, any MCP client</small></button>
+  <button type="button" class="tile" data-open="d-device"><span class="tile-n">2</span><svg class="ico ico-lg" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><span>Install on your device</span><small>iPhone app or browser app</small></button>
+</div>
+<div class="quick"><p class="card-label">Relay URL</p><div class="copy-row"><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code></div></div>
+<dialog id="d-agent" class="sheet" aria-labelledby="h-agent">
+  <div class="sheet-h"><h2 id="h-agent">Add to your agent</h2><button type="button" class="btn btn-ghost" data-close aria-label="Close"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="stack-3">
+    <div class="stack-2"><p class="card-label">Claude Code</p><div class="copy-row"><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code></div><p class="sub">Then run <code>/mcp</code> and sign in.</p></div>
+    <div class="stack-2"><p class="card-label">Claude.ai and Claude Desktop</p><p class="sub">Settings → Connectors → Add custom connector. Paste the relay URL, then sign in.</p></div>
+    <div class="stack-2"><p class="card-label">Other MCP clients</p><p class="sub">Add the relay URL as a streamable HTTP server. The client opens the sign-in page.</p></div>
+    <p class="note">You sign in in the browser (OAuth). No API keys. Use the same Google account as on your phone. <a href="docs/getting-started">More in the docs</a>.</p>
+  </div>
+</dialog>
+<dialog id="d-device" class="sheet" aria-labelledby="h-device">
+  <div class="sheet-h"><h2 id="h-device">Install on your device</h2><button type="button" class="btn btn-ghost" data-close aria-label="Close"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="stack-3"><ul class="list">
+  <li class="row"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg> App Store (iPhone) <span class="badge is-accent">Recommended</span></span><span class="row-meta">Answers in the background. In beta.</span></li>
+  <li class="row row-muted"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l12 8-12 8z"/></svg> Google Play <span class="badge">Coming soon</span></span></li>
+  <li class="row"><span class="row-name label-row"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> Use in your browser</span><a class="btn btn-primary btn-small" href="app/">Open the browser app</a><span class="row-meta">Answers after you tap the notification.</span></li>
+</ul><div id="install-help"></div><p class="note"><a href="docs/install-from-browser">Install from the browser</a>: steps and limits.</p></div>
+</dialog>
+</section>
+</main>
+</body>
+</html>
