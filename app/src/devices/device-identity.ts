@@ -61,6 +61,14 @@ export const deviceName = (): string => localStorage.getItem(NAME) ?? DEFAULT_NA
 
 export const setDeviceName = (name: string) => localStorage.setItem(NAME, name);
 
+/** A reinstall takes over its old row: store that id here, and in the Keychain on iOS. */
+export async function adoptDeviceId(id: string) {
+  current = id;
+  localStorage.setItem(ID, id);
+  await native("reset_device_id").catch(() => {});
+  await native("device_id", { legacy: id }).catch(() => {});
+}
+
 /** After removal: the next sign-in on this install registers as a new device. */
 export async function resetIdentity() {
   localStorage.removeItem(ID);
