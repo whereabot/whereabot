@@ -1,12 +1,12 @@
 # Whereabot brand
 
-Masters live here. Everything else is generated from them. Never edit a derived file.
+The master is `whereabot-app-icon.svg`. Everything else is generated from it. Never edit a derived file.
 
-| Master | Use |
+| File | Use |
 | --- | --- |
-| `whereabot-mark.svg` | The mark: a location pin that holds a bell. Transparent background. Headers, favicons, inline use. |
-| `whereabot-app-icon.svg` | Square app icon, 1024 px, solid background, no transparency (iOS needs it), mark inside the safe zone. |
-| `whereabot-wordmark.svg` | Mark plus the name, text outlined. Generated from the mark and a bundled font. |
+| `whereabot-app-icon.svg` | Master. "Night Paper Map": a white robot location pin over a folded paper map at night. Square, 1024 px, full bleed, opaque (iOS needs it). |
+| `whereabot-mark.svg` | Derived. The robot pin cropped from the app icon, as a 128 px square tile. Headers, favicons, inline use. The full scene is unreadable at 16 px; the crop is not. |
+| `whereabot-wordmark.svg` | Derived. Mark plus the name, text outlined from a bundled font. |
 
 ## Regenerate
 
@@ -21,19 +21,20 @@ Commit the output, so builds need no generator.
 
 ## Colours
 
-Colours come from the design tokens in `design-system/color-tokens.css`. The mark uses three:
-pin `#2F5BEA` (`--accent`), bell `#FFFFFF`, clapper `#FFB020`. The icon background is `#F6F7F9` (`--color-bg`).
+The icon is a rendered scene with gradients and glows, so it has no flat palette. Its night sky runs from `#05081A`
+to `#2549C0`; the pin is white. Pages and the social image use the design tokens in `design-system/color-tokens.css`
+(background `#F6F7F9`, `--color-bg`).
 
 ## Usage rules
 
 - Clear space: at least one eighth of the mark width on every side (8 px at 64 px).
 - Minimum size: mark 16 px (favicon only), 32 px elsewhere. Wordmark 120 px wide.
-- Use the files as they are. Keep the colours on light and dark backgrounds.
+- Use the files as they are. The mark is a dark tile; it works on light and dark backgrounds.
 - Inline SVG: keep `<title>Whereabot</title>` or set `aria-label`; use `aria-hidden` only next to the name.
 
 ## Do not
 
-- Add outlines, shadows, gradients or effects.
-- Recolour the pin, rotate, stretch or crop the mark.
-- Put the mark on a busy photo or a background close to `#2F5BEA`.
-- Use the transparent mark as an app icon.
+- Add outlines, extra shadows or effects.
+- Recolour the pin, rotate, stretch or re-crop the mark.
+- Put the mark on a busy photo.
+- Use the cropped mark as an app icon; use the app icon.

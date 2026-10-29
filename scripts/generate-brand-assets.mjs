@@ -34,7 +34,7 @@ function snapshot() {
 
 const before = snapshot();
 optimizeMasters();
-runTauriIcon();
+await runTauriIcon();
 await renderWebIcons();
 await renderSocialImage();
 const after = snapshot();
