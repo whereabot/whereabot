@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "lint": "eslint .",
     "preview": "vite preview",
     "tauri": "tauri",
     "build:web": "tsc && vite build --base /app/ --outDir dist-web"
@@ -22,6 +23,8 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
+    "eslint": "^9.39.5",
+    "eslint-config-agent": "^3.1.0",
     "typescript": "~6.0.3",
     "vite": "^8.0.16"
   }
