@@ -1,5 +1,5 @@
-/// Everything push needs. Built from the environment, or by tests.
-pub struct PushConfig {
+/// The APNs half of push. Built from the environment, or by tests.
+pub struct ApnsConfig {
     /// PEM contents of the APNs auth key (.p8).
     pub key_pem: String,
     pub key_id: String,
@@ -8,13 +8,10 @@ pub struct PushConfig {
     pub topic: String,
     /// `https://api.push.apple.com` or the sandbox host; tests point it at a fake.
     pub apns_url: String,
-    pub supabase_url: String,
-    /// PostgREST needs the project's anon key next to the user's bearer.
-    pub anon_key: String,
 }
 
-impl PushConfig {
-    /// None (logged once) when any setting is missing: push is optional.
+impl ApnsConfig {
+    /// None (logged once) when any `APNS_*` setting is missing: the iOS app then gets no push.
     pub fn from_env() -> Option<Self> {
         let get = |key: &str| std::env::var(key).ok().filter(|v| !v.is_empty());
         let (Some(key_pem), Some(key_id), Some(team_id), Some(topic)) = (
@@ -23,12 +20,7 @@ impl PushConfig {
             get("APNS_TEAM_ID"),
             get("APNS_TOPIC"),
         ) else {
-            tracing::info!("push off: APNS_KEY, APNS_KEY_ID, APNS_TEAM_ID or APNS_TOPIC unset");
-            return None;
-        };
-        let (Some(supabase_url), Some(anon_key)) = (get("SUPABASE_URL"), get("SUPABASE_ANON_KEY"))
-        else {
-            tracing::info!("push off: SUPABASE_URL or SUPABASE_ANON_KEY unset");
+            tracing::info!("apns off: APNS_KEY, APNS_KEY_ID, APNS_TEAM_ID or APNS_TOPIC unset");
             return None;
         };
         let production = matches!(get("APNS_PRODUCTION").as_deref(), Some("true" | "1"));
@@ -44,8 +36,6 @@ impl PushConfig {
             team_id,
             topic,
             apns_url: format!("https://{host}"),
-            supabase_url,
-            anon_key,
         })
     }
 }

@@ -6,7 +6,11 @@ use std::{
     time::Duration,
 };
 
-use super::{Push, PushConfig};
+use super::{
+    Push, PushConfig,
+    apns_config::ApnsConfig,
+    fake_loopback_server::{grants, serve},
+};
 use axum::{
     Json, Router,
     extract::{Path, RawQuery, State},
@@ -34,13 +38,6 @@ async fn list() -> Json<Value> {
     Json(json!([{ "token": "aa11" }, { "token": "bb22" }]))
 }
 
-async fn grants() -> Json<Value> {
-    Json(json!([
-        { "client": { "id": "claude-code", "name": "Claude Code" } },
-        { "client": { "id": "trusted-agent", "name": "Trusted Bot" } },
-    ]))
-}
-
 async fn always(RawQuery(q): RawQuery) -> Json<Value> {
     let hit = q.unwrap_or_default().contains("client_id=eq.trusted-agent");
     Json(if hit {
@@ -60,9 +57,8 @@ async fn apns(
     h: HeaderMap,
     Json(b): Json<Value>,
 ) -> impl IntoResponse {
-    let gone = token == "bb22";
-    f.pushes.lock().unwrap().push((token, h, b));
-    if gone {
+    f.pushes.lock().unwrap().push((token.clone(), h, b));
+    if token == "bb22" {
         (StatusCode::GONE, Json(json!({ "reason": "Unregistered" }))).into_response()
     } else {
         StatusCode::OK.into_response()
@@ -78,19 +74,20 @@ pub async fn start() -> (Push, Arc<Fake>) {
         .route("/3/device/{token}", post(apns))
         .merge(super::fake_share_rpcs::routes())
         .with_state(fake.clone());
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let url = format!("http://{}", listener.local_addr().unwrap());
-    tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+    let url = serve(app).await;
     let key_pem = SecretKey::generate()
         .to_pkcs8_pem(LineEnding::LF)
         .unwrap()
         .to_string();
     let config = PushConfig {
-        key_pem,
-        key_id: "KEYID".into(),
-        team_id: "TEAMID".into(),
-        topic: "io.whereabot.app".into(),
-        apns_url: url.clone(),
+        apns: Some(ApnsConfig {
+            key_pem,
+            key_id: "KEYID".into(),
+            team_id: "TEAMID".into(),
+            topic: "io.whereabot.app".into(),
+            apns_url: url.clone(),
+        }),
+        vapid_private_key: None,
         supabase_url: url,
         anon_key: "anon".into(),
     };

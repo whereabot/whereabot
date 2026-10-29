@@ -25,7 +25,7 @@ export async function notify(body: string, title = "Whereabot") {
   try {
     if (!(await notificationsGranted())) return;
     if (inTauri) sendNotification({ title, body });
-    else new Notification(title, { body });
+    else new Notification(title, { body, tag: "whereabot-locate" }); // replaces the Web Push one (sw.js)
   } catch {
     // The in-app prompt still shows.
   }

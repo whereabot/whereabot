@@ -65,6 +65,10 @@ flowchart TD
 | App open in front | No system notification; in-app prompt or banner | Reject · Allow · Always allow | Live |
 | Shared request, not always allowed | "R's agent X wants to know your location" | Reject · Allow · Always allow | New |
 | Shared request, always allowed, iOS did not wake the app | "R's agent X is checking your location" | Share | New |
+| Browser/PWA (Web Push), not always allowed | "Your agent X wants to know your location" ("R's agent X…" when shared) | none (tap opens `/app/`; the in-app prompt answers) | New |
+| Browser/PWA (Web Push), always allowed | "X is checking your location" ("R's agent X…" when shared), after the silent window | none (tap opens `/app/`) | New |
+
+Web Push goes out with every APNs alert, never with the silent push: a service worker cannot read the location ([`server/src/push/web_push`](../server/src/push/web_push), [`app/public/sw.js`](../app/public/sw.js)). Expired subscriptions (404/410) are deleted.
 
 Every outcome is also written to the in-app **Request history**.
 

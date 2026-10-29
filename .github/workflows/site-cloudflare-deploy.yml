@@ -54,6 +54,8 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
           VITE_RELAY_URL: ${{ env.RELAY_URL }}
+          # Optional: empty builds an app without Web Push (infra/README.md, "Add the VAPID key").
+          VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY }}
         run: |
           set -euo pipefail
           : "${VITE_SUPABASE_URL:?set environment var SUPABASE_URL}" "${VITE_SUPABASE_ANON_KEY:?set environment var SUPABASE_ANON_KEY}"

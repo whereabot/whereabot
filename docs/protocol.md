@@ -80,7 +80,7 @@ iOS suspends the app in the background, so a waiting request needs a nudge. When
 - **Actions:** the app registers the `LOCATION_REQUEST` category with Reject, Allow and Always allow. None opens the app: the phone answers in the background with `POST /v1/device/answer` (below). See [architecture](architecture.md#background-answer).
 - **Tap:** opens the app. The app reconnects on return to the foreground, and the relay resends the waiting `locate` to the new socket. The app needs no handling for `request_id`.
 - **Tokens:** the relay reads them with the agent's own user JWT (RLS limits it to that user's rows). It deletes a token when APNs answers `410` or `BadDeviceToken`.
-- **Off:** without the `APNS_*` settings the relay logs once and sends no push.
+- **Off:** without the `APNS_*` settings the relay sends no APNs push; without `VAPID_PRIVATE_KEY` it sends no Web Push to browsers ([request flow](request-flow.md#notifications-at-a-glance)). Each logs once.
 
 ## Phone to relay over HTTP: `POST /v1/device/answer`
 

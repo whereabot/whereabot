@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use serde_json::Value;
 
-use super::{apns_config::PushConfig, apns_provider_token::ProviderJwt};
+use super::{apns_config::ApnsConfig, apns_provider_token::ProviderJwt};
 
 pub enum Sent {
     Ok,
@@ -27,7 +27,7 @@ pub struct Apns {
 }
 
 impl Apns {
-    pub fn new(config: &PushConfig) -> Option<Self> {
+    pub fn new(config: &ApnsConfig) -> Option<Self> {
         let jwt = ProviderJwt::new(&config.key_pem, &config.key_id, &config.team_id);
         if jwt.is_none() {
             tracing::warn!("push off: APNS_KEY is not a valid PEM key");
