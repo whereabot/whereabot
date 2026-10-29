@@ -47,7 +47,6 @@ jobs:
     uses: ./.github/workflows/ios-testflight-release.yml
     with:
       tag: ${{ needs.tag.outputs.tag }}
-      submit_for_review: false
     secrets: inherit
     permissions:
       contents: read
