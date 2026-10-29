@@ -17,6 +17,7 @@ jobs:
         with: { node-version: 24 }
       - run: npm ci
       - run: npx tsc --noEmit
+      - run: node --test "src/**/*.test.ts"
       - run: npm run build
   app-no-scroll:
     # Every app screen at phone, tablet and desktop sizes: the page never scrolls (scripts/screens/app-no-scroll-check.mjs).

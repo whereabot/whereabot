@@ -1,16 +1,18 @@
 import { supabase } from "../supabase-client";
-import { deviceId, deviceName, platform, setDeviceName } from "./device-identity";
+import type { AppKind } from "./app-kind";
+import { appKind, deviceId, deviceName, platform, setDeviceName } from "./device-identity";
 
 export type Device = {
   id: string;
   name: string;
   platform: "ios" | "android" | "desktop";
+  app_kind: AppKind | null;
   created_at: string;
   last_seen_at: string;
   revoked_at: string | null;
 };
 
-const COLUMNS = "id,name,platform,created_at,last_seen_at,revoked_at";
+const COLUMNS = "id,name,platform,app_kind,created_at,last_seen_at,revoked_at";
 
 function check<T>(res: { data: T | null; error: { message: string } | null }): T {
   if (res.error || res.data === null) throw new Error(res.error?.message ?? "No data");
@@ -42,6 +44,8 @@ export async function removeDevice(id: string) {
  */
 export async function syncDevice(): Promise<"ok" | "revoked"> {
   const id = deviceId();
+  // Best effort and separate, so a client deployed before the app_kind migration still connects.
+  void supabase.from("devices").update({ app_kind: appKind() }).eq("id", id);
   const last_seen_at = new Date().toISOString();
   const rows = check(
     (await supabase.from("devices").update({ last_seen_at, platform: platform() }).eq("id", id).select("name,revoked_at")) as never,
@@ -51,5 +55,6 @@ export async function syncDevice(): Promise<"ok" | "revoked"> {
     return rows[0].revoked_at ? "revoked" : "ok";
   }
   check((await supabase.from("devices").insert({ id, name: deviceName(), platform: platform(), last_seen_at }).select("id")) as never);
+  void supabase.from("devices").update({ app_kind: appKind() }).eq("id", id);
   return "ok";
 }
