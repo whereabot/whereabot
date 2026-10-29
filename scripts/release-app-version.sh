@@ -10,5 +10,9 @@ for f in package.json src-tauri/tauri.conf.json; do
   perl -0pi -e 's/"version": *"[^"]*"/"version": "'"$v"'"/' "$f"
 done
 perl -0pi -e 's/^version = "[^"]*"/version = "'"$v"'"/m' src-tauri/Cargo.toml
-echo "Bumped app/package.json, app/src-tauri/tauri.conf.json, app/src-tauri/Cargo.toml to $v."
+# Lockfiles and the committed iOS plist carry the version too; the IPA check reads CFBundleVersion.
+perl -0pi -e 's/("name": "app",\s*"version": )"[^"]*"/$1"'"$v"'"/g' package-lock.json
+perl -0pi -e 's/(name = "app"\nversion = )"[^"]*"/$1"'"$v"'"/' src-tauri/Cargo.lock
+perl -0pi -e 's#(<key>CFBundle(?:ShortVersionString|Version)</key>\s*<string>)[^<]*#${1}'"$v"'#g' src-tauri/gen/apple/app_iOS/Info.plist
+echo "Bumped the app version to $v in manifests, lockfiles and Info.plist."
 echo "Commit and merge, then: git tag app-v$v && git push origin app-v$v"
