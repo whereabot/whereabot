@@ -1,0 +1,13 @@
+/* Device-aware install help (js/landing-install-help.js): steps with inline Share / Add icons. */
+#install-help:not(:empty) {
+  margin: var(--space-4) 0;
+}
+.install-steps li {
+  margin-bottom: var(--space-1);
+}
+.install-steps svg {
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: -0.25em;
+  color: var(--color-accent);
+}

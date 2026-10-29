@@ -48,7 +48,15 @@ try {
   await iphone.goto(`${base}/app/`);
   await iphone.locator('#signed-out .pwa-install').getByText('Add to Home Screen to get notifications (iOS 16.4+)').waitFor();
   assert.equal(await page.locator('.pwa-install').count(), 0, 'desktop shows no iPhone install steps');
-  console.log('PWA smoke passed: manifest, service worker at', scope, 'and the in-app limits notice');
+  // Chrome/Edge: the Install Whereabot button appears once the browser fires beforeinstallprompt.
+  await page.evaluate(() => dispatchEvent(Object.assign(new Event('beforeinstallprompt', { cancelable: true }), { prompt: async () => {} })));
+  await page.locator('#signed-out').getByRole('button', { name: 'Install Whereabot' }).waitFor();
+  // Other iOS browsers cannot add to the Home Screen the Safari way: send the user to Safari.
+  const iosChrome = await browser.newPage({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 CriOS/130.0 Mobile/15E148 Safari/604.1' });
+  await iosChrome.route((url) => !url.href.startsWith(base), (route) => route.abort());
+  await iosChrome.goto(`${base}/app/`);
+  await iosChrome.locator('#signed-out .pwa-install').getByText('Open in Safari to install').waitFor();
+  console.log('PWA smoke passed: manifest, service worker at', scope, 'the in-app limits notice and install help');
 } finally {
   await browser.close();
   server.close();
