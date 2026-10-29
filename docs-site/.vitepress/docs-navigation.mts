@@ -1,6 +1,7 @@
 // The landing page is outside the VitePress base. withBase('/../') gives /docs/../, which the browser resolves to /.
 export const nav = [
   { text: 'Get started', link: '/getting-started' },
+  { text: 'Install the app', link: '/install-from-browser' },
   { text: 'Reference', link: '/reference/mcp-tools' },
   { text: 'Back to Whereabot', link: '/../', target: '_self' },
 ]

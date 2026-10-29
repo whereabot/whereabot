@@ -16,7 +16,7 @@ export async function captureSite(browser) {
     });
     shots.push({
       file,
-      shows: `Landing page at ${VIEWPORTS[viewport].width} px: hero, how it works, sample questions, agent setup, privacy.`,
+      shows: `Landing page at ${VIEWPORTS[viewport].width} px: hero, how it works, sample questions, get started (add to your agent, install on your device), privacy.`,
     });
   }
 

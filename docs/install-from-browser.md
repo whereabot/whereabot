@@ -9,7 +9,7 @@ You can use Whereabot without the App Store. Open [whereabot.io/app](https://whe
 3. Open Whereabot from the Home Screen and sign in with Google.
 4. Allow location and notifications when Whereabot asks.
 
-On Android or a computer, open the same address in Chrome and choose **Install app** (or **Add to Home screen**).
+In another browser on iPhone, open the address in Safari first. On Android or a computer, open the same address in Chrome or Edge and tap **Install Whereabot** (or choose **Install app** in the browser menu). The landing page shows the steps for your device ([`site/js/landing-install-help.js`](../site/js/landing-install-help.js)).
 
 ## Limits
 

@@ -16,22 +16,17 @@
   <meta property="og:image" content="https://whereabot.io/og-image.png">
   <meta property="og:image:alt" content="Whereabot: a location pin holding a bell. Your agent can ask where you are. Only when it asks.">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="design-system/design-system.css">
-  <link rel="stylesheet" href="css/site-header.css">
-  <link rel="stylesheet" href="css/landing-sections.css">
-  <link rel="stylesheet" href="css/request-flow-diagram.css">
-  <link rel="stylesheet" href="css/code-card.css">
-  <link rel="stylesheet" href="css/privacy-points.css">
+  <link rel="stylesheet" href="css/landing-page.css">
+  <script type="module" src="js/copy-buttons.js"></script>
+  <script type="module" src="js/landing-install-help.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="top">
-  <a class="brand" href="#top" id="top">
-    <img class="brand-mark" src="mark.svg" alt="" width="28" height="28">
-    Whereabot
-  </a>
+  <a class="brand" href="#top" id="top"><img class="brand-mark" src="mark.svg" alt="" width="28" height="28">Whereabot</a>
   <nav aria-label="Main">
     <a href="#how">How it works</a>
+    <a href="#start">Get started</a>
     <a href="#privacy">Privacy</a>
     <a href="docs/">Docs</a>
     <a href="https://github.com/whereabot/whereabot">GitHub</a>
@@ -41,28 +36,21 @@
   <section class="hero" aria-labelledby="hero-title">
     <h1 id="hero-title">Your agent can ask where you are. Only when it asks.</h1>
     <p class="lede">Whereabot lets Claude, ChatGPT or any MCP client ask your phone for its location, with your consent. Nothing is stored.</p>
-    <div class="actions-inline">
-      <a class="btn btn-primary" href="#agent">Add to your agent</a>
-      <a class="btn btn-secondary" href="https://github.com/whereabot/whereabot">View on GitHub</a>
-    </div>
+    <div class="actions-inline"><a class="btn btn-primary" href="#agent">Add to your agent</a> <a class="btn btn-secondary" href="https://github.com/whereabot/whereabot">View on GitHub</a></div>
   </section>
-
   <section id="how" aria-labelledby="how-title">
     <h2 id="how-title">How it works</h2>
     <ol class="step-flow">
-      <li><span class="step-number" aria-hidden="true">1</span><h3>Install the app</h3><p>Join the beta. <!-- TODO(user): link the public TestFlight / Play beta here when it exists. --></p></li>
+      <li><span class="step-number" aria-hidden="true">1</span><h3>Install the app</h3><p>On your phone. See <a href="#get-app">Install on your device</a>.</p></li>
       <li><span class="step-number" aria-hidden="true">2</span><h3>Sign in on your phone</h3><p>Open the app and sign in with Google. Keep it open while your agent asks.</p></li>
       <li><span class="step-number" aria-hidden="true">3</span><h3>Add the relay</h3><p>Add the relay URL to your agent. See <a href="#agent">Add to your agent</a>.</p></li>
       <li><span class="step-number" aria-hidden="true">4</span><h3>Ask</h3><p>Your agent calls <code>get_phone_location</code>. You approve on your phone, and it sends its GPS fix back.</p></li>
     </ol>
     <div class="flow" role="img" aria-label="Your agent sends a request to the relay. The relay pings your phone. Your phone reads its location and sends the fix back through the relay to your agent.">
-      <span class="box">Your agent</span><span class="arrow" aria-hidden="true"></span>
-      <span class="box">Relay</span><span class="arrow" aria-hidden="true"></span>
-      <span class="box">Your phone reads GPS</span>
+      <span class="box">Your agent</span><span class="arrow" aria-hidden="true"></span><span class="box">Relay</span><span class="arrow" aria-hidden="true"></span><span class="box">Your phone reads GPS</span>
     </div>
     <p class="note">The answer returns the same way. Until push notifications ship, keep the app open to answer.</p>
   </section>
-
   <section id="uses" aria-labelledby="uses-title">
     <h2 id="uses-title">What you can ask</h2>
     <ul class="card-grid">
@@ -71,17 +59,31 @@
       <li class="card">"Which station am I closest to?"</li>
     </ul>
   </section>
-
-  <section id="agent" aria-labelledby="agent-title">
-    <h2 id="agent-title">Add to your agent</h2>
-    <p>Run this in Claude Code, then run <code>/mcp</code> and sign in. Use the <strong>same Google account</strong> as on your phone.</p>
-    <figure class="codecard">
-      <figcaption>Claude Code</figcaption>
-      <pre class="code-block"><code>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code></pre>
-    </figure>
-    <p class="note">Other MCP clients: add <code>https://relay.whereabot.io/mcp</code> as an HTTP server. Sign in with the same Google account as on your phone.</p>
+  <section id="start" aria-labelledby="start-title">
+    <h2 id="start-title">Get started</h2>
+    <p class="lede">You need both: your agent asks, your phone answers.</p>
+    <div class="split">
+      <div class="card" id="agent">
+        <h3>1. Add to your agent</h3>
+        <p>Relay URL:</p><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code>
+        <dl class="client-steps">
+          <div><dt>Claude Code</dt><dd><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code>Then run <code>/mcp</code> and sign in.</dd></div>
+          <div><dt>Claude.ai and Claude Desktop</dt><dd>Settings → Connectors → Add custom connector. Paste the relay URL, then sign in.</dd></div>
+          <div><dt>Other MCP clients</dt><dd>Add the relay URL as a streamable HTTP server. The client opens the sign-in page.</dd></div>
+        </dl>
+        <p class="note">You sign in in the browser (OAuth). No API keys. Use the same Google account as on your phone. <a href="docs/getting-started">More in the docs</a>.</p>
+      </div>
+      <div class="card" id="get-app">
+        <h3>2. Install on your device</h3>
+        <ul class="install-options">
+          <li><strong>App Store (iPhone)</strong> <span class="badge is-accent">Recommended</span><br>Answers in the background. In beta. <!-- TODO(user): link the public TestFlight / App Store listing when it exists. --></li>
+          <li><strong>Google Play</strong> <span class="badge">Coming soon</span></li>
+          <li><strong>Use in your browser</strong><br>Answers after you tap the notification. <a class="btn btn-primary" href="app/">Open the browser app</a></li>
+        </ul>
+        <div id="install-help"></div><p class="note"><a href="docs/install-from-browser">Install from the browser</a>: steps and limits.</p>
+      </div>
+    </div>
   </section>
-
   <section id="privacy" aria-labelledby="privacy-title">
     <h2 id="privacy-title">Privacy</h2>
     <dl class="points">
@@ -92,8 +94,6 @@
     </dl>
   </section>
 </main>
-<footer>
-  <p>Whereabot is MIT licensed. Read the <a href="docs/">docs</a> or the <a href="https://github.com/whereabot/whereabot">source on GitHub</a>. Early MVP.</p>
-</footer>
+<footer><p>Whereabot is MIT licensed. Read the <a href="docs/">docs</a> or the <a href="https://github.com/whereabot/whereabot">source on GitHub</a>. Early MVP.</p></footer>
 </body>
 </html>
