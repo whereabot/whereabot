@@ -6,6 +6,7 @@ name: android-play-release
 on:
   push:
     tags: ["app-v*"]
+    branches: [ci/android-release] # TEMP: prove the build; removed before merge
   workflow_dispatch:
     inputs:
       tag:
