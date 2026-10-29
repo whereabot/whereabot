@@ -1,7 +1,10 @@
 // Run: node --test app/src/devices/reinstall-device-match.test.ts
 import assert from "node:assert/strict";
 import test from "node:test";
-import { type OwnDeviceRow, rowToTakeOver, screenHint } from "./reinstall-device-match.ts";
+import { LIVE_WINDOW_MS, type OwnDeviceRow, rowToTakeOver as pick, screenHint } from "./reinstall-device-match.ts";
+
+const NOW = Date.parse("2026-10-29T13:00:00Z");
+const rowToTakeOver = (rows: OwnDeviceRow[], m: typeof me) => pick(rows, m, NOW);
 
 const hint = screenHint(390, 844, 3);
 const me = { id: "new", platform: "ios", appKind: "pwa", screenHint: hint };
@@ -37,6 +40,12 @@ test("rows from before hints existed still match", () => {
 
 test("browser tabs never take over a row", () => {
   assert.equal(rowToTakeOver([row({ app_kind: "browser" })], { ...me, appKind: "browser" }), null);
+});
+
+test("a row seen within the live window may be a twin phone in use: keep apart", () => {
+  const at = (ms: number) => new Date(NOW - ms).toISOString();
+  assert.equal(rowToTakeOver([row({ last_seen_at: at(LIVE_WINDOW_MS - 1000) })], me), null);
+  assert.equal(rowToTakeOver([row({ last_seen_at: at(LIVE_WINDOW_MS) })], me), "old");
 });
 
 test("hint ignores orientation", () => {

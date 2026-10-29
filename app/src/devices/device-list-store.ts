@@ -2,6 +2,7 @@ import { supabase } from "../supabase-client";
 import { type AppKind, selectToleratingMissingKind } from "./app-kind";
 import { appKind, deviceId, deviceName, platform, setDeviceName } from "./device-identity";
 import { currentScreenHint } from "./reinstall-device-takeover";
+import { sendInstallFacts } from "./install-facts-update";
 
 export type Device = {
   id: string;
@@ -51,7 +52,10 @@ let kindSent = false;
 function sendAppKind(id: string) {
   if (kindSent) return;
   kindSent = true;
-  void supabase.from("devices").update({ app_kind: appKind(), screen_hint: currentScreenHint() }).eq("id", id);
+  void sendInstallFacts((fields) => supabase.from("devices").update(fields).eq("id", id), {
+    app_kind: appKind(),
+    screen_hint: currentScreenHint(),
+  });
 }
 
 export async function syncDevice(): Promise<"ok" | "revoked"> {

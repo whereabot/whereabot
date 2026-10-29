@@ -17,6 +17,11 @@ export async function takeOverOldDeviceRow() {
   const { data, error } = await supabase.from("devices").select("id,platform,app_kind,screen_hint,last_seen_at,revoked_at");
   if (error || !data) return;
   const me = { id: deviceId(), platform: platform(), appKind: appKind(), screenHint: currentScreenHint() };
-  const id = rowToTakeOver(data, me);
-  if (id) await adoptDeviceId(id);
+  const id = rowToTakeOver(data, me, Date.now());
+  if (!id) return;
+  await adoptDeviceId(id);
+  // The old install's push links are dead (a reinstall gets a new APNs token / push endpoint).
+  // Safe: this install has linked nothing to `id` yet, and RLS limits the deletes to own rows.
+  await supabase.from("push_tokens").delete().eq("device_id", id).then(() => {}, () => {});
+  await supabase.from("web_push_subscriptions").delete().eq("device_id", id).then(() => {}, () => {});
 }
