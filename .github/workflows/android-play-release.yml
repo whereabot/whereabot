@@ -6,7 +6,6 @@ name: android-play-release
 on:
   push:
     tags: ["app-v*"]
-    branches: [ci/android-release] # TEMP: prove the build; removed before merge
   workflow_dispatch:
     inputs:
       tag:
@@ -22,7 +21,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: android-play-${{ inputs.tag || github.ref }}
+  group: android-play-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 jobs:
   play:
