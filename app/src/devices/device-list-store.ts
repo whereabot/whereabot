@@ -1,5 +1,5 @@
 import { supabase } from "../supabase-client";
-import type { AppKind } from "./app-kind";
+import { type AppKind, selectToleratingMissingKind } from "./app-kind";
 import { appKind, deviceId, deviceName, platform, setDeviceName } from "./device-identity";
 
 export type Device = {
@@ -21,7 +21,9 @@ function check<T>(res: { data: T | null; error: { message: string } | null }): T
 
 /** Own devices that were not removed, oldest first. RLS limits rows to the signed-in user. */
 export async function listDevices(): Promise<Device[]> {
-  const res = await supabase.from("devices").select(COLUMNS).is("revoked_at", null).order("created_at");
+  const res = await selectToleratingMissingKind(COLUMNS, (cols) =>
+    supabase.from("devices").select(cols).is("revoked_at", null).order("created_at"),
+  );
   return check(res as never) as Device[];
 }
 
