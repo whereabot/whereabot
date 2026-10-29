@@ -44,19 +44,27 @@ export async function removeDevice(id: string) {
  * Registers this install on first connect, then only bumps last_seen_at.
  * The server name wins: a rename made on another device must not be overwritten.
  */
+let kindSent = false;
+
+/** Best effort and separate, so a client deployed before the app_kind migration still connects. Once per page load. */
+function sendAppKind(id: string) {
+  if (kindSent) return;
+  kindSent = true;
+  void supabase.from("devices").update({ app_kind: appKind() }).eq("id", id);
+}
+
 export async function syncDevice(): Promise<"ok" | "revoked"> {
   const id = deviceId();
-  // Best effort and separate, so a client deployed before the app_kind migration still connects.
-  void supabase.from("devices").update({ app_kind: appKind() }).eq("id", id);
   const last_seen_at = new Date().toISOString();
   const rows = check(
     (await supabase.from("devices").update({ last_seen_at, platform: platform() }).eq("id", id).select("name,revoked_at")) as never,
   ) as Pick<Device, "name" | "revoked_at">[];
   if (rows.length) {
+    sendAppKind(id);
     setDeviceName(rows[0].name);
     return rows[0].revoked_at ? "revoked" : "ok";
   }
   check((await supabase.from("devices").insert({ id, name: deviceName(), platform: platform(), last_seen_at }).select("id")) as never);
-  void supabase.from("devices").update({ app_kind: appKind() }).eq("id", id);
+  sendAppKind(id);
   return "ok";
 }
