@@ -31,6 +31,7 @@ module "whereabouts" {
   google_client_secret     = var.google_client_secret
   image                    = var.image
   apns_enabled             = true
+  web_push_enabled         = true
   site_host                = "whereabot.io"
   relay_domain             = "relay.whereabot.io"
   relay_public_url         = "https://relay.whereabot.io"
