@@ -2,6 +2,8 @@
 
 OpenTofu. Per environment: a Supabase project, a Cloud Run relay, an artifact registry and secrets. Code: [`envs/`](envs) and [`modules/whereabouts/`](modules/whereabouts).
 
+Why the setup looks like this, and the traps we hit: [operations](../docs/operations.md).
+
 ## Live URLs
 
 - Prod relay: https://relay.whereabot.io (MCP: https://relay.whereabot.io/mcp)
