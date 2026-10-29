@@ -54,6 +54,6 @@ Layout audit across widths, dark mode and large text: `node scripts/screens/audi
 | [gallery-mobile-light.png](gallery-mobile-light.png) | Component gallery at 390 px, light: every shared component and state. |
 | [gallery-narrow-dark.png](gallery-narrow-dark.png) | Component gallery at 320 px, dark: every shared component and state. |
 | [gallery-narrow-light.png](gallery-narrow-light.png) | Component gallery at 320 px, light: every shared component and state. |
-| [site-landing-desktop.png](site-landing-desktop.png) | Landing page at 1280 px: hero, how it works, sample questions, agent setup, privacy. |
-| [site-landing-mobile.png](site-landing-mobile.png) | Landing page at 390 px: hero, how it works, sample questions, agent setup, privacy. |
+| [site-landing-desktop.png](site-landing-desktop.png) | Landing page at 1280 px: hero, how it works, sample questions, get started opened on its Agent tab (computers), privacy. |
+| [site-landing-mobile.png](site-landing-mobile.png) | Landing page at 390 px: hero, how it works, sample questions, get started opened on its Device tab with the iPhone install path (phones), privacy. |
 | [site-landing-skip-link-focus-desktop.png](site-landing-skip-link-focus-desktop.png) | Landing page with keyboard focus on the "Skip to content" link. |

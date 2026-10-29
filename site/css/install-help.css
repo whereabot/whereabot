@@ -1,13 +1,33 @@
-/* Device-aware install help (js/landing-install-help.js): steps with inline Share / Add icons. */
-#install-help:not(:empty) {
-  margin: var(--space-4) 0;
+/* Install on your device: install paths (js/device-path-filter.js) and browser install steps
+   (js/landing-install-help.js) behind a tap. */
+.install-options {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.install-steps li {
-  margin-bottom: var(--space-1);
+.install-options .btn { margin-top: var(--space-2); }
+
+#get-app summary {
+  min-height: var(--size-touch);
+  display: flex;
+  align-items: center;
+  color: var(--color-accent-text);
+  font-weight: var(--weight-semibold);
+  list-style: none;
+  cursor: pointer;
 }
+#get-app summary::after { content: "\25BE"; margin-left: var(--space-2); }
+#get-app details[open] summary::after { content: "\25B4"; }
+#install-help:not(:empty) { margin-bottom: var(--space-2); }
+.install-steps { margin: 0; }
+.install-steps li { margin-bottom: var(--space-1); }
 .install-steps svg {
   width: 1.25em;
   height: 1.25em;
   vertical-align: -0.25em;
   color: var(--color-accent);
 }
+.other-devices { align-self: flex-start; padding-inline: 0; }

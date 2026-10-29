@@ -19,6 +19,8 @@
   <link rel="stylesheet" href="css/landing-page.css">
   <script type="module" src="js/copy-buttons.js"></script>
   <script type="module" src="js/landing-install-help.js"></script>
+  <script type="module" src="js/get-started-tabs.js"></script>
+  <script type="module" src="js/device-path-filter.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -62,27 +64,25 @@
   <section id="start" aria-labelledby="start-title">
     <h2 id="start-title">Get started</h2>
     <p class="lede">You need both: your agent asks, your phone answers.</p>
-    <div class="split">
-      <div class="card" id="agent">
-        <h3>1. Add to your agent</h3>
-        <p>Relay URL:</p><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code>
-        <dl class="client-steps">
-          <div><dt>Claude Code</dt><dd><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code>Then run <code>/mcp</code> and sign in.</dd></div>
-          <div><dt>Claude.ai and Claude Desktop</dt><dd>Settings → Connectors → Add custom connector. Paste the relay URL, then sign in.</dd></div>
-          <div><dt>Other MCP clients</dt><dd>Add the relay URL as a streamable HTTP server. The client opens the sign-in page.</dd></div>
-        </dl>
-        <p class="note">You sign in in the browser (OAuth). No API keys. Use the same Google account as on your phone. <a href="docs/getting-started">More in the docs</a>.</p>
+    <div class="tabs" role="tablist" aria-label="Get started" hidden>
+      <button type="button" role="tab" id="tab-agent" aria-controls="agent"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>1 Agent</button>
+      <button type="button" role="tab" id="tab-device" aria-controls="get-app"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>2 Device</button></div>
+    <div class="tab-panels"><div class="card" id="agent"><h3>Add to your agent</h3>
+        <div class="panel-cols"><div><p class="card-label">Relay URL</p><div class="copy-row"><code class="code-block" data-copy>https://relay.whereabot.io/mcp</code></div>
+          <p class="card-label">Claude Code</p><div class="copy-row"><code class="code-block" data-copy>claude mcp add --transport http whereabot https://relay.whereabot.io/mcp</code></div><p class="note">Then run <code>/mcp</code> and sign in.</p></div>
+          <dl class="client-steps"><div><dt>Claude.ai and Claude Desktop</dt><dd>Settings → Connectors → Add custom connector. Paste the relay URL, then sign in.</dd></div>
+            <div><dt>Other MCP clients</dt><dd>Add the relay URL as a streamable HTTP server. The client opens the sign-in page.</dd></div></dl></div>
+        <p class="note panel-foot">You sign in in the browser (OAuth). No API keys. Use the same Google account as on your phone. <a href="docs/getting-started">More in the docs</a>.</p>
       </div>
-      <div class="card" id="get-app">
-        <h3>2. Install on your device</h3>
-        <ul class="install-options">
-          <li><strong>App Store (iPhone)</strong> <span class="badge is-accent">Recommended</span><br>Answers in the background. In beta. <!-- TODO(user): link the public TestFlight / App Store listing when it exists. --></li>
-          <li><strong>Google Play</strong> <span class="badge">Coming soon</span></li>
-          <li><strong>Use in your browser</strong><br>Answers after you tap the notification. <a class="btn btn-primary" href="app/">Open the browser app</a></li>
-        </ul>
-        <div id="install-help"></div><p class="note"><a href="docs/install-from-browser">Install from the browser</a>: steps and limits.</p>
-      </div>
-    </div>
+      <div class="card" id="get-app"><h3>Install on your device</h3>
+        <div class="panel-cols"><ul class="install-options">
+          <li data-platform="ios"><strong>App Store (iPhone)</strong> <span class="badge is-accent">Recommended</span><br>Answers in the background. In beta. <!-- TODO(user): link the public TestFlight / App Store listing when it exists. --></li>
+          <li data-platform="android"><strong>Google Play</strong> <span class="badge">Coming soon</span></li>
+          <li data-platform="desktop">On your phone, open <strong>whereabot.io/app</strong> in the browser.</li>
+          <li data-platform="ios android desktop"><strong>Use in your browser</strong><br>Answers after you tap the notification. <a class="btn btn-primary btn-small" href="app/">Open the browser app</a></li>
+        </ul><div><details><summary>How to install from the browser</summary><div id="install-help"></div>
+          <p class="note"><a href="docs/install-from-browser">Install from the browser</a>: steps and limits.</p></details><button type="button" class="btn btn-link other-devices" aria-expanded="false" hidden>Other devices</button></div></div>
+      </div></div>
   </section>
   <section id="privacy" aria-labelledby="privacy-title">
     <h2 id="privacy-title">Privacy</h2>
