@@ -1,0 +1,72 @@
+/* Get started: "Agent | Device" tabs (js/get-started-tabs.js). The section fits one screen in each tab.
+   Without JS the tab list stays hidden and both panels show side by side (stacked on phones). */
+#start { border-bottom: 0; }
+#start h2 { margin-bottom: var(--space-2); }
+#start .lede { margin-bottom: var(--space-4); }
+#start .card p { margin-bottom: 0; }
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-1);
+  max-width: 28rem;
+  margin-bottom: var(--space-3);
+  padding: var(--space-1);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+.tabs [role="tab"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--size-touch);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+.tabs svg {
+  width: var(--size-icon);
+  height: var(--size-icon);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+.tabs [aria-selected="true"] {
+  background: var(--color-surface);
+  color: var(--color-accent-text);
+  box-shadow: var(--shadow-raised), 0 0 0 var(--border-thin) var(--color-border);
+}
+
+.tab-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-4);
+}
+.tab-panels > [role="tabpanel"] { grid-column: 1 / -1; }
+.panel-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-3) var(--space-6);
+}
+.panel-cols > div { display: flex; flex-direction: column; gap: var(--space-2); }
+.panel-foot { padding-top: var(--space-2); border-top: var(--border-thin) solid var(--color-border); }
+
+.client-steps { display: grid; gap: var(--space-2); margin: 0; font-size: var(--text-sm); }
+.client-steps dt { font-weight: var(--weight-semibold); }
+.client-steps dd { margin: 0; color: var(--color-text-muted); }
+
+/* Copy button (js/copy-buttons.js) beside its command; small mono text so commands wrap less. */
+.copy-row { display: flex; align-items: center; gap: var(--space-2); }
+.copy-row .code-block { flex: 1; min-width: 0; padding: var(--space-2) var(--space-3); font-size: var(--text-xs); }
+.copy-row .copy-button { flex: none; padding-inline: var(--space-3); }
+
+@media (max-width: 49.99rem) {
+  #start { padding-block: var(--space-8); }
+  #start .card { padding: var(--space-4); }
+}
