@@ -42,6 +42,7 @@ A push to `main` that touches `server/**` or `infra/**` runs [`deploy.yml`](../.
 4. Set secrets `GOOGLE_CLIENT_SECRET` and `SUPABASE_ACCESS_TOKEN` in both GitHub environments `dev` and `production`.
 5. In GitHub settings, add required reviewers to the `production` environment.
 6. Add the APNs key: after the first apply creates the secret `whereabouts-<env>-APNS_KEY`, add the `.p8` as its first version with `gcloud secrets versions add`, then redeploy the relay. Until then push is off. Key id, team and topic are the `apns_*` variables in [`modules/whereabouts/push.tf`](modules/whereabouts/push.tf).
+7. Add the VAPID key (Web Push for the browser app): add the base64url private key as the first version of `whereabouts-<env>-VAPID_PRIVATE_KEY`, set the matching public key as the `VITE_VAPID_PUBLIC_KEY` variable of the GitHub environment, then set `web_push_enabled = true` in `envs/<env>/main.tf`. Code: [`modules/whereabouts/web_push.tf`](modules/whereabouts/web_push.tf).
 
 ## Bootstrap (once per env)
 

@@ -43,14 +43,14 @@ resource "google_cloud_run_v2_service" "relay" {
         name  = "RUST_LOG"
         value = "info"
       }
-      # Push (see push.tf). Only when apns_enabled: Cloud Run refuses a secret with no version.
+      # Push keys (push.tf, web_push.tf). Each only when enabled: Cloud Run refuses a secret with no version.
       dynamic "env" {
-        for_each = var.apns_enabled ? ["APNS_KEY"] : []
+        for_each = merge(local.apns_secret_env, local.web_push_secret_env)
         content {
-          name = env.value
+          name = env.key
           value_source {
             secret_key_ref {
-              secret  = google_secret_manager_secret.apns_key.secret_id
+              secret  = env.value
               version = "latest"
             }
           }

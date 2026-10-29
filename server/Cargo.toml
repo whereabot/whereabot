@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 axum = { version = "0.8.9", features = ["ws"] }
+base64 = "0.22.1"
 hex = "0.4.3"
 jsonwebtoken = { version = "11.1.0", features = ["aws_lc_rs"] }
 reqwest = { version = "0.13.5", default-features = false, features = ["json", "rustls", "http2"] }
@@ -17,9 +18,9 @@ tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread", "sync", "
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 uuid = { version = "1.29.0", features = ["v4", "serde"] }
+web-push-native = "0.5"
 
 [dev-dependencies]
-base64 = "0.22.1"
 futures-util = "0.3.34"
 p256 = "0.14.0"
 tokio-tungstenite = "0.30.0"

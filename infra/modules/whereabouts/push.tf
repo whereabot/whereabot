@@ -32,6 +32,7 @@ variable "apns_production" {
 }
 
 locals {
+  apns_secret_env = var.apns_enabled ? { APNS_KEY = google_secret_manager_secret.apns_key.secret_id } : {}
   apns_env = !var.apns_enabled ? {} : {
     APNS_KEY_ID     = var.apns_key_id
     APNS_TEAM_ID    = var.apns_team_id
