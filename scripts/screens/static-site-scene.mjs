@@ -63,9 +63,11 @@ async function routeRequest(route, { origin, dir, stubs, mount }) {
 }
 
 /** One isolated context per state. Runs `run(page)`, then closes the context. */
-export async function withScene(browser, { viewport, origin, dir, mount = '', stubs = [], init = [], colorScheme }, run) {
+export async function withScene(browser, { viewport, origin, dir, mount = '', stubs = [], init = [], colorScheme, userAgent, permissions }, run) {
   const context = await browser.newContext({
-    viewport: VIEWPORTS[viewport],
+    viewport: VIEWPORTS[viewport] ?? viewport, // a name, or a { width, height } size
+    userAgent,
+    permissions,
     deviceScaleFactor: 1,
     colorScheme: colorScheme ?? process.env.SCREENS_SCHEME ?? 'light',
     reducedMotion: 'reduce',
