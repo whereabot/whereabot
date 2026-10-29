@@ -1,0 +1,38 @@
+/* App shell: the page is exactly one screen tall and never scrolls or rubber-bands (iOS WKWebView too).
+   The column itself is the only page-level scroll box, used only when a screen cannot fit (landscape phones).
+   Safe-area insets need viewport-fit=cover (index.html). Spacing shrinks with the screen height. */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+body {
+  min-height: 0;
+}
+
+.page-shell {
+  --shell-pad-y: clamp(var(--space-3), 3dvh, var(--space-6));
+  --shell-pad-x: clamp(var(--space-3), 5vw, var(--space-5));
+  height: 100vh; /* fallback for engines without dvh */
+  height: 100dvh;
+  gap: clamp(var(--space-3), 2.4dvh, var(--space-5));
+  padding: max(var(--shell-pad-y), env(safe-area-inset-top)) max(var(--shell-pad-x), env(safe-area-inset-right))
+    max(var(--shell-pad-y), env(safe-area-inset-bottom)) max(var(--shell-pad-x), env(safe-area-inset-left));
+  position: relative; /* holds the .sr-only live regions, so they never stretch the page */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* Direct children keep their own height; only the signed-in area below may shrink to fit. */
+.page-shell > * {
+  flex-shrink: 0;
+}
+
+.page-shell .card {
+  padding: clamp(var(--space-3), 2.4dvh, var(--space-5));
+}
+
+dialog {
+  max-height: calc(100dvh - 2 * var(--space-5));
+}

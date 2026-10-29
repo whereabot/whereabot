@@ -9,13 +9,13 @@ import { PERM_CASES, SHARING_CASES, UI_CASES } from './app-request-history-cases
 
 const APP = join(ROOT, 'app');
 const VITE = join(APP, 'node_modules', 'vite', 'bin', 'vite.js');
-const ORIGIN = 'http://app.local';
-const VALID_RELAY = 'wss://relay.example.test';
+export const ORIGIN = 'http://app.local';
+export const VALID_RELAY = 'wss://relay.example.test';
 const CONNECTED = 'Connected. Waiting for pings.';
 const builds = new Map();
 
 /** Builds the real app with fake env values into a temp dir, outside the repo. */
-function buildApp(relayUrl) {
+export function buildApp(relayUrl) {
   if (!existsSync(VITE)) throw new Error('App dependencies missing. Run `npm ci` in app/ first.');
   if (!builds.has(relayUrl)) {
     const outDir = mkdtempSync(join(tmpdir(), 'whereabouts-screens-'));
@@ -36,7 +36,7 @@ function buildApp(relayUrl) {
   return builds.get(relayUrl);
 }
 
-const CASES = [
+export const CASES = [
   { name: 'signed-out', status: 'Disconnected.', desc: 'Signed out. Shows the Google sign-in button.' },
   { name: 'relay-url-invalid', session: true, relay: 'http://relay.example.test', status: 'Relay URL must start with wss:// (ws:// only for localhost, 10.x or 192.168.x)', desc: 'Relay URL is not secure. Connect is refused.' },
   { name: 'connecting', session: true, tauri: { connect: 'hang' }, status: 'Connecting…', desc: 'Signed in. Opening the connection to the relay.' },
@@ -53,7 +53,7 @@ CASES.push(...[...UI_CASES, ...SHARING_CASES, ...PERM_CASES].map((c) => ({ ...c,
 const waitStatus = (page, text) => page.waitForFunction((t) => document.getElementById('status').textContent === t, text);
 
 /** Moves the app from its start state to the state the case shows. */
-async function drive(page, c) {
+export async function drive(page, c) {
   if (c.ping || c.close || c.click || c.run) await waitStatus(page, CONNECTED);
   if (c.ping) {
     await page.evaluate(() => window.__screensEmit({ type: 'Text', data: JSON.stringify({ type: 'locate', id: 'ping-1' }) }));
@@ -74,7 +74,7 @@ async function drive(page, c) {
 }
 
 // Supabase calls return an empty JSON body. No network leaves the machine.
-const EMPTY_JSON = (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+export const EMPTY_JSON = (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
 
 /** Phone app at 390 x 844: every connection state the app can show. */
 export async function captureApp(browser) {

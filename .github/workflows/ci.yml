@@ -18,6 +18,21 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npm run build
+  app-no-scroll:
+    # Every app screen at phone, tablet and desktop sizes: the page never scrolls (scripts/screens/app-no-scroll-check.mjs).
+    runs-on: ubuntu-latest
+    env: { NODE_PATH: /tmp/pw/node_modules }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: npm ci
+        working-directory: app
+      - run: npm i --prefix /tmp/pw playwright@1.64.0 && /tmp/pw/node_modules/.bin/playwright install --with-deps chromium
+      - run: node scripts/screens/app-no-scroll-check.mjs "$RUNNER_TEMP/no-scroll"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: no-scroll-screens, path: "${{ runner.temp }}/no-scroll" }
   linecheck:
     runs-on: ubuntu-latest
     steps:

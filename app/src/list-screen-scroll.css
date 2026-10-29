@@ -1,0 +1,16 @@
+/* List screens (history, devices, sharing): the heading and Back stay put; only the lists scroll,
+   each inside its own box. When even that cannot fit (landscape phones), the shell column scrolls instead. */
+body:is([data-screen="history"], [data-screen="devices"], [data-screen="sharing"]) #signed-in,
+:is(#history, #devices, #sharing) {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+:is(#history, #devices, #sharing) > * {
+  flex-shrink: 0;
+}
+:is(#history, #devices, #sharing) .list:not(:empty) {
+  flex: 0 1 auto;
+  min-height: min(4.5rem, 12dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
