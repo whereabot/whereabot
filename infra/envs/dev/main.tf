@@ -30,8 +30,8 @@ module "whereabouts" {
   google_client_id         = var.google_client_id
   google_client_secret     = var.google_client_secret
   image                    = var.image
-  site_host                = "whereabot.io"
-  legacy_site_hosts        = ["whereabouts.ofek-gabay-he.workers.dev"]
+  site_host                = "dev.whereabot.io" # dev Worker, site-cloudflare-deploy.yml on push to dev
+  legacy_site_hosts        = ["whereabot.io", "whereabouts.ofek-gabay-he.workers.dev"]
   relay_public_url         = "https://whereabouts-relay-dev-yz6gmxu7na-ew.a.run.app"
 }
 

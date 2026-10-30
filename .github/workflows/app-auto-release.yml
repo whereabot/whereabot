@@ -47,6 +47,12 @@ jobs:
           git tag -a "app-v$v" -m "$notes"
           git push origin "app-v$v"
           echo "tag=app-v$v" >> "$GITHUB_OUTPUT"
+      - name: Merge main back into dev (the bump commit lands on main only)
+        env: { GH_TOKEN: "${{ github.token }}" }
+        # Branch map: docs/operations.md#delivery-is-gitops. A failure here never blocks the store releases.
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/merges" -f base=dev -f head=main -f commit_message="Merge main into dev after app release" >/dev/null ||
+            echo "::warning::could not merge main into dev; merge it by hand"
   ios:
     needs: tag
     uses: ./.github/workflows/ios-testflight-release.yml

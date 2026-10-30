@@ -35,7 +35,11 @@ jobs:
       github.event.action != 'closed' && vars.SITE_PREVIEW == 'true' &&
       github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
-    environment: dev
+    # Not "dev": that environment accepts only the dev branch. Holds the dev Supabase's public URL and anon key.
+    environment: preview
+    env:
+      SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -46,18 +50,6 @@ jobs:
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: server
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
-      - name: Read the dev Supabase URL and anon key
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
-        run: |
-          set -euo pipefail
-          : "${SUPABASE_PROJECT_REF:?set dev environment var SUPABASE_PROJECT_REF}"
-          key=$(supabase projects api-keys --project-ref "$SUPABASE_PROJECT_REF" -o json | jq -r '.[] | select(.name == "anon") | .api_key')
-          [ -n "$key" ] && [ "$key" != null ]
-          echo "::add-mask::$key"
-          { echo "SUPABASE_URL=https://${SUPABASE_PROJECT_REF}.supabase.co"; echo "SUPABASE_ANON_KEY=$key"; } >> "$GITHUB_ENV"
       - name: Build the docs
         working-directory: docs-site
         run: npm ci && npm run build && test -f .vitepress/dist/index.html

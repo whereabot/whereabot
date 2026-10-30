@@ -1,0 +1,29 @@
+# Every push to dev keeps one open promotion PR dev -> main (branch map: docs/operations.md#delivery-is-gitops).
+# CI already ran on the dev push; a PR opened with GITHUB_TOKEN starts no workflows.
+name: promote-dev
+on:
+  push:
+    branches: [dev]
+permissions:
+  contents: read
+  pull-requests: write
+concurrency:
+  group: promote-dev
+  cancel-in-progress: false
+jobs:
+  pr:
+    # Creating dev from main has nothing to promote.
+    if: ${{ !github.event.created }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - run: |
+          set -euo pipefail
+          open=$(gh pr list --base main --head dev --state open --json number --jq '.[].number')
+          if [ -n "$open" ]; then echo "promotion PR #$open is open"; exit 0; fi
+          ahead=$(gh api "repos/$GH_REPO/compare/main...dev" --jq .ahead_by)
+          if [ "$ahead" = 0 ]; then echo "dev has nothing main lacks"; exit 0; fi
+          gh pr create --base main --head dev --title "Promote dev to production" \
+            --body "Merging ships everything below to production. Merge with a merge commit, never squash (squash makes dev and main diverge)."

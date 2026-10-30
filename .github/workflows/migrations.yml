@@ -1,35 +1,23 @@
-# Applies supabase/migrations after full CI on the commit passes
+# Applies supabase/migrations to the branch's environment after full CI passes (map: docs/operations.md#delivery-is-gitops).
 name: migrations
 on:
   push:
-    branches: [main]
+    branches: [dev, main]
     paths: ["supabase/migrations/**"]
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: migrations
+  group: migrations-${{ github.ref_name }}
   cancel-in-progress: false
 jobs:
   ci:
     uses: ./.github/workflows/ci.yml
-  dev:
+  push:
     needs: ci
     runs-on: ubuntu-latest
-    environment: dev
-    env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
-      - run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
-      - run: supabase db push --password "$SUPABASE_DB_PASSWORD"
-  prod:
-    needs: dev
-    runs-on: ubuntu-latest
-    environment: production
+    # The environment's deployment branch policy rejects any other branch.
+    environment: ${{ github.ref_name == 'main' && 'production' || 'dev' }}
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}

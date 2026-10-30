@@ -1,8 +1,9 @@
-# GitOps for the landing page, docs and the browser app at /app (one Worker): full CI, build docs and app, fill consent config, deploy the "whereabouts" Worker, smoke-test.
+# GitOps for the landing page, docs and the browser app at /app (one Worker per environment): full CI, build docs and app,
+# fill consent config, deploy the branch's Worker, smoke-test. Branch map: docs/operations.md#delivery-is-gitops.
 name: site-cloudflare-deploy
 on:
   push:
-    branches: [main]
+    branches: [dev, main]
     paths:
       - "site/**"
       - "design-system/**"
@@ -20,11 +21,14 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: site-cloudflare-deploy
+  group: site-cloudflare-deploy-${{ github.ref_name }}
   cancel-in-progress: false
 env:
-  SITE_URL: https://whereabot.io
-  RELAY_URL: wss://relay.whereabot.io
+  # Live URLs are listed in infra/README.md.
+  SITE_HOST: ${{ github.ref_name == 'main' && 'whereabot.io' || 'dev.whereabot.io' }}
+  SITE_URL: https://${{ github.ref_name == 'main' && 'whereabot.io' || 'dev.whereabot.io' }}
+  WORKER: ${{ github.ref_name == 'main' && 'whereabouts' || 'whereabouts-dev' }}
+  RELAY_URL: ${{ github.ref_name == 'main' && 'wss://relay.whereabot.io' || 'wss://whereabouts-relay-dev-yz6gmxu7na-ew.a.run.app' }}
 jobs:
   ci:
     uses: ./.github/workflows/ci.yml
@@ -33,7 +37,8 @@ jobs:
     # Idle until the Cloudflare settings exist (infra/README.md).
     if: ${{ vars.CLOUDFLARE_ACCOUNT_ID != '' }}
     runs-on: ubuntu-latest
-    environment: production
+    # The environment's deployment branch policy rejects any other branch.
+    environment: ${{ github.ref_name == 'main' && 'production' || 'dev' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -91,7 +96,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          npx --yes wrangler@4.154.0 deploy --name whereabouts --assets ./site --domains whereabot.io --compatibility-date 2026-10-01 2>&1 | tee "$RUNNER_TEMP/wrangler.log"
+          npx --yes wrangler@4.154.0 deploy --name "$WORKER" --assets ./site --domains "$SITE_HOST" --compatibility-date 2026-10-01 2>&1 | tee "$RUNNER_TEMP/wrangler.log"
           grep -E "Read [0-9]+ files? from the assets directory ${STAGE}/site" "$RUNNER_TEMP/wrangler.log"
       - name: Smoke test
         run: |
