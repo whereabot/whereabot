@@ -5,8 +5,8 @@ use axum::{
         State, WebSocketUpgrade,
         ws::{CloseFrame, Message, WebSocket},
     },
-    http::HeaderMap,
-    response::Response,
+    http::{HeaderMap, StatusCode},
+    response::{IntoResponse, Response},
 };
 use tokio::sync::mpsc;
 use uuid::Uuid;
@@ -30,6 +30,10 @@ pub async fn device(
     let Some(token) = agent_bearer_auth::verify(&state, &headers, false).await else {
         return oauth_protected_resource_metadata::unauthorized(&state.public_url, &headers);
     };
+    // An agent token carries a client_id: it must never act as a phone and answer requests.
+    if token.client_id.is_some() {
+        return StatusCode::FORBIDDEN.into_response();
+    }
     let bearer = agent_bearer_auth::bearer(&headers)
         .unwrap_or_default()
         .to_string();

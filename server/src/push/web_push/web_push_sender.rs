@@ -26,6 +26,8 @@ impl WebPush {
         Some(Self {
             http: reqwest::Client::builder()
                 .timeout(Duration::from_secs(10))
+                // The allowlist checks the subscription host only: never follow a redirect elsewhere.
+                .redirect(reqwest::redirect::Policy::none())
                 .build()
                 .ok()?,
             key: key?,

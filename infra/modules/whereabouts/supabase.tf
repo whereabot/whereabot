@@ -29,6 +29,8 @@ resource "supabase_settings" "this" {
     oauth_server_enabled                    = true
     oauth_server_authorization_path         = "/oauth/consent/"
     oauth_server_allow_dynamic_registration = true
+    # Shares match the grantee by token email: an unconfirmed email must never get a session.
+    mailer_autoconfirm = false
   })
 }
 

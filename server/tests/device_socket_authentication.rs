@@ -37,6 +37,12 @@ async fn device_rejects_bad_token() {
 }
 
 #[tokio::test]
+async fn device_rejects_mcp_agent_token() {
+    let relay = start_relay().await;
+    assert!(!handshake(&relay.addr, Some(&relay.mcp(USER_A))).await);
+}
+
+#[tokio::test]
 async fn device_rejects_agent_key_even_when_fallback_on() {
     let relay = spawn(true).await;
     assert!(!handshake(&relay.addr, Some(&agent_key_a())).await);
