@@ -7,7 +7,7 @@ What Whereabot stores, for how long, and who can see your location. It applies t
 - The phone reads its location only when an agent asks, and only after you allow it, or after you chose Always allow for that agent ([Always allow](always-allow.md)). The app has no background tracking mode.
 - The relay passes the fix to the agent that asked and then forgets it. It writes no location to a database or a log. See [architecture, security](architecture.md#security).
 - The agent that asked gets the fix. What the agent does next (for example, sending it to its AI model provider) is outside Whereabot. Read the privacy terms of your agent.
-- A person you share with can make their agent ask for your location. You approve each request, unless you chose Always allow for that person's agent. See [location sharing](location-sharing.md).
+- A person you share with can make their agent ask for your location. You approve each request, unless you chose Always allow for that person's agent. See [location sharing](location-sharing.md). The relay limits how often one agent can ask you ([rate limits](architecture.md#security)).
 
 ## What the database stores
 

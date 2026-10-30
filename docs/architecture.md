@@ -54,6 +54,7 @@ The relay turns each answer into a distinct agent-facing error. If the phone is 
 - **No location storage.** A fix lives in memory for one request. Nothing writes it to a database or a log.
 - **Hashed agent keys.** The database stores a hash of each agent key, never the plaintext. The plaintext is shown once. Algorithm and schema: [`supabase/migrations/`](../supabase/migrations).
 - **Row-level security.** Supabase RLS limits each user to their own agent keys. Writes go through functions.
+- **Rate limits.** Each locate request can alert the owner's phone. The relay limits locate requests per requester→owner pair and caps open requests per owner. Over a limit it answers 429 with `Retry-After`. Defaults and `WB_LOCATE_*` settings: [`locate_rate_limit.rs`](../server/src/locate_rate_limit.rs).
 - **TLS.** Clients reach the relay over HTTPS and WSS. The container host terminates TLS.
 - **No user-managed tokens.** Users never create or paste tokens. Agents sign in with OAuth. Agent keys remain a headless fallback; see [protocol](protocol.md#agent-keys-headless-fallback).
 
