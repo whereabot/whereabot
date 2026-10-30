@@ -1,0 +1,162 @@
+# PR preview of the landing page, docs and browser app (/app): one throwaway Worker per PR
+# ("whereabouts-pr-<N>" on workers.dev), wired to the dev Supabase and dev relay. Deleted when the PR closes.
+name: site-pr-preview
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - "site/**"
+      - "design-system/**"
+      - "docs/**"
+      - "docs-site/**"
+      - "server/src/mcp_location_tool.rs"
+      - "server/src/relay_wire_protocol.rs"
+      - "README.md"
+      - "app/src/**"
+      - "app/public/**"
+      - "app/index.html"
+      - "app/package*.json"
+      - "scripts/stage-site.sh"
+      - ".github/workflows/site-pr-preview.yml"
+permissions:
+  contents: read
+concurrency:
+  group: site-pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+env:
+  WORKER: whereabouts-pr-${{ github.event.pull_request.number }}
+  # Dev relay: infra/envs/dev/main.tf relay_public_url.
+  RELAY_URL: wss://whereabouts-relay-dev-yz6gmxu7na-ew.a.run.app
+  WRANGLER: wrangler@4.154.0
+jobs:
+  build:
+    # Fork and Dependabot PRs get no secrets: skip. Idle until SITE_PREVIEW=true (infra/README.md).
+    if: >-
+      github.event.action != 'closed' && vars.SITE_PREVIEW == 'true' &&
+      github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: "**/package-lock.json"
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: server
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      - name: Read the dev Supabase URL and anon key
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          : "${SUPABASE_PROJECT_REF:?set dev environment var SUPABASE_PROJECT_REF}"
+          key=$(supabase projects api-keys --project-ref "$SUPABASE_PROJECT_REF" -o json | jq -r '.[] | select(.name == "anon") | .api_key')
+          [ -n "$key" ] && [ "$key" != null ]
+          echo "::add-mask::$key"
+          { echo "SUPABASE_URL=https://${SUPABASE_PROJECT_REF}.supabase.co"; echo "SUPABASE_ANON_KEY=$key"; } >> "$GITHUB_ENV"
+      - name: Build the docs
+        working-directory: docs-site
+        run: npm ci && npm run build && test -f .vitepress/dist/index.html
+      - name: Build the browser app (dev Supabase and relay)
+        working-directory: app
+        run: |
+          set -euo pipefail
+          npm ci
+          VITE_SUPABASE_URL="$SUPABASE_URL" VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" VITE_RELAY_URL="$RELAY_URL" npm run build:web
+          test -f dist-web/index.html -a -f dist-web/sw.js -a -f dist-web/app.webmanifest
+      - name: Stage site
+        run: echo "STAGE=$(scripts/stage-site.sh)" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: site
+          path: ${{ env.STAGE }}/site
+          include-hidden-files: true
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # Scoped Cloudflare token for previews (infra/README.md).
+    environment: preview
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Download into a fresh empty dir (wrangler 4 publishes cwd otherwise)
+        run: echo "STAGE=$(mktemp -d)" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: site
+          path: ${{ env.STAGE }}/site
+      - name: Deploy the preview Worker
+        working-directory: ${{ env.STAGE }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          npx --yes "$WRANGLER" deploy --name "$WORKER" --assets ./site --compatibility-date 2026-10-01 2>&1 | tee "$RUNNER_TEMP/wrangler.log"
+          grep -E "Read [0-9]+ files? from the assets directory ${STAGE}/site" "$RUNNER_TEMP/wrangler.log"
+          url=$(grep -oE "https://${WORKER}\.[a-z0-9-]+\.workers\.dev" "$RUNNER_TEMP/wrangler.log" | head -1)
+          [ -n "$url" ]
+          echo "PREVIEW_URL=$url" >> "$GITHUB_ENV"
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          for p in / /docs/ /oauth/consent/ /app/ /app/sw.js; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --retry 10 --retry-delay 3 --retry-all-errors "$PREVIEW_URL$p")
+            echo "$p -> $code"; [ "$code" = 200 ]
+          done
+          curl -sI "$PREVIEW_URL/app/" | grep -iF "connect-src 'self' https://*.supabase.co $RELAY_URL;"
+      - name: Sticky PR comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          body="<!-- site-pr-preview -->
+          **Preview** (dev Supabase and dev relay) for ${SHA}: ${PREVIEW_URL}/ · [docs](${PREVIEW_URL}/docs/) · [app](${PREVIEW_URL}/app/)"
+          # Upsert the one comment that carries the marker.
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate --jq '.[] | select(.body | startswith("<!-- site-pr-preview -->")) | .id' | head -1)
+          if [ -n "$id" ]; then gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" >/dev/null
+          else gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -f body="$body" >/dev/null; fi
+
+  cleanup:
+    if: >-
+      github.event.action == 'closed' && vars.SITE_PREVIEW == 'true' &&
+      github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    environment: preview
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Delete the preview Worker
+        working-directory: ${{ runner.temp }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          out=$(npx --yes "$WRANGLER" delete --name "$WORKER" --force 2>&1) || {
+            echo "$out"
+            # Never deployed (PR touched no site paths before close): nothing to delete.
+            grep -qiE "not found|does not exist|10007" <<<"$out"
+          }
+          echo "$out"
+      - name: Update the sticky PR comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          body="<!-- site-pr-preview -->
+          Preview deleted (PR closed)."
+          # Upsert the one comment that carries the marker.
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate --jq '.[] | select(.body | startswith("<!-- site-pr-preview -->")) | .id' | head -1)
+          if [ -n "$id" ]; then gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" >/dev/null
+          else gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -f body="$body" >/dev/null; fi

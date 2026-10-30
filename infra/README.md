@@ -59,6 +59,13 @@ The [`site-cloudflare-deploy`](../.github/workflows/site-cloudflare-deploy.yml) 
 - The deploy attaches the custom domain whereabot.io to the Worker.
 - Break-glass: copy `site/` into an empty directory and deploy that copy with Wrangler, passing it explicitly as the assets path.
 
+### PR previews
+
+The [`site-pr-preview`](../.github/workflows/site-pr-preview.yml) workflow deploys each same-repo PR that touches the site, docs or app to a throwaway Worker `whereabouts-pr-<N>` on workers.dev. The preview uses the dev Supabase and the dev relay. The workflow comments the URL on the PR and deletes the Worker when the PR closes.
+
+- Setup (owner, once): register the account's workers.dev subdomain in the Cloudflare dashboard (Workers, onboarding). Create GitHub environment `preview` with secret `CLOUDFLARE_API_TOKEN`, scoped to Workers Scripts: Edit on that account only. Then set repo variable `SITE_PREVIEW` = `true`. Until then the workflow stays idle.
+- The build reads the dev Supabase project from environment `dev` (`SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN`).
+
 ## Release the iOS app
 
 The [`ios-testflight-release`](../.github/workflows/ios-testflight-release.yml) workflow builds, signs and uploads to TestFlight when an `app-vX.Y.Z` tag is pushed.
