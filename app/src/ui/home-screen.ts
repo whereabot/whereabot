@@ -12,23 +12,33 @@ async function showAccount() {
   $("onboarding").hidden = !data.session || localStorage.getItem(ONBOARDED) === "1";
 }
 
+async function copy(text: string, done: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    announce(done);
+  } catch {
+    announce("Copy failed. Select the text and copy it by hand.");
+  }
+}
+
 function initOnboarding() {
-  $("onb-done").addEventListener("click", () => {
-    localStorage.setItem(ONBOARDED, "1");
-    $("onboarding").hidden = true;
-  });
+  $("copy-prompt").addEventListener("click", () => void copy($("first-prompt").textContent ?? "", "Question copied"));
+  $("onb-done").addEventListener("click", () => ($("onboarding").hidden = true));
+}
+
+/** The first answered request ends onboarding: the card says it worked, and Done hides it. */
+export function showFirstAnswer() {
+  if ($("onboarding").hidden) return;
+  localStorage.setItem(ONBOARDED, "1");
+  $("onb-title").textContent = "It works";
+  $("onb-works").hidden = $("onb-done").hidden = false;
+  $("onb-steps").hidden = $("copy-prompt").hidden = true;
+  announce("It works. Your agent asked and you answered.");
 }
 
 function initHelp() {
   $("cmd-add").textContent = `claude mcp add --transport http whereabot ${mcpUrl}`;
-  $("copy-url").addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(mcpUrl);
-      announce("MCP URL copied");
-    } catch {
-      announce("Copy failed. Select the command and copy it by hand.");
-    }
-  });
+  $("copy-url").addEventListener("click", () => void copy(mcpUrl, "MCP URL copied"));
 }
 
 /** Android back button: history goes home, the request screen stays. Uses history entries, which the webview maps to back. */

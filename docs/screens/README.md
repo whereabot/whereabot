@@ -24,7 +24,7 @@ Layout audit across widths, dark mode and large text: `node scripts/screens/audi
 | [app-perm-location-mobile.png](app-perm-location-mobile.png) | First launch, step 1 of 2. Asks for location with one button. |
 | [app-perm-notifications-banner-mobile.png](app-perm-notifications-banner-mobile.png) | Notifications skipped. Home shows a banner with a Fix button. |
 | [app-perm-notifications-mobile.png](app-perm-notifications-mobile.png) | Step 2 of 2. Asks for notifications. Skip for now is allowed. |
-| [app-ping-answered-mobile.png](app-ping-answered-mobile.png) | A locate ping was answered. Shows the time of the reply. |
+| [app-ping-answered-mobile.png](app-ping-answered-mobile.png) | The first locate ping was answered. Get started turns into "It works" and shows the time of the reply. |
 | [app-relay-url-invalid-mobile.png](app-relay-url-invalid-mobile.png) | Relay URL is not secure. Connect is refused. |
 | [app-request-mobile.png](app-request-mobile.png) | An agent asks for the location. Three tiles: Reject, Allow, Always allow. |
 | [app-shared-request-mobile.png](app-shared-request-mobile.png) | A shared request: "Dana's agent Claude wants to know your location" with Reject, Allow, Always allow. |
