@@ -3,6 +3,7 @@
 //! Errors reach JS as "permission" or "no_fix" (app/src/macos-location.ts).
 
 use std::cell::RefCell;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Mutex, mpsc};
 use std::time::Duration;
 
@@ -15,12 +16,16 @@ use tauri::{AppHandle, Runtime};
 use crate::macos_location_delegate::{Answer, Delegate, Ivars, Op};
 use crate::macos_location_json::state;
 
+/// One in-flight request: its id, and the manager and delegate it must keep alive.
+type Active = (u64, Retained<CLLocationManager>, Retained<Delegate>);
+
 thread_local! {
     // CLLocationManager holds its delegate weakly: keep both alive until they answer.
-    static ACTIVE: RefCell<Vec<(Retained<CLLocationManager>, Retained<Delegate>)>> = const { RefCell::new(Vec::new()) };
+    static ACTIVE: RefCell<Vec<Active>> = const { RefCell::new(Vec::new()) };
 }
+static NEXT_ID: AtomicU64 = AtomicU64::new(0);
 
-fn start(mtm: MainThreadMarker, op: Op, tx: mpsc::Sender<Answer>) {
+fn start(mtm: MainThreadMarker, id: u64, op: Op, tx: mpsc::Sender<Answer>) {
     let manager = unsafe { CLLocationManager::new() };
     if op == Op::Check {
         let _ = tx.send(Ok(state(unsafe { manager.authorizationStatus() }).into()));
@@ -41,17 +46,22 @@ fn start(mtm: MainThreadMarker, op: Op, tx: mpsc::Sender<Answer>) {
         }
     }
     ACTIVE.with_borrow_mut(|a| {
-        a.retain(|(_, d)| d.pending());
-        a.push((manager, delegate));
+        a.retain(|(_, _, d)| d.pending());
+        a.push((id, manager, delegate));
     });
 }
 
 async fn ask<R: Runtime>(app: AppHandle<R>, op: Op, wait: Duration) -> Answer {
+    let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
     let (tx, rx) = mpsc::channel();
-    app.run_on_main_thread(move || start(MainThreadMarker::new().expect("main thread"), op, tx))
+    app.run_on_main_thread(move || start(MainThreadMarker::new().expect("main thread"), id, op, tx))
         .map_err(|e| e.to_string())?;
     let got = tauri::async_runtime::spawn_blocking(move || rx.recv_timeout(wait)).await;
-    got.map_err(|e| e.to_string())?.unwrap_or_else(|_| Err("no_fix".into()))
+    got.map_err(|e| e.to_string())?.unwrap_or_else(|_| {
+        // Timed out: release this manager and delegate now, not at the next call.
+        let _ = app.run_on_main_thread(move || ACTIVE.with_borrow_mut(|a| a.retain(|(i, _, _)| *i != id)));
+        Err("no_fix".into())
+    })
 }
 
 /// "granted", "denied" or "prompt". With `request`, shows the macOS prompt when not decided yet.
