@@ -5,7 +5,7 @@ use std::{sync::Arc, time::Duration};
 use axum::{
     Json,
     extract::{Query, State},
-    http::{HeaderMap, StatusCode},
+    http::{HeaderMap, StatusCode, header::RETRY_AFTER},
     response::{IntoResponse, Response},
 };
 use serde::Deserialize;
@@ -30,6 +30,11 @@ pub async fn locate(
     let timeout = Duration::from_secs(params.timeout_secs.unwrap_or(60).min(120));
     match locate_person(&state, &agent, params.person.as_deref(), timeout).await {
         Ok(location) => Json(location).into_response(),
-        Err(error) => (error.status(), error.message()).into_response(),
+        Err(error) => {
+            let retry = error
+                .retry_after_secs()
+                .map(|secs| [(RETRY_AFTER, secs.to_string())]);
+            (error.status(), retry, error.message()).into_response()
+        }
     }
 }

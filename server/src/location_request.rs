@@ -28,8 +28,20 @@ pub async fn request_location(
         .map_or(0, |since| since.as_millis() as u64);
     let id = Uuid::new_v4();
     let (tx, mut rx) = oneshot::channel();
-    // Keyed by the owner: only the owner's phones may answer.
-    state.pending.lock().await.insert(id, (owner, tx));
+    {
+        let mut pending = state.pending.lock().await;
+        // Checked under the lock so concurrent asks cannot pass the cap together.
+        if pending.values().filter(|(o, _)| *o == owner).count() >= state.locate_limiter.max_pending
+        {
+            return Err(LocateError::TooManyPending);
+        }
+        state
+            .locate_limiter
+            .check(agent.user_id, owner)
+            .map_err(LocateError::RateLimited)?;
+        // Keyed by the owner: only the owner's phones may answer.
+        pending.insert(id, (owner, tx));
+    }
     let connected = !state.devices.senders(owner).await.is_empty();
     let wake = location_request_wake::start(
         state.push.as_ref(),

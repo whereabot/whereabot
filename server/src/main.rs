@@ -5,7 +5,7 @@ use axum::{
 };
 use tokio::signal::unix::{SignalKind, signal};
 use tracing_subscriber::EnvFilter;
-use whereabouts_server::{Config, Shutdown, build};
+use whereabouts_server::{Config, LocateLimits, Shutdown, build};
 
 #[tokio::main]
 async fn main() {
@@ -26,6 +26,7 @@ async fn main() {
             .ok()
             .filter(|key| !key.is_empty()),
         supabase_url,
+        locate_limits: LocateLimits::from_env(),
     };
     let addr = bind_addr();
     let listener = tokio::net::TcpListener::bind(&addr).await.expect("bind");

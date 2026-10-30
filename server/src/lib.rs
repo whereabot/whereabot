@@ -13,6 +13,7 @@ mod background_answer_http;
 mod device_socket_session;
 mod devices;
 mod list_people_tool;
+mod locate_rate_limit;
 mod location_request;
 mod location_request_error;
 mod location_request_http;
@@ -25,24 +26,16 @@ mod relay_wire_protocol;
 mod shared_person_resolution;
 mod supabase_signing_keys;
 pub use authenticated_agent::Agent;
+pub use locate_rate_limit::LocateLimits;
 pub use mcp_location_tool::tool_list_json;
+mod relay_config;
+pub use relay_config::Config;
 pub use relay_wire_protocol::{FromDevice, ToDevice};
 mod graceful_shutdown;
 mod supabase_rest_client;
 pub use graceful_shutdown::Shutdown;
 use supabase_rest_client::Supabase;
 use supabase_signing_keys::JwksCache;
-
-pub struct Config {
-    pub supabase_url: String,
-    /// Expected `iss` claim, normally `${supabase_url}/auth/v1`.
-    pub issuer: String,
-    /// `WB_PUBLIC_URL`: base URL(s) of this relay, comma-separated; the first is canonical.
-    pub public_url: String,
-    /// Service role key. `Some` turns on the headless agent-key fallback.
-    pub agent_keys: Option<String>,
-    pub anon_key: Option<String>,
-}
 
 struct AppState {
     push: Option<Arc<push::Push>>,
@@ -54,6 +47,7 @@ struct AppState {
     anon_key: Option<String>,
     devices: devices::device_connection_registry::Registry,
     pending: Mutex<HashMap<Uuid, phone_message_handler::Waiter>>,
+    locate_limiter: locate_rate_limit::LocateLimiter,
 }
 
 pub fn app(config: Config) -> Router {
@@ -74,6 +68,7 @@ pub fn build(config: Config) -> (Router, Shutdown) {
         anon_key: config.anon_key,
         devices: devices::device_connection_registry::Registry::default(),
         pending: Mutex::default(),
+        locate_limiter: locate_rate_limit::LocateLimiter::new(config.locate_limits),
     });
     let router = Router::new()
         .route("/v1/locate", post(location_request_http::locate))
