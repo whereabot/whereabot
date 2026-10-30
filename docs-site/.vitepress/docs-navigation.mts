@@ -26,6 +26,7 @@ export const sidebar = [
       { text: 'Sharing: data and RLS', link: '/sharing' },
       { text: 'Privacy', link: '/privacy' },
       { text: 'Prior art', link: '/prior-art' },
+      { text: 'Listings', link: '/listings' },
       { text: 'Roadmap', link: '/roadmap' },
       { text: 'Contributing', link: '/contributing' },
     ],
