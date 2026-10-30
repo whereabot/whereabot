@@ -69,11 +69,14 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          RELAY_URL: ${{ vars.RELAY_URL }}
         run: |
           {
-            echo "VITE_SUPABASE_URL=${{ vars.SUPABASE_URL }}"
-            echo "VITE_SUPABASE_ANON_KEY=${{ vars.SUPABASE_ANON_KEY }}"
-            echo "VITE_RELAY_URL=${{ vars.RELAY_URL }}"
+            echo "VITE_SUPABASE_URL=$SUPABASE_URL"
+            echo "VITE_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY"
+            echo "VITE_RELAY_URL=$RELAY_URL"
           } > app/.env.production.local
           # The runner image ships the NDK; Tauri reads NDK_HOME.
           echo "NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
