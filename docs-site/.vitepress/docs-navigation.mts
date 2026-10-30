@@ -22,6 +22,7 @@ export const sidebar = [
       { text: 'Request flow', link: '/request-flow' },
       { text: 'Operations', link: '/operations' },
       { text: 'Always allow', link: '/always-allow' },
+      { text: 'Privacy', link: '/privacy' },
       { text: 'Prior art', link: '/prior-art' },
       { text: 'Roadmap', link: '/roadmap' },
       { text: 'Contributing', link: '/contributing' },

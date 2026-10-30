@@ -35,7 +35,7 @@ sequenceDiagram
     R->>A: Location answer
 ```
 
-The relay keeps one phone connection per user. If the user has no connected phone, the agent gets an offline answer. Status codes and message shapes: [protocol.md](protocol.md).
+The relay keeps one connection per device, and a user can have several devices. If the user has no connected device, the agent gets an offline answer. Status codes and message shapes: [protocol.md](protocol.md).
 
 ## Consent on the phone
 
@@ -61,7 +61,7 @@ The relay turns each answer into a distinct agent-facing error. If the phone is 
 
 - **One relay instance.** Phone connections live in memory, so the relay runs as exactly one instance.
 - **Answers need a tap,** except for always-allowed agents: those get a silent push and the phone answers on its own ([Always allow](always-allow.md)). iOS skips silent pushes for a force-quit app and throttles them, so a "checking" alert with Share is the fallback. Apple's location push entitlement (`com.apple.developer.location.push`) would remove that gap. Not requested.
-- **One phone per user.** A new phone connection replaces the old one. See [protocol](protocol.md#phone-to-relay).
+- **Several devices per user.** A new connection replaces only the device with the same `device_id`. See [protocol](protocol.md#phone-to-relay).
 - **Timeouts.** Ping waits are bounded. See [protocol](protocol.md#http-post-v1locate).
 
 ## Push wake-up

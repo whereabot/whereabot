@@ -1,0 +1,18 @@
+name: Private contact request
+description: Ask a maintainer to contact you privately, for an account deletion or a security report when the Security tab has no report button.
+title: "Private contact request"
+labels: ["private-contact"]
+body:
+  - type: markdown
+    attributes:
+      value: Do not write personal data, location data or vulnerability details here. A maintainer contacts you privately.
+  - type: dropdown
+    id: reason
+    attributes:
+      label: Reason
+      options:
+        - Delete my account on the hosted service
+        - Security report
+        - Other privacy request
+    validations:
+      required: true

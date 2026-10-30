@@ -12,7 +12,7 @@ Layout audit across widths, dark mode and large text: `node scripts/screens/audi
 | [app-connection-lost-mobile.png](app-connection-lost-mobile.png) | The socket closed. Status shows a retry. |
 | [app-devices-empty-mobile.png](app-devices-empty-mobile.png) | Devices page with no devices yet. |
 | [app-devices-error-mobile.png](app-devices-error-mobile.png) | Devices could not be loaded. Shows the reason and Try again. |
-| [app-devices-mobile.png](app-devices-mobile.png) | Devices page: this phone online, others with last seen, a Computer coming soon row and the add-a-phone hint. |
+| [app-devices-mobile.png](app-devices-mobile.png) | Devices page: this phone online, others with last seen, each tagged App, Web app (PWA) or Browser, a Computer coming soon row and the add-a-phone hint. |
 | [app-devices-old-install-mobile.png](app-devices-old-install-mobile.png) | The same iPhone listed twice after a reinstall: the older row shows Last seen 3 days ago and a hint to remove it. |
 | [app-devices-remove-mobile.png](app-devices-remove-mobile.png) | Removing another device asks for confirmation first. |
 | [app-devices-rename-mobile.png](app-devices-rename-mobile.png) | Renaming a device inline: a name field with Save and Cancel. |
@@ -27,6 +27,13 @@ Layout audit across widths, dark mode and large text: `node scripts/screens/audi
 | [app-ping-answered-mobile.png](app-ping-answered-mobile.png) | A locate ping was answered. Shows the time of the reply. |
 | [app-relay-url-invalid-mobile.png](app-relay-url-invalid-mobile.png) | Relay URL is not secure. Connect is refused. |
 | [app-request-mobile.png](app-request-mobile.png) | An agent asks for the location. Three tiles: Reject, Allow, Always allow. |
+| [app-shared-request-mobile.png](app-shared-request-mobile.png) | A shared request: "Dana's agent Claude wants to know your location" with Reject, Allow, Always allow. |
+| [app-sharing-empty-mobile.png](app-sharing-empty-mobile.png) | Sharing with nobody and nobody sharing: both lists explain themselves. |
+| [app-sharing-error-mobile.png](app-sharing-error-mobile.png) | Sharing lists could not load. Shows the reason and Try again. |
+| [app-sharing-invalid-email-mobile.png](app-sharing-invalid-email-mobile.png) | A malformed email is refused with a plain message and no network call. |
+| [app-sharing-loading-mobile.png](app-sharing-loading-mobile.png) | Sharing while the lists load. |
+| [app-sharing-mobile.png](app-sharing-mobile.png) | Sharing: email field, people I share with (one not signed in yet), people sharing with me. |
+| [app-sharing-stop-mobile.png](app-sharing-stop-mobile.png) | Stop sharing asks for confirmation first. |
 | [app-signed-out-mobile.png](app-signed-out-mobile.png) | Signed out. Shows the Google sign-in button. |
 | [consent-approving-desktop.png](consent-approving-desktop.png) | Approve pressed. Both buttons are disabled while the answer is sent. (desktop) |
 | [consent-approving-mobile.png](consent-approving-mobile.png) | Approve pressed. Both buttons are disabled while the answer is sent. (mobile) |
