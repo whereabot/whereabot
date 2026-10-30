@@ -1,11 +1,9 @@
-use std::{collections::HashMap, sync::Arc};
+use std::sync::{Arc, Mutex};
 
 use axum::{
     Router,
     routing::{any, get, post},
 };
-use tokio::sync::Mutex;
-use uuid::Uuid;
 mod agent_bearer_auth;
 mod agent_token_verification;
 mod authenticated_agent;
@@ -20,6 +18,7 @@ mod location_request_http;
 mod location_target;
 mod mcp_location_tool;
 mod oauth_protected_resource_metadata;
+mod pending_location_requests;
 mod phone_message_handler;
 pub mod push;
 mod relay_wire_protocol;
@@ -46,7 +45,7 @@ struct AppState {
     supabase_url: String,
     anon_key: Option<String>,
     devices: devices::device_connection_registry::Registry,
-    pending: Mutex<HashMap<Uuid, phone_message_handler::Waiter>>,
+    pending: Mutex<pending_location_requests::Pending>,
     locate_limiter: locate_rate_limit::LocateLimiter,
 }
 

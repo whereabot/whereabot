@@ -1,10 +1,11 @@
 mod common;
 
 use common::{
-    fake_phone::connect_silent_phone,
     fake_supabase::{USER_A, USER_B},
     locate_limit_fixtures::limits,
-    locate_once, spawn_with,
+    locate_once,
+    mcp_client::{call_location, rpc},
+    spawn_with,
 };
 
 #[tokio::test]
@@ -30,21 +31,24 @@ async fn locate_over_the_rate_gets_429_with_retry_after() {
 }
 
 #[tokio::test]
-async fn pending_requests_per_owner_are_capped() {
-    let relay = spawn_with(false, limits(1, 10, 1)).await;
+async fn mcp_tool_over_the_rate_returns_error_with_wait() {
+    let relay = spawn_with(false, limits(1, 1, 10)).await;
     let http = reqwest::Client::new();
     let token = relay.mcp(USER_A);
-    let _silent = connect_silent_phone(&relay.addr, &relay.phone(USER_A)).await;
-    tokio::time::sleep(std::time::Duration::from_millis(200)).await;
-    let first = tokio::spawn({
-        let (http, addr, token) = (http.clone(), relay.addr.clone(), token.clone());
-        async move { locate_once(&http, &addr, &token).await.status() }
-    });
-    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
-    let res = locate_once(&http, &relay.addr, &token).await;
-    assert_eq!(res.status(), 429);
-    assert!(res.headers().contains_key("retry-after"));
-    // The silent phone never answers: the first request times out (504), then the slot frees.
-    assert_eq!(first.await.unwrap(), 504);
-    assert_eq!(locate_once(&http, &relay.addr, &token).await.status(), 504);
+    let first = rpc(&http, &relay.addr, &token, call_location(1)).await;
+    assert_eq!(first["result"]["isError"], true);
+    assert!(
+        !first["result"]["content"][0]["text"]
+            .as_str()
+            .unwrap()
+            .contains("Too many")
+    );
+    let limited = rpc(&http, &relay.addr, &token, call_location(2)).await;
+    assert_eq!(limited["result"]["isError"], true);
+    let text = limited["result"]["content"][0]["text"].as_str().unwrap();
+    assert!(
+        text.starts_with("Too many location requests. Wait "),
+        "{text}"
+    );
+    assert!(text.ends_with(" seconds before asking again."), "{text}");
 }
