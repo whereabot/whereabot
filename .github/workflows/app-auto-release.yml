@@ -1,0 +1,65 @@
+# Every merge to main that touches app/ ships the app: bump the patch version, tag app-vX.Y.Z,
+# then call the store release workflows. The tag push uses GITHUB_TOKEN, so it triggers nothing
+# itself and the bump commit cannot re-run this workflow; workflow_call starts the releases.
+name: app-auto-release
+on:
+  push:
+    branches: [main]
+    paths: ["app/**", "!app/**/*.md"]
+  workflow_dispatch:
+concurrency:
+  group: app-auto-release
+  cancel-in-progress: false
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+  tag:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: { ref: "${{ github.sha }}", fetch-depth: 0 } # the commit CI just tested
+      - name: Bump the patch version unless the current version is still untagged
+        id: tag
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898+github-actions[bot]@users.noreply.github.com"
+          notes=$(git log -1 --format=%s "$GITHUB_SHA") # What's New for TestFlight
+          cur=$(jq -r .version app/src-tauri/tauri.conf.json)
+          # A merged manual bump (scripts/release-app-version.sh) is released as is.
+          if git rev-parse -q --verify "refs/tags/app-v$cur" >/dev/null; then
+            v="${cur%.*}.$(( ${cur##*.} + 1 ))"
+            scripts/release-app-version.sh "$v"
+            git commit -qam "App $v: automatic release"
+            # Never rebase onto untested commits: a newer push releases them in its own run.
+            git push origin HEAD:main || {
+              echo "::error::main moved past the tested commit $GITHUB_SHA; the next app merge releases it"
+              exit 1
+            }
+          else
+            v="$cur"
+          fi
+          git tag -a "app-v$v" -m "$notes"
+          git push origin "app-v$v"
+          echo "tag=app-v$v" >> "$GITHUB_OUTPUT"
+  ios:
+    needs: tag
+    uses: ./.github/workflows/ios-testflight-release.yml
+    with:
+      tag: ${{ needs.tag.outputs.tag }}
+    secrets: inherit
+    permissions:
+      contents: read
+  android:
+    needs: tag
+    uses: ./.github/workflows/android-play-release.yml
+    with:
+      tag: ${{ needs.tag.outputs.tag }}
+    secrets: inherit
+    permissions:
+      contents: read
