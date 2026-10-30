@@ -30,23 +30,20 @@ Each line links the PR or file that owns the details.
 
 ## Now
 
-- **GitHub Actions billing.** Billing can block hosted CI and deploys. Fix it so they run.
-- **Android push (FCM).** The Android app answers only while open. It needs `google-services.json`, the gms plugin and an FCM sender in the relay.
-- **Delete account in the app.** Today deletion needs a request to the operator. See [privacy](privacy.md#retention-and-deletion).
-- **MCP rate limit.** The MCP path of [#28](https://github.com/whereabot/whereabot/pull/28) has no own test. `/mcp` calls that send no push have no limit.
 - **App CSP.** The Tauri app sets `csp: null`. See [tauri.conf.json](../app/src-tauri/tauri.conf.json).
-- **Two same-size phones on one account.** They can share one device row. See [reinstall-device-match.ts](../app/src/devices/reinstall-device-match.ts).
+- **Pause sharing.** One switch in the app that declines every request until you turn it back on.
 - **Keystore storage on Android.** Move the Supabase session from `localStorage` to the Android Keystore.
-- **Connected agents list.** Show granted agents in the app, with a revoke button.
-- **PR previews setup.** [#16](https://github.com/whereabot/whereabot/pull/16) needs the Cloudflare `workers.dev` setup.
-- **Screenshots.** Refresh [docs/screens](screens/README.md) to match the current app.
 
 ## Next
 
+- **End-to-end encryption.** Encrypt the fix on the phone with a key the relay never sees.
 - **Remove device ends its session.** Today the removed device stays signed in.
-- **Store listings.** App Store and Google Play listings, and store links on the site, are not live.
+- **Two same-size phones on one account.** They can share one device row. See [reinstall-device-match.ts](../app/src/devices/reinstall-device-match.ts).
 
 ## Later
 
-- **End-to-end encryption.** Encrypt the fix on the phone with a key the relay never sees.
-- **Pause sharing.** One switch in the app that declines every request until you turn it back on.
+- **MCP rate limit.** The MCP path of [#28](https://github.com/whereabot/whereabot/pull/28) has no own test. `/mcp` calls that send no push have no limit.
+- **Delete account in the app.** Today deletion needs a request to the operator. See [privacy](privacy.md#retention-and-deletion).
+- **Connected agents list.** Show granted agents in the app, with a revoke button.
+- **Android push (FCM).** The Android app answers only while open. It needs `google-services.json`, the gms plugin and an FCM sender in the relay.
+- **Store listings.** App Store and Google Play listings, and store links on the site, are not live.
