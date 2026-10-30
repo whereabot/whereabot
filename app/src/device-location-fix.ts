@@ -1,4 +1,4 @@
-import { inTauri } from "./tauri-runtime";
+import { mobileShell } from "./tauri-runtime";
 import { getBrowserFix } from "./browser-location-fix";
 import { checkPermissions, clearWatch, getCurrentPosition, watchPosition, type Position } from "@tauri-apps/plugin-geolocation";
 
@@ -14,7 +14,7 @@ const MAX_WAIT_MS = 10_000;
  * so watch for up to 10 s and keep the most accurate reading instead of the first one.
  */
 export async function getFix(): Promise<Fix> {
-  if (!inTauri) return getBrowserFix();
+  if (!mobileShell) return getBrowserFix();
   try {
     const perms = await checkPermissions();
     if (perms.location !== "granted") return { fail: "permission" };

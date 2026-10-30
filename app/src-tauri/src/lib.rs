@@ -1,6 +1,16 @@
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    // Desktop: the OAuth callback opens a second instance on Windows and Linux.
+    // This forwards its whereabouts:// URL to the running one (deep-link feature). Must be first.
+    #[cfg(desktop)]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        use tauri::Manager;
+        if let Some(w) = app.get_webview_window("main") {
+            let _ = w.set_focus();
+        }
+    }));
+    builder
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_websocket::init())
@@ -8,6 +18,12 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_mobile_push::init())
         .plugin(tauri_plugin_background_answer::init())
+        // Desktop uses the webview's navigator.geolocation (the plugin is a stub there).
+        // WebKitGTK denies it unless allowed here; the in-app approve step is the consent.
+        .on_permission_request(|_, kind| match kind {
+            tauri::webview::PermissionKind::Geolocation => tauri::webview::PermissionResponse::Allow,
+            _ => tauri::webview::PermissionResponse::Default,
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
