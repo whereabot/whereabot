@@ -5,7 +5,7 @@
 set -euo pipefail
 export PATH="$HOME/.local/bin:$PATH"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-/Users/ofek/dev/.cargo-target/whereabouts-server}"
+export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$HOME/.cargo-target/whereabouts-server}"
 ENV_FILE="$ROOT/server/.env.local"
 BIN="$CARGO_TARGET_DIR/debug/whereabouts-server"
 WB_PORT="${WB_PORT:-8787}"
