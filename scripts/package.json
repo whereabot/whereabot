@@ -1,6 +1,7 @@
 {
   "name": "whereabot-brand-tooling",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Pinned tools for scripts/generate-brand-assets.mjs",
   "devDependencies": {

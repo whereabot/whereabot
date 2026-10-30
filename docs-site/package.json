@@ -1,6 +1,7 @@
 {
   "name": "whereabot-docs-site",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "stage": "node scripts/stage-docs-source.mjs",

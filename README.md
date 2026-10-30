@@ -79,4 +79,4 @@ Relay URLs: [live URLs](infra/README.md#live-urls). The tool and its arguments: 
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). Third-party material: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
