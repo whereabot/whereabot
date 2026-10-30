@@ -1,20 +1,22 @@
 name: ci
 # workflow_call: deploy, migrations and site-cloudflare-deploy run this first and deploy only if it passes.
 on: [push, pull_request, workflow_call]
+permissions:
+  contents: read
 jobs:
   server:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: server } }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test --locked
   app:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: app } }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with: { node-version: 24 }
       - run: npm ci
       - run: npx tsc --noEmit
@@ -26,8 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     env: { NODE_PATH: /tmp/pw/node_modules }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with: { node-version: 24 }
       - run: npm ci
         working-directory: app
@@ -39,19 +41,19 @@ jobs:
         env: { VITE_SUPABASE_URL: "https://fake-project.supabase.co", VITE_SUPABASE_ANON_KEY: fake-anon-key, VITE_RELAY_URL: "wss://relay.invalid" }
       - run: node scripts/pwa-install-smoke.mjs
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with: { name: no-scroll-screens, path: "${{ runner.temp }}/no-scroll" }
   linecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - run: cargo install linecheck --locked --version 1.2.1
       - run: linecheck .
   brand-assets-up-to-date:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with: { node-version: 24 }
       - run: npm ci
         working-directory: scripts
