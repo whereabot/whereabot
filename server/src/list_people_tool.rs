@@ -13,6 +13,15 @@ use crate::{Agent, mcp_location_tool::Whereabouts, shared_person_resolution};
 impl Whereabouts {
     #[tool(
         name = "list_people_sharing_with_me",
+        title = "List people sharing with me",
+        // Reads Whereabot's own sharing table: no side effects, closed world.
+        annotations(
+            title = "List people sharing with me",
+            read_only_hint = true,
+            destructive_hint = false,
+            idempotent_hint = true,
+            open_world_hint = false
+        ),
         description = "List the people who share their location with you: display_name and email. Pass either as `person` to get_phone_location."
     )]
     async fn list_people_sharing_with_me(

@@ -16,6 +16,7 @@ mod location_request;
 mod location_request_error;
 mod location_request_http;
 mod location_target;
+mod mcp_http_route;
 mod mcp_location_tool;
 mod oauth_protected_resource_metadata;
 mod pending_location_requests;
@@ -84,7 +85,7 @@ pub fn build(config: Config) -> (Router, Shutdown) {
             "/.well-known/oauth-protected-resource/mcp",
             get(oauth_protected_resource_metadata::metadata),
         )
-        .nest("/mcp", mcp_location_tool::router(state.clone()))
+        .nest("/mcp", mcp_http_route::router(state.clone()))
         .with_state(state.clone());
     (router, Shutdown(state))
 }

@@ -1,18 +1,15 @@
 use std::{sync::Arc, time::Duration};
 
-use axum::{Router, http::request::Parts, middleware};
+use axum::http::request::Parts;
 use rmcp::{
     ServerHandler,
     handler::server::{router::tool::ToolRouter, tool::Extension, wrapper::Parameters},
     model::{CallToolResult, ContentBlock, ServerCapabilities, ServerConfig},
     schemars, tool, tool_handler, tool_router,
-    transport::streamable_http_server::{
-        StreamableHttpServerConfig, StreamableHttpService, session::local::LocalSessionManager,
-    },
 };
 use serde::Deserialize;
 
-use crate::{Agent, AppState, agent_bearer_auth, location_target::locate_person};
+use crate::{Agent, AppState, location_target::locate_person};
 
 #[derive(Deserialize, schemars::JsonSchema)]
 struct LocationParams {
@@ -36,6 +33,15 @@ pub struct Whereabouts {
 impl Whereabouts {
     #[tool(
         name = "get_phone_location",
+        title = "Get phone location",
+        // Reads only, but every call pings a person's phone again: not idempotent, open world.
+        annotations(
+            title = "Get phone location",
+            read_only_hint = true,
+            destructive_hint = false,
+            idempotent_hint = false,
+            open_world_hint = true
+        ),
         description = "Ping the user's phone and return its current GPS location (latitude, longitude, accuracy in meters, capture time). Use when you need to know where the user is right now. Pass `person` to locate someone who shares their location with the user."
     )]
     async fn get_phone_location(
@@ -71,29 +77,4 @@ impl ServerHandler for Whereabouts {
 /// Tool list as the MCP `tools/list` reply carries it. The docs build prints this.
 pub fn tool_list_json() -> serde_json::Value {
     serde_json::to_value(Whereabouts::tools().list_all()).expect("tools serialize")
-}
-
-pub fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
-    let factory_state = state.clone();
-    // Stateless JSON responses: each POST stands alone, so no session header is needed.
-    // Host validation is off because the bearer token already gates the route.
-    let config = StreamableHttpServerConfig::default()
-        .with_legacy_session_mode(false)
-        .with_json_response(true)
-        .disable_allowed_hosts();
-    let service = StreamableHttpService::new(
-        move || {
-            Ok(Whereabouts {
-                state: factory_state.clone(),
-            })
-        },
-        Arc::new(LocalSessionManager::default()),
-        config,
-    );
-    Router::new()
-        .route_service("/", service)
-        .layer(middleware::from_fn_with_state(
-            state,
-            agent_bearer_auth::authorize,
-        ))
 }
