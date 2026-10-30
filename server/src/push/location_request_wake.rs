@@ -18,21 +18,31 @@ pub struct Request {
     pub shared: Option<(Uuid, Requester)>,
 }
 
-/// Starts the wake-up push for one request. Abort the handle when the request ends.
+/// The running wake-up push. Dropping it aborts the push, so a request that ends,
+/// or whose caller hangs up, sends nothing more.
+pub struct WakeTask(JoinHandle<()>);
+
+impl Drop for WakeTask {
+    fn drop(&mut self) {
+        self.0.abort();
+    }
+}
+
+/// Starts the wake-up push for one request. Keep the task while the request is open.
 /// None when push is off or the caller has no user JWT (agent keys).
 pub fn start(
     push: Option<&Arc<Push>>,
     bearer: Option<&str>,
     phone_connected: bool,
     request: Request,
-) -> Option<JoinHandle<()>> {
+) -> Option<WakeTask> {
     let (push, bearer) = (Arc::clone(push?), bearer?.to_owned());
     let delay = if phone_connected {
         GRACE
     } else {
         Duration::ZERO
     };
-    Some(tokio::spawn(async move {
+    Some(WakeTask(tokio::spawn(async move {
         let alert = Alert {
             request_id: request.id,
             client_id: &request.client_id,
@@ -41,7 +51,7 @@ pub fn start(
             requester: request.shared.as_ref().map(|(_, requester)| requester),
         };
         push.wake_after(delay, &bearer, &alert).await;
-    }))
+    })))
 }
 
 #[cfg(test)]
@@ -63,8 +73,18 @@ mod tests {
         let push = Arc::new(push);
         assert!(start(None, Some("jwt"), false, request()).is_none());
         assert!(start(Some(&push), None, false, request()).is_none());
-        let task = start(Some(&push), Some("jwt"), false, request());
-        task.unwrap().await.unwrap();
+        let mut task = start(Some(&push), Some("jwt"), false, request()).unwrap();
+        (&mut task.0).await.unwrap();
         assert!(!fake.pushes.lock().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn dropping_the_task_during_the_grace_sends_no_push() {
+        let (push, fake) = super::super::fake_apns_and_postgrest::start().await;
+        let push = Arc::new(push);
+        // Phone connected: the push waits GRACE. The caller hangs up before that.
+        drop(start(Some(&push), Some("jwt"), true, request()));
+        tokio::time::sleep(GRACE + Duration::from_millis(500)).await;
+        assert!(fake.pushes.lock().unwrap().is_empty());
     }
 }

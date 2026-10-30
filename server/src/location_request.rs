@@ -1,6 +1,6 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use tokio::{sync::oneshot, task::JoinHandle};
+use tokio::sync::oneshot;
 use uuid::Uuid;
 
 use crate::{
@@ -80,7 +80,7 @@ pub async fn request_location(
         }
     };
     drop(_slot);
-    wake.inspect(JoinHandle::abort);
+    drop(wake);
     fanout.cancel_others(&state.devices, winner).await;
     result
 }
