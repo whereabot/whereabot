@@ -41,6 +41,10 @@ export function installTauri(cfg) {
   // The notification plugin reads window.Notification first.
   window.Notification = { permission: (cfg.notifications ?? 'granted') === 'granted' ? 'granted' : 'default', requestPermission: async () => 'default' };
   window.isTauri = true; // app/src/tauri-runtime.ts: take the native code paths
+  // Play the phone app: desktop Tauri uses the browser location path (mobileShell). A Mac user
+  // agent with touch points reads as iPadOS: mobile shell, but no iPhone-only background step.
+  Object.defineProperty(navigator, 'userAgent', { get: () => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)' });
+  Object.defineProperty(navigator, 'maxTouchPoints', { get: () => 5 });
   window.__TAURI_INTERNALS__ = {
     metadata: { currentWindow: { label: 'main' }, currentWebview: { windowLabel: 'main', label: 'main' } },
     transformCallback(cb) {
