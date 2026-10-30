@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use axum::http::StatusCode;
 
 use crate::relay_wire_protocol::{DeniedReason, UnavailableReason};
@@ -19,6 +21,10 @@ pub enum LocateError {
         person: String,
         matches: Vec<String>,
     },
+    /// The requester asked this owner too often; holds the wait.
+    RateLimited(Duration),
+    /// The owner already has the maximum number of open requests.
+    TooManyPending,
 }
 
 impl LocateError {
@@ -31,6 +37,17 @@ impl LocateError {
             Self::Unavailable(_) => StatusCode::FAILED_DEPENDENCY,
             Self::NotShared(_) => StatusCode::NOT_FOUND,
             Self::Ambiguous { .. } => StatusCode::CONFLICT,
+            Self::RateLimited(_) | Self::TooManyPending => StatusCode::TOO_MANY_REQUESTS,
+        }
+    }
+
+    /// Seconds for the `Retry-After` header of a 429.
+    pub fn retry_after_secs(&self) -> Option<u64> {
+        match self {
+            Self::RateLimited(wait) => Some(wait.as_secs_f64().ceil().max(1.0) as u64),
+            // An open request ends within its timeout; a short wait is a fair guess.
+            Self::TooManyPending => Some(10),
+            _ => None,
         }
     }
 
@@ -64,6 +81,10 @@ impl LocateError {
             Self::Ambiguous { person, matches } => format!(
                 "More than one person named {person} shares their location with you: {}. Ask again with their email.",
                 matches.join(", ")
+            ),
+            Self::RateLimited(_) | Self::TooManyPending => format!(
+                "Too many location requests. Wait {} seconds before asking again.",
+                self.retry_after_secs().unwrap_or(10)
             ),
         }
     }

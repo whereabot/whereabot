@@ -6,6 +6,7 @@ pub mod fake_location_shares;
 pub mod fake_phone;
 pub mod fake_supabase;
 pub mod locate_http_client;
+pub mod locate_limit_fixtures;
 pub mod mcp_client;
 pub mod scripted_fake_phone;
 pub mod sharing_mcp_client;
@@ -20,7 +21,7 @@ use std::sync::{
 };
 
 use tokio::net::TcpListener;
-use whereabouts_server::{Config, Shutdown, build};
+use whereabouts_server::{Config, LocateLimits, Shutdown, build};
 
 /// Canonical host first; `old.relay.test` stands for a legacy host still accepted.
 pub const PUBLIC_URL: &str = "https://relay.test,https://old.relay.test";
@@ -68,6 +69,11 @@ pub async fn start_relay() -> Relay {
 
 /// Starts a relay with `WB_AGENT_KEYS` on.
 pub async fn spawn(agent_keys: bool) -> Relay {
+    spawn_with(agent_keys, locate_limit_fixtures::LOOSE).await
+}
+
+/// Starts a relay with the given locate limits.
+pub async fn spawn_with(agent_keys: bool, locate_limits: LocateLimits) -> Relay {
     let fake = fake_supabase::start().await;
     let issuer = format!("{}/auth/v1", fake.url);
     let config = Config {
@@ -76,6 +82,7 @@ pub async fn spawn(agent_keys: bool) -> Relay {
         public_url: PUBLIC_URL.into(),
         agent_keys: agent_keys.then(|| fake_supabase::SERVICE_KEY.into()),
         anon_key: None,
+        locate_limits,
     };
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap().to_string();

@@ -2,7 +2,7 @@ use tokio::sync::oneshot;
 use uuid::Uuid;
 
 use crate::{
-    AppState,
+    AppState, pending_location_requests,
     relay_wire_protocol::{Answer, FromDevice},
 };
 
@@ -72,13 +72,13 @@ pub async fn settle(
     id: Uuid,
     answer: Answer,
 ) -> Settled {
-    let mut pending = state.pending.lock().await;
-    match pending.get(&id) {
+    let mut pending = pending_location_requests::lock(state);
+    match pending.waiters.get(&id) {
         None => return Settled::Gone,
         Some((owner, _)) if *owner != user_id => return Settled::OtherUser,
         Some(_) => {}
     }
-    let Some((_, waiter)) = pending.remove(&id) else {
+    let Some((_, waiter)) = pending.waiters.remove(&id) else {
         return Settled::Gone;
     };
     match waiter.send((device, answer)) {

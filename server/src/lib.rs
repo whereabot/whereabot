@@ -1,11 +1,9 @@
-use std::{collections::HashMap, sync::Arc};
+use std::sync::{Arc, Mutex};
 
 use axum::{
     Router,
     routing::{any, get, post},
 };
-use tokio::sync::Mutex;
-use uuid::Uuid;
 mod agent_bearer_auth;
 mod agent_token_verification;
 mod authenticated_agent;
@@ -13,36 +11,30 @@ mod background_answer_http;
 mod device_socket_session;
 mod devices;
 mod list_people_tool;
+mod locate_rate_limit;
 mod location_request;
 mod location_request_error;
 mod location_request_http;
 mod location_target;
 mod mcp_location_tool;
 mod oauth_protected_resource_metadata;
+mod pending_location_requests;
 mod phone_message_handler;
 pub mod push;
 mod relay_wire_protocol;
 mod shared_person_resolution;
 mod supabase_signing_keys;
 pub use authenticated_agent::Agent;
+pub use locate_rate_limit::LocateLimits;
 pub use mcp_location_tool::tool_list_json;
+mod relay_config;
+pub use relay_config::Config;
 pub use relay_wire_protocol::{FromDevice, ToDevice};
 mod graceful_shutdown;
 mod supabase_rest_client;
 pub use graceful_shutdown::Shutdown;
 use supabase_rest_client::Supabase;
 use supabase_signing_keys::JwksCache;
-
-pub struct Config {
-    pub supabase_url: String,
-    /// Expected `iss` claim, normally `${supabase_url}/auth/v1`.
-    pub issuer: String,
-    /// `WB_PUBLIC_URL`: base URL(s) of this relay, comma-separated; the first is canonical.
-    pub public_url: String,
-    /// Service role key. `Some` turns on the headless agent-key fallback.
-    pub agent_keys: Option<String>,
-    pub anon_key: Option<String>,
-}
 
 struct AppState {
     push: Option<Arc<push::Push>>,
@@ -53,7 +45,8 @@ struct AppState {
     supabase_url: String,
     anon_key: Option<String>,
     devices: devices::device_connection_registry::Registry,
-    pending: Mutex<HashMap<Uuid, phone_message_handler::Waiter>>,
+    pending: Mutex<pending_location_requests::Pending>,
+    locate_limiter: locate_rate_limit::LocateLimiter,
 }
 
 pub fn app(config: Config) -> Router {
@@ -74,6 +67,7 @@ pub fn build(config: Config) -> (Router, Shutdown) {
         anon_key: config.anon_key,
         devices: devices::device_connection_registry::Registry::default(),
         pending: Mutex::default(),
+        locate_limiter: locate_rate_limit::LocateLimiter::new(config.locate_limits),
     });
     let router = Router::new()
         .route("/v1/locate", post(location_request_http::locate))

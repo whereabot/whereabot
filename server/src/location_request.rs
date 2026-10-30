@@ -1,6 +1,6 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use tokio::{sync::oneshot, task::JoinHandle};
+use tokio::sync::oneshot;
 use uuid::Uuid;
 
 use crate::{
@@ -8,6 +8,7 @@ use crate::{
     devices::location_request_fanout::Fanout,
     location_request_error::LocateError,
     location_target::Target,
+    pending_location_requests::PendingSlot,
     push::location_request_wake::{self, Request},
     relay_wire_protocol::{Answer, DeniedReason, Location},
 };
@@ -28,8 +29,8 @@ pub async fn request_location(
         .map_or(0, |since| since.as_millis() as u64);
     let id = Uuid::new_v4();
     let (tx, mut rx) = oneshot::channel();
-    // Keyed by the owner: only the owner's phones may answer.
-    state.pending.lock().await.insert(id, (owner, tx));
+    // Keyed by the owner: only the owner's phones may answer. Dropped on every exit.
+    let _slot = PendingSlot::open(state, agent.user_id, id, (owner, tx))?;
     let connected = !state.devices.senders(owner).await.is_empty();
     let wake = location_request_wake::start(
         state.push.as_ref(),
@@ -78,8 +79,8 @@ pub async fn request_location(
             };
         }
     };
-    state.pending.lock().await.remove(&id);
-    wake.inspect(JoinHandle::abort);
+    drop(_slot);
+    drop(wake);
     fanout.cancel_others(&state.devices, winner).await;
     result
 }
