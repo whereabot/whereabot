@@ -8,7 +8,7 @@ Whereabot handles live location. Report a vulnerability privately. Never open a 
 2. Describe the issue, the affected component (relay, app, database, site) and the steps to reproduce.
 3. Do not include real location data or other people's accounts in the report.
 
-If the Security tab has no report button, open an issue that asks for a private contact and contains no details.
+If the Security tab has no report button, open a [private contact request](https://github.com/whereabot/whereabot/issues/new?template=private-contact.yml) that contains no details.
 
 ## What happens next
 

@@ -32,7 +32,7 @@ The relay logs operational events: user id, device id and name, app version, req
 
 - Rows stay until you remove them in the app or delete your account. Removing a device, revoking a share or revoking an agent key marks the row as revoked.
 - Deleting the Supabase user deletes their devices, push tokens, always-allowed agents, agent keys and the shares they own (`on delete cascade`).
-- Self-service account deletion in the app is not built yet ([roadmap](roadmap.md)). On the hosted service, ask for deletion through a GitHub issue that contains no personal data. A maintainer follows up privately.
+- Self-service account deletion in the app is not built yet ([roadmap](roadmap.md)). On the hosted service, open a [private contact request](https://github.com/whereabot/whereabot/issues/new?template=private-contact.yml) that contains no personal data. A maintainer follows up privately.
 
 ## Services involved
 
