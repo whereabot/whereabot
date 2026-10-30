@@ -22,6 +22,8 @@ export const sidebar = [
       { text: 'Request flow', link: '/request-flow' },
       { text: 'Operations', link: '/operations' },
       { text: 'Always allow', link: '/always-allow' },
+      { text: 'Location sharing', link: '/location-sharing' },
+      { text: 'Sharing: data and RLS', link: '/sharing' },
       { text: 'Privacy', link: '/privacy' },
       { text: 'Prior art', link: '/prior-art' },
       { text: 'Roadmap', link: '/roadmap' },

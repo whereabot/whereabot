@@ -23,7 +23,7 @@ flowchart TD
     SILENT -->|app woke| AUTO_BG["Native code reads one fix<br/>and posts it"]
     AUTO_BG --> CHECKED(["Notification:<br/>'X checked your location'<br/>tap opens History"])
     CHECKED --> FIX
-    SILENT -->|"no answer in ~8 s<br/>(force-quit, Low Power)"| CHECKING(["Notification:<br/>'X is checking your location'<br/>Share"])
+    SILENT -->|"no answer in the silent window<br/>(force-quit, Low Power)"| CHECKING(["Notification:<br/>'X is checking your location'<br/>Share"])
     CHECKING -->|Share| GETFIX
 
     ALERT -->|Allow / Always allow| GETFIX
@@ -38,7 +38,7 @@ flowchart TD
 
     %% --- Reading the location ---
     GETFIX{{Phone: location permission?}} -->|"off / denied"| PERM
-    GETFIX -->|granted| READ["Watch up to 10 s,<br/>keep best fix, stop at ≤30 m"]
+    GETFIX -->|granted| READ["Watch briefly,<br/>keep best fix, stop when precise"]
     READ -->|got a fix| FIX
     READ -->|nothing| NOFIX
 
@@ -49,11 +49,13 @@ flowchart TD
     PERM[/"[A] 'Location access is off for Whereabot…' (424)"/]
     NOFIX[/"[A] 'The phone could not get a location fix.' (424)"/]
     TIMEOUT[/"[A] 'The phone did not answer in time.' (504)"/]
-    R -->|"no device within 60 s<br/>and no push answer"| OFFLINE[/"[A] 'The user's phone is not connected…' (503)"/]
+    R -->|"no device before the timeout<br/>and no push answer"| OFFLINE[/"[A] 'The user's phone is not connected…' (503)"/]
 
     %% --- Other phones of the same user ---
     FIX & DENIED --> CANCEL(["Other phones: prompt closes,<br/>history 'Answered on another device'"])
 ```
+
+Timings live in code: the [silent window](../server/src/push/mod.rs), the [fix watch](../app/src/device-location-fix.ts) and the [locate timeout](../server/src/location_request_http.rs).
 
 ## Notifications at a glance
 

@@ -1,6 +1,6 @@
 # Location sharing between people
 
-A person (the owner) shares their location with someone else's email in the app. That person's agent (the requester's agent) can then ask for the owner's location. The owner's phone asks, or answers on its own when the owner chose Always allow for that requester. Wire basics: [protocol](protocol.md). States: [request flow](request-flow.md#shared-requests).
+A person (the owner) shares their location with someone else's email in the app. That person's agent (the requester's agent) can then ask for the owner's location. The owner's phone asks, or answers on its own when the owner chose Always allow for that requester. Wire basics: [protocol](protocol.md). Tables, row-level security and RPCs: [data and RLS](sharing.md). States: [request flow](request-flow.md#shared-requests).
 
 ## Agent surface
 
@@ -27,9 +27,8 @@ The relay reads `location_shares` with the agent's own user JWT: `select=owner_u
 
 - **Fan-out** goes to the owner's devices. Only the owner's phones can answer: the waiting request is keyed by the owner.
 - **Ping:** `locate` gains `requester: {user_id, name, email}`. It is `null` for the owner's own agent. `name` is the requester's `user_metadata.full_name` or `name` from their token, else their email.
-- **Push tokens:** the requester's JWT cannot read the owner's `push_tokens`. The relay calls RPC `share_target_push_tokens(p_owner)`. It returns the owner's iOS tokens only while an active share to the caller exists. The relay does not delete dead owner tokens from a shared request; the owner's own requests do that.
-- **Always allow:** RPC `is_always_allowed_for_requester(p_owner, p_client_id)` checks the share, then a row (owner, client_id, requester_user_id = caller). The owner's own lookup now filters `requester_user_id=is.null`, so a requester's row never trusts the owner's own agent.
-- Both RPCs are security definer, for `authenticated` only: [`supabase/migrations/`](../supabase/migrations).
+- **Push tokens:** the requester's JWT cannot read the owner's `push_tokens`. The relay calls RPC `share_target_push_tokens` instead ([data and RLS](sharing.md)). The relay does not delete dead owner tokens from a shared request; the owner's own requests do that.
+- **Always allow:** RPC `is_always_allowed_for_requester` checks the share and the requester's row. The owner's own lookup now filters `requester_user_id=is.null`, so a requester's row never trusts the owner's own agent.
 
 ## Push copy (owner's phone)
 
@@ -40,7 +39,7 @@ Every push body also carries `requester` (same object, or `null`).
 | Not always allowed | `REQUESTER's agent AGENT wants to know your location` (`REQUESTER's agent wants…` without a name) | `LOCATION_REQUEST` |
 | Always allowed, silent push gets no answer | `REQUESTER's agent AGENT is checking your location` | `LOCATION_AUTO` |
 
-Always allow on a shared request writes `always_allowed_agents.requester_user_id` = the requester.
+Always allow on a shared request stores the requester with the agent: see [data and RLS](sharing.md#tables).
 
 ## Tests
 

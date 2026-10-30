@@ -9,13 +9,13 @@ The code is the source of truth. This page explains intent. Exact shapes live in
 
 ## Agent to relay
 
-Target: OAuth 2.1, as in the MCP authorization spec. The MCP client signs in through the browser and sends a short-lived access token as a bearer token. Not live yet: see [roadmap](roadmap.md). The relay also accepts agent keys as a headless fallback (below).
+OAuth 2.1, as in the MCP authorization spec. The MCP client signs in through the browser and sends a short-lived access token as a bearer token ([`server/src/agent_bearer_auth.rs`](../server/src/agent_bearer_auth.rs)). The relay also accepts agent keys as a headless fallback (below).
 
 Every agent call sends a bearer credential: `Authorization: Bearer <token>`. An unknown, expired or revoked credential gets `401`.
 
 ### HTTP: `POST /v1/locate`
 
-Pings the user's phone and waits for the fix. Query: `timeout_secs`, default 60, capped at 120. Non-200 bodies are the agent text in the table.
+Pings the user's phone and waits for the fix. Query: `timeout_secs`, with a default and a cap ([`location_request_http.rs`](../server/src/location_request_http.rs)). Non-200 bodies are the agent text in the table.
 
 | Status | Meaning | Agent text |
 |--------|---------|------------|
@@ -36,7 +36,7 @@ Check the fix time. An OS can return a cached position. The fix carries the phon
 
 Streamable HTTP, with JSON responses and no session. The same bearer header gates it.
 
-- Tools: `get_phone_location` (optional `timeout_secs`, 1 to 120, default 60; optional `person`) and `list_people_sharing_with_me`. `person` locates someone who shares with the user: see [location sharing](location-sharing.md).
+- Tools: `get_phone_location` (optional `timeout_secs`, bounded as in [`mcp_location_tool.rs`](../server/src/mcp_location_tool.rs); optional `person`) and `list_people_sharing_with_me`. `person` locates someone who shares with the user: see [location sharing](location-sharing.md).
 - A fix returns as text: the JSON location.
 - Every other outcome returns a tool error with the agent text above. The HTTP status stays `200`.
 - A bad credential returns `401` before any tool runs.
@@ -66,21 +66,21 @@ A user can have several devices connected at once, each named by its `device_id`
 
 ## Devices
 
-Each install has a stable random `device_id` (uuid, kept across sign-out; on iOS in the Keychain, so it survives reinstall). It is the primary key of the `devices` table ([migration](../supabase/migrations/20261028030000_devices.sql)); the app inserts its own row on first connect, then refreshes `last_seen_at` every 60 s while connected. A device counts as online when `last_seen_at` is under 90 s old. Rename and Remove (sets `revoked_at`) are plain updates under row-level security.
+Each install has a stable random `device_id` (uuid, kept across sign-out; on iOS in the Keychain, so it survives reinstall). It is the primary key of the `devices` table ([migration](../supabase/migrations/20261028030000_devices.sql)); the app inserts its own row on first connect, then refreshes `last_seen_at` while connected ([heartbeat](../app/src/devices/device-presence-heartbeat.ts)). A device counts as online while `last_seen_at` is recent ([`device-online-status.ts`](../app/src/devices/device-online-status.ts)). Rename and Remove (sets `revoked_at`) are plain updates under row-level security.
 
 - **Fan-out:** a locate request goes to every connected device of the user, and to each device that connects before it expires. The first answer (`location`, `denied` or `unavailable`) settles it. The relay then sends `{"type":"cancel","id"}` to every other device that got the ping; the app closes that prompt and records "answered on another device". The relay also sends `cancel` when the request times out. Offline (`503`) means no device is connected.
-- **Revocation:** on `hello` the relay reads the device row with the phone's own bearer (PostgREST, `apikey` = `SUPABASE_ANON_KEY` when set). If `revoked_at` is set, it closes the socket with Close `4000 "revoked"`. The app then forgets its `device_id` and signs out. An unreachable Supabase counts as not revoked. A device removed while connected is closed at its next connect (or when its own heartbeat sees the row).
+- **Revocation:** on `hello` the relay reads the device row with the phone's own bearer (PostgREST, with the anon key when set: [`main.rs`](../server/src/main.rs)). If `revoked_at` is set, it closes the socket with Close `4000 "revoked"`. The app then forgets its `device_id` and signs out. An unreachable Supabase counts as not revoked. A device removed while connected is closed at its next connect (or when its own heartbeat sees the row).
 
 ## Push wake-up
 
-iOS suspends the app in the background, so a waiting request needs a nudge. When a request starts and no phone answers within about 2 s (or none is connected), the relay sends one APNs alert push per request to each token in `push_tokens`. Retries and reconnect resends send no more pushes. An always-allowed agent gets a silent push instead, and a "checking" alert only if that gets no answer: see [Always allow](always-allow.md#what-the-relay-sends).
+iOS suspends the app in the background, so a waiting request needs a nudge. When a request starts and no phone answers within a short grace period ([`GRACE`](../server/src/push/location_request_wake.rs)), or none is connected,, the relay sends one APNs alert push per request to each token in `push_tokens`. Retries and reconnect resends send no more pushes. An always-allowed agent gets a silent push instead, and a "checking" alert only if that gets no answer: see [Always allow](always-allow.md#what-the-relay-sends).
 
 - **Alert** (other agents): title `Whereabot`, body `Your agent NAME wants to know your location` (or `An agent wants to know your location` when the name lookup fails), sound default, `thread-id`, and `category` `LOCATION_REQUEST`. Custom keys: `request_id`, `client_id`, `agent_name`, `expires_ms`, `requester` (same meaning as in `locate`; shared-request copy: [location sharing](location-sharing.md#push-copy-owners-phone)). `apns-push-type` is `alert`, priority `10`, and `apns-expiration` is the request deadline. Shape: [`server/src/push/apns_sender.rs`](../server/src/push/apns_sender.rs).
 - **Name:** the relay reads the user's OAuth grants (`GET /auth/v1/user/oauth/grants`) with the agent's user JWT and takes the client name, as the app does.
 - **Actions:** the app registers the `LOCATION_REQUEST` category with Reject, Allow and Always allow. None opens the app: the phone answers in the background with `POST /v1/device/answer` (below). See [architecture](architecture.md#background-answer).
 - **Tap:** opens the app. The app reconnects on return to the foreground, and the relay resends the waiting `locate` to the new socket. The app needs no handling for `request_id`.
 - **Tokens:** the relay reads them with the agent's own user JWT (RLS limits it to that user's rows). It deletes a token when APNs answers `410` or `BadDeviceToken`.
-- **Off:** without the `APNS_*` settings the relay sends no APNs push; without `VAPID_PRIVATE_KEY` it sends no Web Push to browsers ([request flow](request-flow.md#notifications-at-a-glance)). Each logs once.
+- **Off:** without the APNs settings the relay sends no APNs push, and without the VAPID key it sends no Web Push to browsers ([`push_config.rs`](../server/src/push/push_config.rs)) ([request flow](request-flow.md#notifications-at-a-glance)). Each logs once.
 
 ## Phone to relay over HTTP: `POST /v1/device/answer`
 
