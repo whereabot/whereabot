@@ -1,0 +1,27 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.whereabot/whereabot",
+  "title": "Whereabot",
+  "description": "Ask the user's phone where they are now. The phone answers each request with consent.",
+  "version": "0.1.0",
+  "websiteUrl": "https://whereabot.io/?ref=mcp-registry",
+  "repository": {
+    "url": "https://github.com/whereabot/whereabot",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://whereabot.io/icon-512.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://relay.whereabot.io/mcp"
+    }
+  ]
+}

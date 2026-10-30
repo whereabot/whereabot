@@ -60,6 +60,7 @@ All docs, with the generated MCP and wire references: [whereabot.io/docs](https:
 - [Privacy](docs/privacy.md): what is stored, retention, who sees your location
 - [Operations](docs/operations.md) and [infrastructure](infra/README.md): how it runs, deploys and releases
 - [Prior art](docs/prior-art.md) and [roadmap](docs/roadmap.md)
+- [Listings](docs/listings.md): MCP directories, `server.json`, how to publish
 
 ## Community
 
