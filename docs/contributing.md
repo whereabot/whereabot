@@ -38,11 +38,11 @@
 
 ## Adding a migration
 
-1. Add a new SQL file under `supabase/migrations/`. Never edit a migration that already reached `main`.
+1. Add a new SQL file under `supabase/migrations/`. Never edit a migration that already reached `dev`.
 2. Add or update the pgTAP test under `supabase/tests/`.
 3. Test locally. Run `scripts/dev-up.sh` in one terminal. It resets the local database to the migrations. In a second terminal, run `supabase test db`, then `scripts/e2e-local.sh`.
-4. Open a PR and merge it to `main`.
-5. The `migrations` workflow applies the change to dev first, then production. Check that run. Never run `supabase db push` by hand.
+4. Open a PR and merge it to `dev`. The `migrations` workflow applies it to dev. Check that run.
+5. The promotion PR to `main` applies it to production ([branches](operations.md#delivery-is-gitops)). Never run `supabase db push` by hand.
 
 Workflow details: [infra/README.md](../infra/README.md#migrations).
 

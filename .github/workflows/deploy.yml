@@ -1,8 +1,8 @@
-# GitOps for the relay: full CI, build once, apply dev, then apply prod (approval gate).
+# GitOps for the relay: full CI, build once, apply the branch's environment (map: docs/operations.md#delivery-is-gitops).
 name: deploy
 on:
   push:
-    branches: [main]
+    branches: [dev, main]
     paths: ["server/**", "infra/**"]
   workflow_dispatch:
     inputs:
@@ -13,8 +13,8 @@ permissions:
   contents: read
   id-token: write
 env:
-  REGISTRY: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT }}
-  TAG: ${{ inputs.image_sha || github.sha }}
+  # The image job builds it; tofu reads it as var.image. Registry names: infra/modules/whereabouts/registry.tf.
+  TF_VAR_image: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT }}/${{ github.ref_name == 'main' && 'whereabouts-prod' || 'whereabouts' }}/relay:${{ inputs.image_sha || github.sha }}
 jobs:
   ci:
     # Full CI on this commit; a rollback skips it (the image was tested when it was built).
@@ -31,48 +31,19 @@ jobs:
         with:
           workload_identity_provider: ${{ vars.WIF_PROVIDER }}
           service_account: ${{ vars.DEPLOYER_SA }}
-      - run: gcloud auth configure-docker "${REGISTRY%%/*}" --quiet
-      # One build, two tags: dev and prod repos (names: infra/modules/whereabouts/registry.tf).
-      - run: >
-          docker build --platform linux/amd64
-          -t "$REGISTRY/whereabouts/relay:$TAG"
-          -t "$REGISTRY/whereabouts-prod/relay:$TAG" server
-      - run: |
-          docker push "$REGISTRY/whereabouts/relay:$TAG"
-          docker push "$REGISTRY/whereabouts-prod/relay:$TAG"
-  dev:
+      - run: gcloud auth configure-docker "${TF_VAR_image%%/*}" --quiet
+      - run: docker build --platform linux/amd64 -t "$TF_VAR_image" server
+      - run: docker push "$TF_VAR_image"
+  apply:
     needs: [ci, image]
     # Run when ci and image were skipped (rollback); never when either failed.
     if: ${{ !cancelled() && !failure() && vars.WIF_PROVIDER != '' }}
     runs-on: ubuntu-latest
-    environment: dev
-    concurrency: { group: deploy-dev, cancel-in-progress: false }
+    # The environment's deployment branch policy rejects any other branch.
+    environment: ${{ github.ref_name == 'main' && 'production' || 'dev' }}
+    concurrency: { group: "deploy-${{ github.ref_name }}", cancel-in-progress: false }
     env:
-      TF_DIR: infra/envs/dev
-      TF_VAR_image: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT }}/whereabouts/relay:${{ inputs.image_sha || github.sha }}
-      TF_VAR_gcp_project: ${{ vars.GCP_PROJECT }}
-      TF_VAR_supabase_organization_id: ${{ vars.SUPABASE_ORGANIZATION_ID }}
-      TF_VAR_google_client_id: ${{ vars.GOOGLE_CLIENT_ID }}
-      TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
-        with:
-          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
-          service_account: ${{ vars.DEPLOYER_SA }}
-      - uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
-      - run: tofu -chdir="$TF_DIR" init -input=false
-      - run: tofu -chdir="$TF_DIR" plan -input=false -out=tfplan
-      - run: tofu -chdir="$TF_DIR" apply -input=false tfplan
-  prod:
-    needs: dev
-    runs-on: ubuntu-latest
-    environment: production
-    concurrency: { group: deploy-prod, cancel-in-progress: false }
-    env:
-      TF_DIR: infra/envs/prod
-      TF_VAR_image: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT }}/whereabouts-prod/relay:${{ inputs.image_sha || github.sha }}
+      TF_DIR: infra/envs/${{ github.ref_name == 'main' && 'prod' || 'dev' }}
       TF_VAR_gcp_project: ${{ vars.GCP_PROJECT }}
       TF_VAR_supabase_organization_id: ${{ vars.SUPABASE_ORGANIZATION_ID }}
       TF_VAR_google_client_id: ${{ vars.GOOGLE_CLIENT_ID }}

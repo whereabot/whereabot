@@ -4,16 +4,23 @@ How Whereabot runs in production, and the traps we already hit. The step-by-step
 
 ## Delivery is GitOps
 
-Every change reaches dev and prod through a workflow on `main`. Nobody deploys from a laptop except as break-glass.
+Every change reaches an environment through a workflow on its branch. Nobody deploys from a laptop except as break-glass.
+
+| Branch | GitHub environment | Gets changes by |
+|--------|--------------------|-----------------|
+| `dev` (default branch, PR target) | `dev` | merging a PR |
+| `main` | `production` (required reviewers) | merging the promotion PR `dev` → `main` |
+
+This table is the only home of the branch-to-environment map. Each environment's deployment branch policy allows only its branch, so a run from any other ref stops before it deploys. PR previews use environment `preview`. Production only gets commits that already ran in dev. [`promote-dev.yml`](../.github/workflows/promote-dev.yml) keeps one promotion PR open after every push to `dev`. Merge it with a merge commit, never squash: a squash commit on `main` is missing from `dev`, and the branches drift apart. The app release bump commit lands on `main`; [`app-auto-release.yml`](../.github/workflows/app-auto-release.yml) then merges `main` back into `dev`.
 
 | What | Workflow | Trigger |
 |------|----------|---------|
 | Tests, lint, line cap | [`ci.yml`](../.github/workflows/ci.yml) | every PR and push |
-| Database migrations | [`migrations.yml`](../.github/workflows/migrations.yml) | push to `main`: dev, then production |
-| Relay + Supabase config | [`deploy.yml`](../.github/workflows/deploy.yml) | push to `main`: test, image, dev, then production after approval |
-| Landing page and docs | [`site-cloudflare-deploy.yml`](../.github/workflows/site-cloudflare-deploy.yml) | push to `main` |
-| iOS app to TestFlight, then App Store review when variable `APP_STORE_SUBMIT` is `true` | [`ios-testflight-release.yml`](../.github/workflows/ios-testflight-release.yml) | tag `app-vX.Y.Z` |
-| Android app to Google Play internal testing | [`android-play-release.yml`](../.github/workflows/android-play-release.yml) | tag `app-vX.Y.Z`; called by other workflows only when variable `ANDROID_RELEASE` is `true` |
+| Database migrations | [`migrations.yml`](../.github/workflows/migrations.yml) | push to `dev` or `main`: CI, then that branch's environment |
+| Relay + Supabase config | [`deploy.yml`](../.github/workflows/deploy.yml) | push to `dev` or `main`: CI, image, then that branch's environment |
+| Landing page, docs and browser app | [`site-cloudflare-deploy.yml`](../.github/workflows/site-cloudflare-deploy.yml) | push to `dev` or `main`: CI, then that branch's Worker |
+| iOS app to TestFlight, then App Store review when variable `APP_STORE_SUBMIT` is `true` | [`ios-testflight-release.yml`](../.github/workflows/ios-testflight-release.yml) | tag `app-vX.Y.Z` on a commit in `main` |
+| Android app to Google Play internal testing | [`android-play-release.yml`](../.github/workflows/android-play-release.yml) | tag `app-vX.Y.Z` on a commit in `main`; called by other workflows only when variable `ANDROID_RELEASE` is `true` |
 
 Migrations and deploys are separate workflows with no ordering between them. Keep that in mind for the next section.
 
@@ -21,7 +28,7 @@ Migrations and deploys are separate workflows with no ordering between them. Kee
 
 The Supabase auth config (for example an auth hook) is applied by `deploy.yml`. The Postgres function it points at is created by `migrations.yml`. If both land in one push, the config can reach an environment before the function exists, and the apply fails.
 
-1. First push: the migration only.
+1. First push: the migration only. Promote it to `main` on its own, too: one promotion that carries both is one push to production.
 2. Check that `migrations.yml` applied it in dev and production.
 3. Second push: the config in [`supabase.tf`](../infra/modules/whereabouts/supabase.tf) that uses it.
 
