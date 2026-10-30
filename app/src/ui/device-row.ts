@@ -72,7 +72,7 @@ export function deviceRow(d: Device, isThis: boolean, act: RowActions, oldInstal
 function oldInstallHint(d: Device, act: RowActions) {
   const hint = el("div", "device-hint");
   hint.append(
-    el("span", "device-meta", "Looks like an old install of this phone. Remove it?"),
+    el("span", "device-meta", "Looks like an old install of this device. Remove it?"),
     button("Remove", `Remove old install of ${d.name}`, () => act.onRemove(d)),
   );
   return hint;

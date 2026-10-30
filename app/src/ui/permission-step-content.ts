@@ -1,7 +1,8 @@
 import { checkPermissions, requestPermissions } from "@tauri-apps/plugin-geolocation";
 import { notificationsGranted, requestNotificationPermission } from "../local-notification";
 import { browserLocationPermission, requestBrowserLocation } from "../browser-location-fix";
-import { inTauri } from "../tauri-runtime";
+import { macShell, mobileShell } from "../tauri-runtime";
+import { macLocationPermission } from "../macos-location";
 import { backgroundAnswerSupported, locationAuthorization, requestAlwaysLocation } from "../background-answer-bridge";
 
 export type Step = "location" | "background" | "notifications";
@@ -46,7 +47,11 @@ export const COPY = {
 export async function permState(step: Step): Promise<Perm> {
   try {
     if (step === "location") {
-      const s = inTauri ? (await checkPermissions()).location : await browserLocationPermission();
+      const s = macShell
+        ? await macLocationPermission(false)
+        : mobileShell
+          ? (await checkPermissions()).location
+          : await browserLocationPermission();
       return s === "granted" || s === "denied" ? s : "prompt";
     }
     if (step === "background") {
@@ -65,7 +70,7 @@ export async function permState(step: Step): Promise<Perm> {
 
 export async function askPermission(step: Step) {
   try {
-    if (step === "location") await (inTauri ? requestPermissions(["location"]) : requestBrowserLocation());
+    if (step === "location") await (macShell ? macLocationPermission(true) : mobileShell ? requestPermissions(["location"]) : requestBrowserLocation());
     else if (step === "background") {
       localStorage.setItem(ASKED_ALWAYS, "1");
       await requestAlwaysLocation();

@@ -31,7 +31,7 @@ export function confirmRemove(name: string, isThis: boolean): Promise<boolean> {
   const { dialog, title, text } = (parts ??= build());
   title.textContent = `Remove ${name}?`;
   text.textContent = isThis
-    ? "You will be signed out on this phone. Sign in again to add it back."
+    ? "You will be signed out on this device. Sign in again to add it back."
     : "It stops answering location requests and is signed out. Sign in on it again to add it back.";
   return new Promise((resolve) => {
     dialog.addEventListener("close", () => resolve(dialog.returnValue === "remove"), { once: true });

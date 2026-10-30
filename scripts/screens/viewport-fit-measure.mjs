@@ -5,7 +5,9 @@ export const FIT_VIEWPORTS = [
   ...PHONES.map(([width, height]) => ({ name: `${width}x${height}`, width, height })),
   ...PHONES.map(([height, width]) => ({ name: `${width}x${height}`, width, height })), // landscape
   { name: '768x1024', width: 768, height: 1024 },
+  { name: '800x600', width: 800, height: 600 }, // desktop app window default (tauri.conf.json)
   { name: '1280x800', width: 1280, height: 800 },
+  { name: '1920x1080', width: 1920, height: 1080 },
 ];
 
 /** Runs in the page. Returns problems: the page scrolls, or a visible element pokes out sideways. */
