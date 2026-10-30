@@ -40,6 +40,10 @@
     "iOS": {
       "developmentTeam": "V72CW46B5V"
     },
+    "macOS": {
+      "infoPlist": "Info.macos.plist",
+      "entitlements": "Entitlements.macos.plist"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

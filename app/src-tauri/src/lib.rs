@@ -1,3 +1,10 @@
+#[cfg(target_os = "macos")]
+mod macos_location;
+#[cfg(target_os = "macos")]
+mod macos_location_delegate;
+#[cfg(target_os = "macos")]
+mod macos_location_json;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default();
@@ -10,6 +17,12 @@ pub fn run() {
             let _ = w.set_focus();
         }
     }));
+    // Mac: CoreLocation, since neither the plugin nor WKWebView gives a fix there.
+    #[cfg(target_os = "macos")]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        macos_location::macos_location,
+        macos_location::macos_location_permission
+    ]);
     builder
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())

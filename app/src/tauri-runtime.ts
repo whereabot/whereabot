@@ -10,3 +10,6 @@ const ua = navigator.userAgent;
  * iPadOS reports a Mac user agent; touch points tell them apart.
  */
 export const mobileShell = inTauri && (/iPhone|iPad|iPod|Android/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1));
+
+/** Tauri on a Mac: CoreLocation commands (macos-location.ts), since WKWebView denies navigator.geolocation. */
+export const macShell = inTauri && !mobileShell && /Macintosh/.test(ua);
