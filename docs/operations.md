@@ -12,7 +12,7 @@ Every change reaches dev and prod through a workflow on `main`. Nobody deploys f
 | Database migrations | [`migrations.yml`](../.github/workflows/migrations.yml) | push to `main`: dev, then production |
 | Relay + Supabase config | [`deploy.yml`](../.github/workflows/deploy.yml) | push to `main`: test, image, dev, then production after approval |
 | Landing page and docs | [`site-cloudflare-deploy.yml`](../.github/workflows/site-cloudflare-deploy.yml) | push to `main` |
-| iOS app to TestFlight | [`ios-testflight-release.yml`](../.github/workflows/ios-testflight-release.yml) | tag `app-vX.Y.Z` |
+| iOS app to TestFlight, then App Store review when variable `APP_STORE_SUBMIT` is `true` | [`ios-testflight-release.yml`](../.github/workflows/ios-testflight-release.yml) | tag `app-vX.Y.Z` |
 | Android app to Google Play internal testing | [`android-play-release.yml`](../.github/workflows/android-play-release.yml) | tag `app-vX.Y.Z`; called by other workflows only when variable `ANDROID_RELEASE` is `true` |
 
 Migrations and deploys are separate workflows with no ordering between them. Keep that in mind for the next section.

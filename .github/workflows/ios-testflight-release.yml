@@ -1,20 +1,41 @@
 # Deploy only: tag app-vX.Y.Z builds the iOS app and uploads it to TestFlight. Tests run locally.
+# App Store review with automatic release runs only when opted in (see the submit step).
 # Release steps: scripts/release-app-version.sh. One-time setup: environment "testflight".
+# Turn submission on: repo variable APP_STORE_SUBMIT=true, or input submit_for_review=true.
 name: ios-testflight-release
 on:
   push:
     tags: ["app-v*"]
   workflow_dispatch: # run it on an app-v* tag ref
+    inputs:
+      submit_for_review: { type: boolean, default: false, description: "Submit to App Store review after upload" }
+  workflow_call: # called by the auto-release workflow with secrets: inherit
+    inputs:
+      tag: { type: string, required: true, description: "app-vX.Y.Z tag to build" }
+      submit_for_review: { type: boolean, default: false }
 permissions:
   contents: read
 concurrency:
   group: ios-testflight
   cancel-in-progress: false
 jobs:
+  # A job-level if cannot read environment variables, so this gate reads them and skips green when unset.
+  config:
+    runs-on: ubuntu-latest
+    environment: testflight
+    outputs: { ready: "${{ steps.c.outputs.ready }}" }
+    steps:
+      - id: c
+        env: { ASC_KEY_ID: "${{ vars.ASC_KEY_ID }}" }
+        run: |
+          if [[ -n "$ASC_KEY_ID" ]]; then echo "ready=true" >> "$GITHUB_OUTPUT"
+          else echo "::notice::App Store Connect not configured (environment testflight, ASC_KEY_ID): skipping"; fi
   testflight:
+    needs: config
+    if: needs.config.outputs.ready == 'true'
     # macos-26 ships Xcode 26.6 (iOS 26 SDK); App Store Connect requires the iOS 26 SDK.
     runs-on: macos-26
-    timeout-minutes: 60
+    timeout-minutes: 120 # build, then Apple processing before review submission
     environment: testflight
     defaults: { run: { shell: bash } }
     env:
@@ -23,12 +44,14 @@ jobs:
       APPLE_API_KEY: ${{ vars.ASC_KEY_ID }}
       APPLE_API_ISSUER: ${{ vars.ASC_ISSUER_ID }}
       IPA: app/src-tauri/gen/apple/build/arm64/Whereabot.ipa
+      TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: { ref: "${{ inputs.tag || github.ref }}" }
       - name: Tag version must equal the three manifests
         run: |
-          [[ "$GITHUB_REF" == refs/tags/app-v* ]] || { echo "::error::run on an app-v* tag"; exit 1; }
-          want="${GITHUB_REF_NAME#app-v}"
+          [[ "$TAG" == app-v* && "$(git cat-file -t "refs/tags/$TAG")" =~ ^(tag|commit)$ ]] || { echo "::error::run on an app-v* tag, got '$TAG'"; exit 1; }
+          want="${TAG#app-v}"
           got=(
             "$(jq -r .version app/package.json)"
             "$(jq -r .version app/src-tauri/tauri.conf.json)"
@@ -44,16 +67,19 @@ jobs:
         working-directory: app
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
         with: { targets: aarch64-apple-ios }
-      - uses: Swatinem/rust-cache@8cbdedb5103daa674dcf46d3590fe06a76645684 # v2.8.0
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with: { workspaces: app/src-tauri }
       - name: Write public build config and the App Store Connect key
         env:
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          RELAY_URL: ${{ vars.RELAY_URL }}
         run: |
           {
-            echo "VITE_SUPABASE_URL=${{ vars.SUPABASE_URL }}"
-            echo "VITE_SUPABASE_ANON_KEY=${{ vars.SUPABASE_ANON_KEY }}"
-            echo "VITE_RELAY_URL=${{ vars.RELAY_URL }}"
+            echo "VITE_SUPABASE_URL=$SUPABASE_URL"
+            echo "VITE_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY"
+            echo "VITE_RELAY_URL=$RELAY_URL"
           } > app/.env.production.local
           # altool reads AuthKey_<id>.p8 from API_PRIVATE_KEYS_DIR; Tauri reads APPLE_API_KEY_PATH.
           key="$RUNNER_TEMP/asc/AuthKey_$APPLE_API_KEY.p8"
@@ -72,7 +98,7 @@ jobs:
           aps=$(/usr/libexec/PlistBuddy -c "Print :aps-environment" "$d/ent.plist")
           ver=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "${app[0]}/Info.plist")
           [[ "$aps" == production ]] || { echo "::error::aps-environment is '$aps'"; exit 1; }
-          [[ "$ver" == "${GITHUB_REF_NAME#app-v}" ]] || { echo "::error::CFBundleVersion is '$ver'"; exit 1; }
+          [[ "$ver" == "${TAG#app-v}" ]] || { echo "::error::CFBundleVersion is '$ver'"; exit 1; }
       - name: Upload to TestFlight
         run: |
           set -o pipefail
@@ -83,6 +109,32 @@ jobs:
             fi
             exit 1
           fi
+      # deliver waits for Apple to process the build, then submits it; Info.ios.plist answers export compliance.
+      - name: Submit for App Store review with automatic release
+        # Opt-in: default is TestFlight only.
+        if: inputs.submit_for_review == true || vars.APP_STORE_SUBMIT == 'true'
+        run: |
+          v="${TAG#app-v}"
+          jq -n --arg k "$APPLE_API_KEY" --arg i "$APPLE_API_ISSUER" --arg p "$APPLE_API_KEY_PATH" \
+            '{key_id: $k, issuer_id: $i, key_filepath: $p}' > "$RUNNER_TEMP/asc/api_key.json"
+          # What's New = the annotated tag message. A lightweight tag sends none (Apple refuses it on a first release).
+          meta="$RUNNER_TEMP/metadata"; skip_metadata=true; mkdir -p "$meta"
+          # actions/checkout stores annotated tags as lightweight (actions/checkout#290): refetch the tag object.
+          git fetch -q --force origin "refs/tags/$TAG:refs/tags/$TAG"
+          if [[ "$(git cat-file -t "refs/tags/$TAG")" == tag ]]; then
+            mkdir -p "$meta/en-US"
+            git tag -l --format='%(contents:body)' "$TAG" > "$meta/en-US/release_notes.txt"
+            [[ -s "$meta/en-US/release_notes.txt" ]] || git tag -l --format='%(contents:subject)' "$TAG" > "$meta/en-US/release_notes.txt"
+            skip_metadata=false
+          fi
+          gem install fastlane -v 2.241.2 --no-document
+          fastlane _2.241.2_ run deliver \
+            api_key_path:"$RUNNER_TEMP/asc/api_key.json" \
+            app_identifier:"$(jq -r .identifier app/src-tauri/tauri.conf.json)" \
+            platform:ios app_version:"$v" build_number:"$v" \
+            skip_binary_upload:true skip_screenshots:true skip_metadata:"$skip_metadata" metadata_path:"$meta" \
+            submit_for_review:true automatic_release:true force:true \
+            run_precheck_before_submit:false
       - name: Delete the App Store Connect key
         if: always()
         run: rm -rf "$RUNNER_TEMP/asc" app/.env.production.local
