@@ -4,6 +4,8 @@ OpenTofu. Per environment: a Supabase project, a Cloud Run relay, an artifact re
 
 Why the setup looks like this, and the traps we hit: [operations](../docs/operations.md).
 
+This page describes the whereabot.io deployment. To self-host, replace the project ids, bucket names, domain and accounts in [`envs/`](envs), [`dns/`](dns) and the repo variables with your own.
+
 ## Live URLs
 
 - Prod relay: https://relay.whereabot.io (MCP: https://relay.whereabot.io/mcp)
@@ -12,7 +14,7 @@ Why the setup looks like this, and the traps we hit: [operations](../docs/operat
 
 This is the only list of live URLs. Each relay URL is the `relay_url` output of its environment. Update this list after a new deploy changes a URL.
 
-Transition: the old prod hosts (`whereabouts-relay-prod-yz6gmxu7na-ew.a.run.app`, `whereabouts.ofek-gabay-he.workers.dev`) still work. The `legacy_*` inputs in [`envs/prod/main.tf`](envs/prod/main.tf) keep them; remove them once every client and app build uses the new hosts.
+Transition: the old prod hosts still work. The `legacy_*` inputs in [`envs/prod/main.tf`](envs/prod/main.tf) keep them; remove them once every client and app build uses the new hosts.
 
 ## DNS (whereabot.io)
 

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/whereabot/whereabot/security/advisories/new
+    about: Report privately. Never post vulnerabilities or location data in a public issue.
+  - name: Docs
+    url: https://whereabot.io/docs/
+    about: Setup, architecture, protocol and privacy.

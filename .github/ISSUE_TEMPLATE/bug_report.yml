@@ -1,0 +1,32 @@
+name: Bug report
+description: Something does not work as the docs say.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not post coordinates, emails, tokens or agent keys. Security issues go to the Security tab.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options: [Relay (server), Phone app (iOS), Phone app (Android), Browser app or PWA, MCP / agent setup, Docs or site, Self-hosting / infra]
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes:
+      label: App version, OS and agent (for example Claude Code)
+  - type: dropdown
+    id: relay
+    attributes:
+      label: Relay
+      options: [Hosted (relay.whereabot.io), Self-hosted, Local (scripts/dev-up.sh)]

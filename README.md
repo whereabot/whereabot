@@ -1,4 +1,4 @@
-# Whereabouts
+# Whereabot
 
 Let your AI agent ask **your phone** where you are, on demand. You host the relay. Sign-in and user data live in Supabase.
 
@@ -10,11 +10,11 @@ flowchart LR
   Relay -->|"answer"| Agent
 ```
 
-The relay keeps no location history. It sends a ping, the phone reads its GPS now, and the answer goes back to the agent.
+The relay keeps no location history. It sends a ping, the phone reads its GPS now, and the answer goes back to the agent. What is stored, for how long, and who sees your location: [privacy](docs/privacy.md).
 
 ## Status
 
-Early MVP. The phone answers pings **while the app is open**. Waking a closed app needs push notifications. See [the roadmap](docs/roadmap.md).
+Early MVP, in beta. iOS answers in the background through push. Android answers only while the app is open. See [the roadmap](docs/roadmap.md).
 
 ## Repo layout
 
@@ -54,7 +54,7 @@ Early MVP. The phone answers pings **while the app is open**. Waking a closed ap
 
 ## Connect your agent
 
-1. Install the app: join the beta. <!-- TODO(user): add the public TestFlight / Play link. -->
+1. Install the app: see [Get started on whereabot.io](https://whereabot.io/#start), or [install from the browser](docs/install-from-browser.md).
 2. Sign in with Google on the phone.
 3. Add the relay to your agent:
 
@@ -63,19 +63,29 @@ Early MVP. The phone answers pings **while the app is open**. Waking a closed ap
    ```
 
 4. In Claude Code run `/mcp` and sign in with the **same Google account** as on the phone. You never paste a token.
-5. Keep the app open while the agent asks, until push notifications ship.
+5. On Android, keep the app open while the agent asks, until Android push ships.
 
 Relay URLs: [live URLs](infra/README.md#live-urls). The tool and its arguments: [protocol](docs/protocol.md).
+
+## Self-host
+
+Run your own relay and Supabase project with the OpenTofu code in [`infra/`](infra). Steps: [infra/README.md](infra/README.md). Build the app with your Supabase and relay values ([`app/.env.example`](app/.env.example)), and add your relay to your agent.
 
 ## Docs
 
 - [Architecture](docs/architecture.md): components, sign-in and ping flow, security, limits
 - [Protocol](docs/protocol.md): HTTP, MCP and WebSocket at intent level
 - [Prior art](docs/prior-art.md): what exists and why this project
+- [Privacy](docs/privacy.md): what is stored, retention, who sees your location
 - [Roadmap](docs/roadmap.md)
-- [Contributing](docs/contributing.md): hooks, line limit, adding a migration
 - [Docs site](https://whereabot.io/docs/): built from these files by `docs-site/`, plus generated MCP and wire references
 - [Infrastructure](infra/README.md): live URLs, deploy steps, migrations
+
+## Community
+
+- [Contributing](docs/contributing.md): hooks, line limit, adding a migration
+- [Security policy](SECURITY.md): report vulnerabilities privately
+- [Code of conduct](CODE_OF_CONDUCT.md)
 
 ## License
 

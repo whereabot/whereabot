@@ -21,3 +21,11 @@
 5. The `migrations` workflow applies the change to dev first, then production. Check that run. Never run `supabase db push` by hand.
 
 Workflow details: [infra/README.md](../infra/README.md#migrations).
+
+## Pull requests
+
+- Open an issue first for a large change, so we agree on the approach before you build it.
+- One change per PR. CI must be green: [`ci.yml`](../.github/workflows/ci.yml) lists every check.
+- A change that stores or logs new data updates [privacy](privacy.md).
+- Report security issues privately: [security policy](../SECURITY.md). Behavior rules: [code of conduct](../CODE_OF_CONDUCT.md).
+- By contributing, you agree to license your work under the [MIT license](../LICENSE).
