@@ -66,7 +66,8 @@ The [`ios-testflight-release`](../.github/workflows/ios-testflight-release.yml) 
 - Release: run [`scripts/release-app-version.sh`](../scripts/release-app-version.sh) `X.Y.Z`, merge to `main`, then push the tag it prints.
 - Setup: in environment `testflight`, the secret and variables the workflow reads. `RELAY_URL` is the prod relay from [Live URLs](#live-urls), with `wss://`. The App Store Connect API key needs the App Manager role or higher.
 - A DUPLICATE error means TestFlight has that version: bump and tag again.
-- After upload the workflow waits for Apple processing, then submits the build to App Store review with automatic release. Turn this off with repo variable `APP_STORE_SUBMIT=false` or input `submit_for_review: false`. Another workflow can call it (`workflow_call`, input `tag`, `secrets: inherit`).
+- Default is TestFlight only. To also submit to App Store review with automatic release, set repo variable `APP_STORE_SUBMIT=true`, or pass input `submit_for_review: true`. The workflow then waits for Apple processing and submits. Another workflow can call it (`workflow_call`, input `tag`, `secrets: inherit`).
+- Without `ASC_KEY_ID` in environment `testflight`, the workflow skips green.
 - What's New comes from an annotated tag message (`git tag -a app-vX.Y.Z -m "..."`). A lightweight tag sends none; Apple refuses What's New on the first release.
 - Human, once in App Store Connect before the first submission: app privacy answers, age rating, content rights, pricing and availability, App Review contact and demo account, the en-US store text and screenshots. Export compliance is answered by `ITSAppUsesNonExemptEncryption` in [`Info.ios.plist`](../app/src-tauri/Info.ios.plist).
 
