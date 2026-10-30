@@ -3,8 +3,32 @@
 ## Setup
 
 - Run `scripts/install-hooks.sh` once. The pre-push hook runs `linecheck .`. Install it with `cargo install linecheck`.
-- Local stack and end-to-end check: [quick start](../README.md#quick-start-local).
-- Regenerate UI screenshots in `docs/screens/` with `node scripts/screens.mjs` (needs Playwright and Chromium; see [screens index](screens/README.md)).
+- After a UI change, regenerate the screenshots. It needs Playwright and Chromium. Command: [screens index](screens/README.md).
+
+## Quick start (local)
+
+1. Start Supabase and the relay locally. The relay runs in the foreground, so keep this terminal open:
+
+   ```bash
+   scripts/dev-up.sh
+   ```
+
+   It writes `server/.env.local` (gitignored) and prints the `app/.env.local` lines.
+
+2. In a second terminal, run the phone app in the Android emulator. Copy the template, then fill in the values that `dev-up.sh` prints:
+
+   ```bash
+   cp app/.env.example app/.env.local
+   cd app && npm install && npm run tauri android dev
+   ```
+
+   Sign in with the dev email and password form.
+
+3. Check the whole path, from agent to phone and back. Run it in the second terminal while the stack and relay run. It needs `curl`, `jq`, `openssl`, `node` and `npm`. It prints PASS or FAIL per check and exits 1 on failure. For another port, set the same value for both: `WB_PORT=8788 scripts/e2e-local.sh`:
+
+   ```bash
+   scripts/e2e-local.sh
+   ```
 
 ## Rules
 

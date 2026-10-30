@@ -82,13 +82,13 @@ sequenceDiagram
     A->>R: Locate
     R->>N: Alert, category LOCATION_REQUEST, request_id, client_id, expires_ms
     N->>H: User taps Allow on the notification
-    H->>H: One CLLocationManager read (best, then 100 m, about 8 s each)
+    H->>H: One CLLocationManager read
     H->>S: Refresh the access token if it is about to expire
     H->>R: POST /v1/device/answer with the fix
     R->>A: Location answer
 ```
 
-- **Native code:** a local Tauri plugin, [`app/src-tauri/background-answer-plugin/`](../app/src-tauri/background-answer-plugin). Its Swift package builds with the Rust crate, so `tauri ios build` regenerating `gen/apple` does not drop it. At launch it registers the category and puts its notification delegate in front of the delegates of the push and notification plugins; everything that is not one of its three actions goes on to them.
+- **Native code:** a local Tauri plugin, [`app/src-tauri/background-answer-plugin/`](../app/src-tauri/background-answer-plugin). Its Swift package builds with the Rust crate, so `tauri ios build` regenerating `gen/apple` does not drop it. At launch it registers the category and puts its notification delegate in front of the delegates of the push and notification plugins; everything that is not one of its three actions goes on to them. The read's accuracy steps and time limits: [`BackgroundLocationFix.swift`](../app/src-tauri/background-answer-plugin/ios/Sources/BackgroundLocationFix.swift).
 - **Session:** supabase-js stores its session through the plugin in the iOS Keychain (`AfterFirstUnlock`), see [`app/src/native-session-storage.ts`](../app/src/native-session-storage.ts). The handler reads the same item and writes back a refreshed session. One refresh token for both sides, so a rotation never revokes the other side's token. Tokens are never logged.
 - **Always allow:** the handler answers like Allow and saves the `client_id` to Supabase `always_allowed_agents` at once, so the next request is tapless ([Always allow](always-allow.md)). A `UserDefaults` copy lets the app retry the save on its next launch ([`app/src/always-allowed-sync.ts`](../app/src/always-allowed-sync.ts)).
 - **Permission:** a read with the app closed needs location access "Always". The permissions screen asks for it after When In Use, and shows Settings steps when it is refused. Without it the handler answers `unavailable` with reason `permission`. There is no `location` background mode: the app never tracks.

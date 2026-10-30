@@ -46,7 +46,6 @@ The normal path is a tag. The steps are in [infra/README.md, Release the iOS app
 
 - [`scripts/release-app-version.sh`](../scripts/release-app-version.sh) bumps every version file. Merge that, then push the tag it prints.
 - Fallback when CI cannot run: build and upload from a Mac with the same two steps as the workflow (a Tauri iOS build with the App Store Connect export method, then an upload with `altool`). Use the same API key and environment values the workflow reads.
-- TestFlight rejects a version it already has. Bump and tag again.
 
 ## Release the Android app
 

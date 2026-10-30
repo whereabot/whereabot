@@ -25,32 +25,10 @@ Early MVP, in beta. iOS answers in the background through push. Android answers 
 | [`supabase/`](supabase) | Database migrations and tests. |
 | [`infra/`](infra) | OpenTofu for the dev and prod environments. |
 | [`scripts/`](scripts) | Local dev, end-to-end check, deploy, hook install. |
-| [`docs/`](docs) | Architecture, protocol, prior art, roadmap, contributing. |
-
-## Quick start (local)
-
-1. Start Supabase and the relay locally. The relay runs in the foreground, so keep this terminal open:
-
-   ```bash
-   scripts/dev-up.sh
-   ```
-
-   It writes `server/.env.local` (gitignored) and prints the `app/.env.local` lines.
-
-2. In a second terminal, run the phone app in the Android emulator. Copy the template, then fill in the values that `dev-up.sh` prints:
-
-   ```bash
-   cp app/.env.example app/.env.local
-   cd app && npm install && npm run tauri android dev
-   ```
-
-   Sign in with the dev email and password form.
-
-3. Check the whole path, from agent to phone and back. Run it in the second terminal while the stack and relay run. It needs `curl`, `jq`, `openssl`, `node` and `npm`. It prints PASS or FAIL per check and exits 1 on failure. For another port, set the same value for both: `WB_PORT=8788 scripts/e2e-local.sh`:
-
-   ```bash
-   scripts/e2e-local.sh
-   ```
+| [`docs/`](docs) | Source of the docs site. |
+| [`site/`](site) | Landing page and OAuth consent page. |
+| [`docs-site/`](docs-site) | VitePress build of the docs site. |
+| [`design-system/`](design-system), [`brand/`](brand) | Shared CSS tokens and components; logo files and usage rules. |
 
 ## Connect your agent
 
@@ -69,21 +47,23 @@ Relay URLs: [live URLs](infra/README.md#live-urls). The tool and its arguments: 
 
 ## Self-host
 
-Run your own relay and Supabase project with the OpenTofu code in [`infra/`](infra). Steps: [infra/README.md](infra/README.md). Build the app with your Supabase and relay values ([`app/.env.example`](app/.env.example)), and add your relay to your agent.
+Run your own relay and Supabase project with the OpenTofu code in [`infra/`](infra). Steps: [infra/README.md](infra/README.md). Build the app with your Supabase and relay values ([`app/.env.example`](app/.env.example)), and add your relay to your agent. To run everything on one computer first: [local quick start](docs/contributing.md#quick-start-local).
 
 ## Docs
 
+All docs, with the generated MCP and wire references: [whereabot.io/docs](https://whereabot.io/docs/). In this repo:
+
 - [Architecture](docs/architecture.md): components, sign-in and ping flow, security, limits
 - [Protocol](docs/protocol.md): HTTP, MCP and WebSocket at intent level
-- [Prior art](docs/prior-art.md): what exists and why this project
+- [Request flow](docs/request-flow.md): every state, notification and agent result of one request
+- [Location sharing](docs/location-sharing.md): let another person's agent ask for your location
 - [Privacy](docs/privacy.md): what is stored, retention, who sees your location
-- [Roadmap](docs/roadmap.md)
-- [Docs site](https://whereabot.io/docs/): built from these files by `docs-site/`, plus generated MCP and wire references
-- [Infrastructure](infra/README.md): live URLs, deploy steps, migrations
+- [Operations](docs/operations.md) and [infrastructure](infra/README.md): how it runs, deploys and releases
+- [Prior art](docs/prior-art.md) and [roadmap](docs/roadmap.md)
 
 ## Community
 
-- [Contributing](docs/contributing.md): hooks, line limit, adding a migration
+- [Contributing](docs/contributing.md): local setup, hooks, rules, adding a migration
 - [Security policy](SECURITY.md): report vulnerabilities privately
 - [Code of conduct](CODE_OF_CONDUCT.md)
 

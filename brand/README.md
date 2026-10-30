@@ -23,7 +23,7 @@ Commit the output, so builds need no generator.
 
 The icon is a rendered scene with gradients and glows, so it has no flat palette. Its night sky runs from `#05081A`
 to `#2549C0`; the pin is white. Pages and the social image use the design tokens in `design-system/color-tokens.css`
-(background `#F6F7F9`, `--color-bg`).
+(background: `--color-bg`).
 
 ## Usage rules
 

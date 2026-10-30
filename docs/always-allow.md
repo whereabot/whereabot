@@ -16,8 +16,8 @@ The relay reads the table with the agent's user JWT, like `push_tokens` ([`serve
 
 | Step | Push | When |
 |------|------|------|
-| 1 | Silent: `aps.content-available: 1`, `apns-push-type: background`, priority `5`, keys `request_id`, `client_id`, `expires_ms`; no alert, sound or badge. | When the consent alert would go out (no phone answers within about 2 s, or none is connected). |
-| 2 | Alert: body `<Agent> is checking your location`, `category` `LOCATION_AUTO` (one action, Share). | No answer about 8 s after step 1. Never sent when the request was answered. |
+| 1 | Silent: `aps.content-available: 1`, `apns-push-type: background`, priority `5`, keys `request_id`, `client_id`, `expires_ms`; no alert, sound or badge. | When the consent alert would go out (no phone answers within the [grace period](../server/src/push/location_request_wake.rs), or none is connected). |
+| 2 | Alert: body `<Agent> is checking your location`, `category` `LOCATION_AUTO` (one action, Share). | No answer within the [silent window](../server/src/push/mod.rs) after step 1. Never sent when the request was answered. |
 
 Other agents keep the consent alert: `Your agent <Agent> wants to know your location`, category `LOCATION_REQUEST` (Reject, Allow, Always allow). Every alert also carries `agent_name`, so a lock-screen Always allow can store the name.
 

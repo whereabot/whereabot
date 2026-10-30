@@ -1,6 +1,6 @@
 # Location sharing: data and RLS
 
-An owner shares their location with an email. The grantee's agent can then ask the owner's phone, and the owner approves each time unless they chose "Always allow". The code is the source of truth: `supabase/migrations/20261029*` and `supabase/tests/location_shares_*`.
+An owner shares their location with an email. The grantee's agent can then ask the owner's phone, and the owner approves each time unless they chose "Always allow". How agents use it: [location sharing](location-sharing.md). The code is the source of truth: the `20261029*` files in [`supabase/migrations/`](../supabase/migrations) and the `location_shares_*` tests in [`supabase/tests/`](../supabase/tests).
 
 ## Tables
 
