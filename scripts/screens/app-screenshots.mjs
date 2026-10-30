@@ -42,7 +42,7 @@ export const CASES = [
   { name: 'connecting', session: true, tauri: { connect: 'hang' }, status: 'Connecting…', desc: 'Signed in. Opening the connection to the relay.' },
   { name: 'connect-failed', session: true, tauri: { connect: 'reject', connectError: 'relay unreachable' }, status: 'Connect failed: relay unreachable. Retrying…', desc: 'Relay could not be reached. Status shows a retry.' },
   { name: 'connected', session: true, status: CONNECTED, desc: 'Connected to the relay and waiting for a locate ping.' },
-  { name: 'ping-answered', session: true, ping: true, lastPing: true, desc: 'A locate ping was answered. Shows the time of the reply.' },
+  { name: 'ping-answered', session: true, ping: true, wait: '#onb-works', desc: 'The first locate ping was answered. Get started turns into "It works" and shows the time of the reply.' },
   { name: 'location-failed', session: true, tauri: { locationError: 'Location services are off' }, ping: true, status: 'No location fix.', desc: 'Location read failed for a ping. No reply is sent.' },
   { name: 'connection-lost', session: true, close: true, status: 'Connection lost. Retrying…', desc: 'The socket closed. Status shows a retry.' },
   { name: 'disconnected', session: true, click: '#disconnect', status: 'Disconnected.', desc: 'Disconnect pressed. Shows Disconnected.' },

@@ -59,9 +59,9 @@
             <p id="notif-title" class="banner-title">Notifications are off &mdash; you may miss requests</p><button id="notif-fix" class="btn btn-secondary" type="button">Fix</button>
           </section>
           <section id="onboarding" class="banner" aria-labelledby="onb-title" hidden>
-            <p id="onb-title" class="banner-title">Get started</p>
-            <ol><li>Signed in &#10003;</li><li>Connect your agent (steps below).</li></ol>
-            <button id="onb-done" class="btn btn-primary" type="button">Done</button>
+            <p id="onb-title" class="banner-title">Get started</p><p id="onb-works" hidden>Your agent asked and you answered. You are all set.</p>
+            <ol id="onb-steps"><li>Signed in &#10003;</li><li>Connect your agent (steps below).</li><li>Ask your agent: <q id="first-prompt">Where am I right now?</q></li></ol>
+            <button id="copy-prompt" class="btn btn-primary" type="button">Copy question</button><button id="onb-done" class="btn btn-primary" type="button" hidden>Done</button>
           </section>
           <aside class="banner" aria-labelledby="help-title">
             <p id="help-title" class="banner-title">Connect your agent</p>

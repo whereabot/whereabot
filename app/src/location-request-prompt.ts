@@ -7,6 +7,7 @@ import { addAlwaysApproved, isAlwaysApproved, recordRequest, type Outcome } from
 import { notify } from "./local-notification";
 import { getFix } from "./device-location-fix";
 import { showRequest } from "./ui/request-screen";
+import { showFirstAnswer } from "./ui/home-screen";
 import { cancelRequest, track, untrack, wasCancelled } from "./devices/cancelled-request-tracking";
 
 // Used when an older relay sends no expires_ms.
@@ -73,6 +74,7 @@ async function sendFix(send: Send, ping: Ping, agent: Agent, outcome: Outcome) {
   recordRequest(agent, outcome);
   await send(JSON.stringify(answer(ping, fix.pos)));
   $("last-ping").textContent = `Last ping answered at ${new Date().toLocaleTimeString()}`;
+  showFirstAnswer();
   if (outcome !== "auto") return;
   // Always allowed: nothing to decide, so say what happened (same words as the native handler).
   const checked = `${agent.name} checked your location`;
