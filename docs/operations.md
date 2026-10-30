@@ -13,6 +13,7 @@ Every change reaches dev and prod through a workflow on `main`. Nobody deploys f
 | Relay + Supabase config | [`deploy.yml`](../.github/workflows/deploy.yml) | push to `main`: test, image, dev, then production after approval |
 | Landing page and docs | [`site-cloudflare-deploy.yml`](../.github/workflows/site-cloudflare-deploy.yml) | push to `main` |
 | iOS app to TestFlight | [`ios-testflight-release.yml`](../.github/workflows/ios-testflight-release.yml) | tag `app-vX.Y.Z` |
+| Android app to Google Play internal testing | [`android-play-release.yml`](../.github/workflows/android-play-release.yml) | tag `app-vX.Y.Z`; called by other workflows only when variable `ANDROID_RELEASE` is `true` |
 
 Migrations and deploys are separate workflows with no ordering between them. Keep that in mind for the next section.
 
@@ -46,6 +47,14 @@ The normal path is a tag. The steps are in [infra/README.md, Release the iOS app
 - [`scripts/release-app-version.sh`](../scripts/release-app-version.sh) bumps every version file. Merge that, then push the tag it prints.
 - Fallback when CI cannot run: build and upload from a Mac with the same two steps as the workflow (a Tauri iOS build with the App Store Connect export method, then an upload with `altool`). Use the same API key and environment values the workflow reads.
 - TestFlight rejects a version it already has. Bump and tag again.
+
+## Release the Android app
+
+The same tag also builds the Android AAB. The workflow uploads it to Play internal testing only when the keystore and Play secrets exist in environment `google-play`. Without them it keeps an unsigned AAB as a run artifact.
+
+- A calling workflow (for example the automatic release) skips the Android job until a human sets the repository variable `ANDROID_RELEASE` to `true`. Set it only after the secrets exist. This stops an unusable unsigned build on every release.
+- Play takes only draft releases until the first publish. Set variable `PLAY_RELEASE_STATUS` to `draft` until then.
+- Play rejects a version code it already has. Bump and tag again.
 
 ## Steps that need a human
 
