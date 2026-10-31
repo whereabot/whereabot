@@ -34,7 +34,7 @@ Layout audit across widths, dark mode and large text: `node scripts/screens/audi
 | [app-sharing-loading-mobile.png](app-sharing-loading-mobile.png) | Sharing while the lists load. |
 | [app-sharing-mobile.png](app-sharing-mobile.png) | Sharing: email field, people I share with (one not signed in yet), people sharing with me. |
 | [app-sharing-stop-mobile.png](app-sharing-stop-mobile.png) | Stop sharing asks for confirmation first. |
-| [app-signed-out-mobile.png](app-signed-out-mobile.png) | Signed out. Shows the Google sign-in button. |
+| [app-signed-out-mobile.png](app-signed-out-mobile.png) | Signed out. Shows the Apple and Google sign-in buttons. |
 | [consent-approving-desktop.png](consent-approving-desktop.png) | Approve pressed. Both buttons are disabled while the answer is sent. (desktop) |
 | [consent-approving-mobile.png](consent-approving-mobile.png) | Approve pressed. Both buttons are disabled while the answer is sent. (mobile) |
 | [consent-error-approve-desktop.png](consent-error-approve-desktop.png) | Approve failed. Shows the restart message and no buttons. (desktop) |
@@ -49,8 +49,8 @@ Layout audit across widths, dark mode and large text: `node scripts/screens/audi
 | [consent-loading-mobile.png](consent-loading-mobile.png) | Checks the request. Status shows Loading with a spinner. (mobile) |
 | [consent-request-desktop.png](consent-request-desktop.png) | Signed in. Shows the app name, the redirect host, Approve and Deny. (desktop) |
 | [consent-request-mobile.png](consent-request-mobile.png) | Signed in. Shows the app name, the redirect host, Approve and Deny. (mobile) |
-| [consent-signin-desktop.png](consent-signin-desktop.png) | Signed out. Shows the Google sign-in button. (desktop) |
-| [consent-signin-mobile.png](consent-signin-mobile.png) | Signed out. Shows the Google sign-in button. (mobile) |
+| [consent-signin-desktop.png](consent-signin-desktop.png) | Signed out. Shows the Apple and Google sign-in buttons. (desktop) |
+| [consent-signin-mobile.png](consent-signin-mobile.png) | Signed out. Shows the Apple and Google sign-in buttons. (mobile) |
 | [docs-home-desktop.png](docs-home-desktop.png) | Docs at 1280 px: docs home: hero and three feature cards. |
 | [docs-home-mobile.png](docs-home-mobile.png) | Docs at 390 px: docs home: hero and three feature cards. |
 | [docs-mcp-tool-reference-desktop.png](docs-mcp-tool-reference-desktop.png) | Docs at 1280 px: the generated MCP tool reference. |

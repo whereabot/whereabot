@@ -33,14 +33,14 @@ Early MVP, in beta. iOS answers in the background through push. Android answers 
 ## Connect your agent
 
 1. Install the app: see [Get started on whereabot.io](https://whereabot.io/#start), or [install from the browser](docs/install-from-browser.md).
-2. Sign in with Google on the phone.
+2. Sign in with Apple or Google on the phone.
 3. Add the relay to your agent:
 
    ```bash
    claude mcp add --transport http whereabot https://relay.whereabot.io/mcp
    ```
 
-4. In Claude Code run `/mcp` and sign in with the **same Google account** as on the phone. You never paste a token.
+4. In Claude Code run `/mcp` and sign in with the **same Apple or Google account** as on the phone. You never paste a token.
 5. On Android, keep the app open while the agent asks, until Android push ships.
 
 Relay URLs: [live URLs](infra/README.md#live-urls). The tool and its arguments: [protocol](docs/protocol.md).
