@@ -29,6 +29,7 @@ module "whereabouts" {
   supabase_region          = var.supabase_region
   google_client_id         = var.google_client_id
   google_client_secret     = var.google_client_secret
+  apple_client_secret      = var.apple_client_secret
   image                    = var.image
   site_host                = "dev.whereabot.io" # dev Worker, site-cloudflare-deploy.yml on push to dev
   legacy_site_hosts        = ["whereabot.io", "whereabouts.ofek-gabay-he.workers.dev"]

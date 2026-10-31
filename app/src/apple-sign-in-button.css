@@ -1,0 +1,11 @@
+/* Sign in with Apple, black style per Apple's HIG: Apple logo, white on black
+   (in dark mode too, with a light edge so it stands out). */
+.btn-apple {
+  background: #000;
+  color: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  .btn-apple {
+    border-color: #fff;
+  }
+}

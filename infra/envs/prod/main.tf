@@ -29,6 +29,7 @@ module "whereabouts" {
   supabase_region          = var.supabase_region
   google_client_id         = var.google_client_id
   google_client_secret     = var.google_client_secret
+  apple_client_secret      = var.apple_client_secret
   image                    = var.image
   apns_enabled             = true
   web_push_enabled         = true
