@@ -27,7 +27,7 @@ The listing data lives in two files at the repo root:
 
 ## Rules
 
-- One name everywhere: `io.github.whereabot/whereabot`. Glama connectors and mcp.so key on it.
+- One name everywhere: `io.whereabot/whereabot` (registry namespace verified by the domain, [`site/.well-known/mcp-registry-auth`](../site/.well-known/mcp-registry-auth)). Glama connectors and mcp.so key on it.
 - Links to whereabot.io carry `?ref=<directory>`, so visits per directory show in the request logs.
 - Change the description in `server.json` first, then copy it to the other directories.
 - Bump `version` in `server.json` before each new `mcp-publisher publish`. The registry refuses a version it already has.
