@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.whereabot/whereabot",
+  "name": "io.whereabot/whereabot",
   "title": "Whereabot",
   "description": "Ask the user's phone where they are now. The phone answers each request with consent.",
   "version": "0.1.0",
