@@ -19,7 +19,7 @@ const why = (e: unknown) => (e instanceof Error ? e.message : String(e));
 export function renderDevices(view: DevicesView, thisId: string, actions: RowActions) {
   const devices = view.kind === "ready" ? view.devices : [];
   const sorted = [...devices].sort((a, b) => Number(b.id === thisId) - Number(a.id === thisId));
-  const old = oldInstallIds(devices);
+  const old = oldInstallIds(devices, thisId);
   $("devices-list").replaceChildren(...sorted.map((d) => deviceRow(d, d.id === thisId, actions, old.has(d.id))), comingSoonRow());
   $("devices-empty").hidden = view.kind !== "ready" || devices.length > 0;
   $("devices-retry").hidden = view.kind !== "error";
