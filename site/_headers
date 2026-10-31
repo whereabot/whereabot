@@ -23,3 +23,6 @@
   ! Permissions-Policy
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://*.supabase.co wss://relay.whereabot.io; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   Permissions-Policy: geolocation=(self), camera=(), microphone=()
+
+/.well-known/mcp-registry-auth
+  Content-Type: text/plain; charset=utf-8

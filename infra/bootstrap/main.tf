@@ -50,8 +50,9 @@ resource "google_iam_workload_identity_pool_provider" "github" {
     "attribute.repository" = "assertion.repository"
     "attribute.ref"        = "assertion.ref"
   }
-  # Only main of this repo can mint tokens. Fork PRs and other branches cannot.
-  attribute_condition = "assertion.repository == \"${var.github_repo}\" && assertion.ref == \"refs/heads/main\""
+  # Only main (prod) and dev (dev env) of this repo can mint tokens. Fork PRs and other branches cannot.
+  # Prod applies stay main-only through the GitHub "production" environment's branch policy.
+  attribute_condition = "assertion.repository == \"${var.github_repo}\" && assertion.ref in [\"refs/heads/main\", \"refs/heads/dev\"]"
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
   }
