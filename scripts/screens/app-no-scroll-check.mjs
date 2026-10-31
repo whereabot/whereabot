@@ -5,10 +5,11 @@
 import { mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { FAKE, launch, shoot } from './playwright-browser.mjs';
+import { launch, shoot } from './playwright-browser.mjs';
 import { sessionInit, withScene } from './static-site-scene.mjs';
 import { installTauri } from './tauri-stub.mjs';
-import { CASES, EMPTY_JSON, ORIGIN, VALID_RELAY, buildApp, drive } from './app-screenshots.mjs';
+import { APP_STUBS } from './app-network-stubs.mjs';
+import { CASES, ORIGIN, VALID_RELAY, buildApp, drive } from './app-screenshots.mjs';
 import { PWA_CASES } from './app-pwa-cases.mjs';
 import { FIT_VIEWPORTS, measureFit } from './viewport-fit-measure.mjs';
 
@@ -28,7 +29,7 @@ try {
         permissions: c.grant,
         origin: ORIGIN,
         dir: buildApp(c.relay ?? VALID_RELAY),
-        stubs: [[FAKE.supabaseUrl, EMPTY_JSON]],
+        stubs: APP_STUBS,
         init: [...(c.session ? [sessionInit()] : []), ...tauri, ...(c.pageInit ? [[c.pageInit]] : [])],
       }, async (page) => {
         await page.goto(`${ORIGIN}/`);

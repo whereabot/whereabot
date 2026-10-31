@@ -6,9 +6,10 @@ use std::sync::Arc;
 use axum::{
     Json,
     extract::State,
-    http::{HeaderMap, StatusCode},
+    http::{HeaderMap, Method, StatusCode, header},
     response::{IntoResponse, Response},
 };
+use tower_http::cors::{Any, CorsLayer};
 use uuid::Uuid;
 
 use crate::{
@@ -40,4 +41,13 @@ pub async fn answer(
         Settled::OtherUser => StatusCode::FORBIDDEN,
     }
     .into_response()
+}
+
+/// The app's webview (`tauri://localhost`, the PWA origin) posts here cross-origin.
+/// Bearer auth, no cookies, so any origin is safe.
+pub fn cors() -> CorsLayer {
+    CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods([Method::POST])
+        .allow_headers([header::AUTHORIZATION, header::CONTENT_TYPE])
 }

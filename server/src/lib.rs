@@ -11,6 +11,7 @@ mod background_answer_http;
 mod device_socket_session;
 mod devices;
 mod list_people_tool;
+mod locate_outcome_log;
 mod locate_rate_limit;
 mod location_request;
 mod location_request_error;
@@ -73,7 +74,10 @@ pub fn build(config: Config) -> (Router, Shutdown) {
     let router = Router::new()
         .route("/v1/locate", post(location_request_http::locate))
         .route("/v1/device", any(device_socket_session::device))
-        .route("/v1/device/answer", post(background_answer_http::answer))
+        .route(
+            "/v1/device/answer",
+            post(background_answer_http::answer).layer(background_answer_http::cors()),
+        )
         // Cloud Run's front end reserves paths ending in `z`, so public probes use /health.
         .route("/health", get(healthz))
         .route("/healthz", get(healthz))

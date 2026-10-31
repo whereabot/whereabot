@@ -9,6 +9,7 @@ import { getFix } from "./device-location-fix";
 import { showRequest } from "./ui/request-screen";
 import { showFirstAnswer } from "./ui/home-screen";
 import { cancelRequest, track, untrack, wasCancelled } from "./devices/cancelled-request-tracking";
+import { deliver } from "./relay-answer-http";
 
 // Used when an older relay sends no expires_ms.
 const FALLBACK_MS = 55_000;
@@ -20,8 +21,13 @@ const seen = new Set<string>();
 let queue: Promise<unknown> = Promise.resolve();
 
 type Send = (message: string) => Promise<void>;
+type Step = (m: string) => void;
 
-/** Answers one relay message if it is a locate ping. `send` targets the live socket. */
+/** Answers go over acknowledged HTTP until the relay stops waiting. */
+const deliverTo = (ping: Ping, body: string, step: Step) =>
+  deliver(ping.id, body, ping.expires_ms ?? Date.now() + FALLBACK_MS, step);
+
+/** Answers one relay message if it is a locate ping. `send` (the live socket) carries only step logs. */
 export async function answerPing(send: Send, data: string) {
   const ping = JSON.parse(data) as Ping | { type: "cancel"; id: string };
   if (ping.type === "cancel") return cancelRequest(ping.id); // another device answered
@@ -31,13 +37,13 @@ export async function answerPing(send: Send, data: string) {
   step("ping received");
   const agent = withRequester(await resolveAgent(ping.client_id), ping.requester);
   step(`agent resolved, always=${isAlwaysApproved(agent)}`);
-  if (isAlwaysApproved(agent)) return sendFix(send, ping, agent, "auto");
-  const turn = queue.then(() => prompt(send, ping, agent, step));
+  if (isAlwaysApproved(agent)) return sendFix(ping, agent, "auto", step);
+  const turn = queue.then(() => prompt(ping, agent, step));
   queue = turn.catch(() => {});
   return turn;
 }
 
-async function prompt(send: Send, ping: Ping, agent: Agent, step: (m: string) => void) {
+async function prompt(ping: Ping, agent: Agent, step: Step) {
   if (wasCancelled(ping.id)) return recordRequest(agent, "elsewhere");
   const left = (ping.expires_ms ? ping.expires_ms - Date.now() : FALLBACK_MS) - MARGIN_MS;
   if (left <= 0) return recordRequest(agent, "timeout"); // The relay already stopped waiting.
@@ -54,25 +60,25 @@ async function prompt(send: Send, ping: Ping, agent: Agent, step: (m: string) =>
   step(`choice=${choice}`);
   if (choice === "reject") {
     recordRequest(agent, "rejected");
-    return send(denied(ping, "user"));
+    return deliverTo(ping, denied(ping, "user"), step);
   }
   if (choice === null) {
     recordRequest(agent, "timeout");
-    return send(denied(ping, "no_answer"));
+    return deliverTo(ping, denied(ping, "no_answer"), step);
   }
   if (choice === "always") void addAlwaysApproved(agent);
-  await sendFix(send, ping, agent, choice === "always" ? "always" : "approved");
+  await sendFix(ping, agent, choice === "always" ? "always" : "approved", step);
 }
 
-async function sendFix(send: Send, ping: Ping, agent: Agent, outcome: Outcome) {
+async function sendFix(ping: Ping, agent: Agent, outcome: Outcome, step: Step) {
   const fix = await getFix();
   if ("fail" in fix) {
     recordRequest(agent, fix.fail === "permission" ? "unavailable" : "failed");
     setStatus(fix.fail === "permission" ? "Location access is off. Turn it on in Settings." : "No location fix.");
-    return send(unavailable(ping, fix.fail));
+    return deliverTo(ping, unavailable(ping, fix.fail), step);
   }
   recordRequest(agent, outcome);
-  await send(JSON.stringify(answer(ping, fix.pos)));
+  await deliverTo(ping, JSON.stringify(answer(ping, fix.pos)), step);
   $("last-ping").textContent = `Last ping answered at ${new Date().toLocaleTimeString()}`;
   showFirstAnswer();
   if (outcome !== "auto") return;

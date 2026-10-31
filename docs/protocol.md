@@ -26,7 +26,7 @@ Pings the user's phone and waits for the fix. Query: `timeout_secs`, with a defa
 | `424` | `unavailable` with reason `permission`. | Location access is off for Whereabot on the user's phone. Ask them to allow it in Settings. |
 | `424` | `unavailable` with reason `no_fix` or `error`. | The phone could not get a location fix. Try again in a moment. |
 | `503` | No device is connected for this user. | The user's phone is not connected. Ask the user to open the Whereabot app, signed in as EMAIL and keep it open, then retry. |
-| `504` | The phone got the ping but did not answer before the timeout. | The phone did not answer in time. Ask the user to open Whereabot and retry. |
+| `504` | The phone got the ping but did not answer before the timeout. If no socket of the phone is left at the end, the text names the lost connection instead. | The phone did not answer in time. Ask the user to open Whereabot and retry. *(lost connection:)* The phone got the request, then lost its connection before it could answer (weak or no network). Ask the user to check the phone's network, then retry. |
 
 `, signed in as EMAIL` appears only when the token has an `email` claim. It helps when the phone and the agent use different accounts.
 
@@ -84,9 +84,9 @@ iOS suspends the app in the background, so a waiting request needs a nudge. When
 
 ## Phone to relay over HTTP: `POST /v1/device/answer`
 
-Answers one request without a socket, from a notification action. Code: [`server/src/background_answer_http.rs`](../server/src/background_answer_http.rs).
+Answers one request with an acknowledgement. The app sends every answer here, from a notification action or from the in-app prompt; the socket only carries pings and logs. It retries until `204`/`410` or the request deadline ([`answer-delivery-retry.ts`](../app/src/answer-delivery-retry.ts)). Code: [`server/src/background_answer_http.rs`](../server/src/background_answer_http.rs).
 
-- **Auth:** `Authorization: Bearer <phone Supabase access token>`, as for `/v1/device`. A token with a `client_id` (an agent token) gets `403`: an agent must never answer its own request.
+- **Auth:** `Authorization: Bearer <phone Supabase access token>`, as for `/v1/device`. A token with a `client_id` (an agent token) gets `403`: an agent must never answer its own request. Any origin may call it (CORS; bearer auth, no cookies), so the app's webview and the PWA post answers here too.
 - **Body:** one answer message, the same JSON as on the socket: `location`, `denied` or `unavailable`, with the request `id`.
 - **First answer wins**, as on the socket. Every socket that got the ping then gets `cancel`.
 
