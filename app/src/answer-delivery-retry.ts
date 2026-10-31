@@ -29,6 +29,7 @@ export async function deliverAnswer(id: string, body: string, deadline: number, 
       d.log(`answer probably acked ${id} status=410 after an unconfirmed try`);
       return true;
     }
+    // Sticky: a later refused try (401) does not undo an earlier try that may have landed.
     unconfirmed ||= typeof status === "string" || status >= 500;
     const wait = Math.min(4000, 250 * 2 ** attempt);
     if (status === 410 || (typeof status === "number" && permanent(status)) || d.now() + wait >= deadline) {

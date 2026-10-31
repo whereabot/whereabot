@@ -64,6 +64,11 @@ test("410 after a lost reply counts as delivered", async () => {
   }
 });
 
+test("410 after a lost reply then a refused try counts as delivered", async () => {
+  const f = fake([502, 401, 410]);
+  assert.equal(await deliverAnswer("r8", "{}", 60_000, f.deps), true);
+});
+
 test("410 after a refused try still fails", async () => {
   const f = fake([401, 410]);
   assert.equal(await deliverAnswer("r7", "{}", 60_000, f.deps), false);
