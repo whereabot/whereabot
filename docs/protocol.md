@@ -26,7 +26,7 @@ Pings the user's phone and waits for the fix. Query: `timeout_secs`, with a defa
 | `424` | `unavailable` with reason `permission`. | Location access is off for Whereabot on the user's phone. Ask them to allow it in Settings. |
 | `424` | `unavailable` with reason `no_fix` or `error`. | The phone could not get a location fix. Try again in a moment. |
 | `503` | No device is connected for this user. | The user's phone is not connected. Ask the user to open the Whereabot app, signed in as EMAIL and keep it open, then retry. |
-| `504` | The phone got the ping but did not answer before the timeout. | The phone did not answer in time. Ask the user to open Whereabot and retry. |
+| `504` | The phone got the ping but did not answer before the timeout. If no socket of the phone is left at the end, the text names the lost connection instead. | The phone did not answer in time. Ask the user to open Whereabot and retry. *(lost connection:)* The phone got the request, then lost its connection before it could answer (weak or no network). Ask the user to check the phone's network, then retry. |
 
 `, signed in as EMAIL` appears only when the token has an `email` claim. It helps when the phone and the agent use different accounts.
 

@@ -6,6 +6,7 @@ use uuid::Uuid;
 use crate::{
     Agent, AppState,
     devices::location_request_fanout::Fanout,
+    locate_outcome_log,
     location_request_error::LocateError,
     location_target::Target,
     pending_location_requests::PendingSlot,
@@ -54,12 +55,14 @@ pub async fn request_location(
     let result = loop {
         fanout.send_new(&state.devices).await;
         if tokio::time::Instant::now() >= deadline {
-            break Err(if fanout.reached() {
-                LocateError::Timeout
-            } else {
+            break Err(if !fanout.reached() {
                 LocateError::Offline {
                     email: target.email.clone(),
                 }
+            } else if state.devices.senders(owner).await.is_empty() {
+                LocateError::ConnectionLost
+            } else {
+                LocateError::Timeout
             });
         }
         if let Ok(answer) = tokio::time::timeout(Duration::from_millis(250), &mut rx).await {
@@ -82,5 +85,6 @@ pub async fn request_location(
     drop(_slot);
     drop(wake);
     fanout.cancel_others(&state.devices, winner).await;
+    locate_outcome_log::log(id, &result);
     result
 }

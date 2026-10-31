@@ -9,7 +9,10 @@ pub enum LocateError {
     Offline {
         email: Option<String>,
     },
+    /// The phone got the ping and is still connected, but sent no answer.
     Timeout,
+    /// The phone got the ping, then every socket of the owner closed before an answer came.
+    ConnectionLost,
     Denied(DeniedReason),
     /// A person who shares with the agent's user declined; carries their name.
     DeniedBy(String),
@@ -31,7 +34,7 @@ impl LocateError {
     pub fn status(&self) -> StatusCode {
         match self {
             Self::Offline { .. } => StatusCode::SERVICE_UNAVAILABLE,
-            Self::Timeout => StatusCode::GATEWAY_TIMEOUT,
+            Self::Timeout | Self::ConnectionLost => StatusCode::GATEWAY_TIMEOUT,
             Self::Denied(DeniedReason::NoAnswer) => StatusCode::REQUEST_TIMEOUT,
             Self::Denied(_) | Self::DeniedBy(_) => StatusCode::FORBIDDEN,
             Self::Unavailable(_) => StatusCode::FAILED_DEPENDENCY,
@@ -63,6 +66,9 @@ impl LocateError {
             }
             Self::Timeout => {
                 "The phone did not answer in time. Ask the user to open Whereabot and retry.".into()
+            }
+            Self::ConnectionLost => {
+                "The phone got the request, then lost its connection before it could answer (weak or no network). Ask the user to check the phone's network, then retry.".into()
             }
             Self::Denied(DeniedReason::NoAnswer) => {
                 "The user did not respond on their phone. Ask them before trying again.".into()

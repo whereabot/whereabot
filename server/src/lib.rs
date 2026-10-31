@@ -11,6 +11,7 @@ mod background_answer_http;
 mod device_socket_session;
 mod devices;
 mod list_people_tool;
+mod locate_outcome_log;
 mod locate_rate_limit;
 mod location_request;
 mod location_request_error;
