@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { FAKE, OUT_DIR, ROOT, shoot } from './playwright-browser.mjs';
 import { sessionInit, withScene } from './static-site-scene.mjs';
 import { installTauri } from './tauri-stub.mjs';
+import { APP_STUBS } from './app-network-stubs.mjs';
 import { PERM_CASES, SHARING_CASES, UI_CASES } from './app-request-history-cases.mjs';
 
 const APP = join(ROOT, 'app');
@@ -73,9 +74,6 @@ export async function drive(page, c) {
   }
 }
 
-// Supabase calls return an empty JSON body. No network leaves the machine.
-export const EMPTY_JSON = (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
-
 /** Phone app at 390 x 844: every connection state the app can show. */
 export async function captureApp(browser) {
   const shots = [];
@@ -87,7 +85,7 @@ export async function captureApp(browser) {
       viewport: 'mobile',
       origin: ORIGIN,
       dir,
-      stubs: [[FAKE.supabaseUrl, EMPTY_JSON]],
+      stubs: APP_STUBS,
       init: [...(c.session ? [sessionInit()] : []), [installTauri, tauri]],
     }, async (page) => {
       await page.goto(`${ORIGIN}/`);
