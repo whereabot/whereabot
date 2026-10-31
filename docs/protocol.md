@@ -86,7 +86,7 @@ iOS suspends the app in the background, so a waiting request needs a nudge. When
 
 Answers one request without a socket, from a notification action. Code: [`server/src/background_answer_http.rs`](../server/src/background_answer_http.rs).
 
-- **Auth:** `Authorization: Bearer <phone Supabase access token>`, as for `/v1/device`. A token with a `client_id` (an agent token) gets `403`: an agent must never answer its own request.
+- **Auth:** `Authorization: Bearer <phone Supabase access token>`, as for `/v1/device`. A token with a `client_id` (an agent token) gets `403`: an agent must never answer its own request. Any origin may call it (CORS; bearer auth, no cookies), so the app's webview and the PWA post answers here too.
 - **Body:** one answer message, the same JSON as on the socket: `location`, `denied` or `unavailable`, with the request `id`.
 - **First answer wins**, as on the socket. Every socket that got the ping then gets `cancel`.
 
