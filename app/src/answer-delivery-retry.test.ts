@@ -55,3 +55,16 @@ test("410 and permanent 4xx stop at once", async () => {
     assert.equal(f.logs.at(-1), `answer failed r5 status=${s}`);
   }
 });
+
+test("410 after a lost reply counts as delivered", async () => {
+  for (const lost of ["Load failed", 502]) {
+    const f = fake([lost, 410]);
+    assert.equal(await deliverAnswer("r6", "{}", 60_000, f.deps), true);
+    assert.match(f.logs.at(-1)!, /^answer probably acked r6 status=410/);
+  }
+});
+
+test("410 after a refused try still fails", async () => {
+  const f = fake([401, 410]);
+  assert.equal(await deliverAnswer("r7", "{}", 60_000, f.deps), false);
+});
