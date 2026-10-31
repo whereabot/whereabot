@@ -31,7 +31,7 @@ sequenceDiagram
     R->>S: Check agent credential, get user
     R->>P: Ping for that user's phone
     P->>P: Read GPS now
-    P->>R: Fix with the same ping id
+    P->>R: Fix with the same ping id (POST /v1/device/answer)
     R->>A: Location answer
 ```
 
