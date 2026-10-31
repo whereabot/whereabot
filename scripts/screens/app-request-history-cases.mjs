@@ -26,14 +26,19 @@ const devices = (page, view) => page.evaluate((v) => {
   if (v.devices) v = { ...v, devices: v.devices.map((d) => ({ ...d, created_at: at(d.created_at), last_seen_at: at(d.seen_ago) })) };
   window.__ui.renderDevices(v, 'd1', window.__ui.deviceActions); window.__ui.setScreen('devices'); }, view);
 
-// The same iPhone listed twice: the earlier install has been silent for 3 days.
-const TWINS = [DEVICES[0], { id: 'd4', name: 'iPhone', platform: 'ios', app_kind: null, created_at: 6e9, seen_ago: 3 * 86400e3, revoked_at: null }];
+// This iPhone (App), an older App install silent for 3 days (truly stale), and a Browser tab on the
+// same iPhone silent for 28 h: a different install way, so it must not get the hint.
+const TWINS = [
+  DEVICES[0],
+  { id: 'd4', name: 'iPhone', platform: 'ios', app_kind: 'app', created_at: 6e9, seen_ago: 3 * 86400e3, revoked_at: null },
+  { id: 'd5', name: 'iPhone', platform: 'ios', app_kind: 'browser', created_at: 5e9, seen_ago: 28 * 3600e3, revoked_at: null },
+];
 
 export const UI_CASES = [
   { name: 'request', session: true, desc: 'An agent asks for the location. Three tiles: Reject, Allow, Always allow.', run: ask },
   { name: 'history', session: true, desc: 'Request history with items and always allowed agents.', run: (p) => history(p, SEED, [AGENT, { clientId: 'c3', name: 'Cron agent' }]) },
   { name: 'devices', session: true, desc: 'Devices page: this phone online, others with last seen, each tagged App, Web app (PWA) or Browser, a Computer coming soon row and the add-a-phone hint.', run: (p) => devices(p, { kind: 'ready', devices: DEVICES }) },
-  { name: 'devices-old-install', session: true, desc: 'The same iPhone listed twice after a reinstall: the older row shows Last seen 3 days ago and a hint to remove it.', run: (p) => devices(p, { kind: 'ready', devices: TWINS }) },
+  { name: 'devices-old-install', session: true, desc: 'This iPhone at the top, an older App install of it with a one-line hint (no extra button), and a Browser row on the same iPhone without the hint.', run: (p) => devices(p, { kind: 'ready', devices: TWINS }) },
   { name: 'devices-empty', session: true, desc: 'Devices page with no devices yet.', run: (p) => devices(p, { kind: 'ready', devices: [] }) },
   { name: 'devices-rename', session: true, desc: 'Renaming a device inline: a name field with Save and Cancel.', run: async (p) => { await devices(p, { kind: 'ready', devices: DEVICES }); await p.click('[data-id="d2"] button:has-text("Rename")'); } },
   { name: 'devices-remove', session: true, desc: 'Removing another device asks for confirmation first.', run: async (p) => { await devices(p, { kind: 'ready', devices: DEVICES }); await p.click('[data-id="d3"] button:has-text("Remove")'); } },

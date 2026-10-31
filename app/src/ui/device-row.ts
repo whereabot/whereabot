@@ -63,19 +63,10 @@ export function deviceRow(d: Device, isThis: boolean, act: RowActions, oldInstal
   );
   const main = el("div", "device-main");
   main.append(title, meta);
-  if (oldInstall) main.append(oldInstallHint(d, act));
+  // One line, no button: the row's own Remove is the action.
+  if (oldInstall) main.append(el("span", "device-meta", "Older install of this device."));
   row.append(icon, main, actions);
   return row;
-}
-
-/** Gentle hint under a stale twin of a listed phone, with a one-tap Remove (the confirm dialog still asks). */
-function oldInstallHint(d: Device, act: RowActions) {
-  const hint = el("div", "device-hint");
-  hint.append(
-    el("span", "device-meta", "Looks like an old install of this device. Remove it?"),
-    button("Remove", `Remove old install of ${d.name}`, () => act.onRemove(d)),
-  );
-  return hint;
 }
 
 /** Placeholder for the future computer client. Not a device: no actions. */
