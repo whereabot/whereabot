@@ -9,14 +9,15 @@ const REDIRECT = inTauri ? "whereabouts://auth-callback" : new URL(import.meta.e
 
 /** One browser tab at a time: the button stays off until the user is back. */
 function setBusy(busy: boolean) {
-  $<HTMLButtonElement>("google-sign-in").disabled = busy;
+  for (const id of ["apple-sign-in", "google-sign-in"]) $<HTMLButtonElement>(id).disabled = busy;
 }
 document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && setBusy(false));
 
-export async function signInWithGoogle() {
+/** Same browser round trip for both: Apple goes through the Services ID (infra apple-sign-in-variables.tf). */
+export async function signInWith(provider: "apple" | "google") {
   setBusy(true);
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
+    provider,
     options: { redirectTo: REDIRECT, skipBrowserRedirect: inTauri },
   });
   if (error) {

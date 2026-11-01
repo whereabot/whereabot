@@ -60,14 +60,15 @@ async function start() {
   show('request');
 }
 
-$('signin-btn').addEventListener('click', async () => {
+// Same account as the phone: Sign in with Apple or Google (data-provider on each button).
+document.querySelectorAll('[data-provider]').forEach((btn) => btn.addEventListener('click', async () => {
   if (!configured) return fail('This page is not configured. Deploy fills supabase-config.js.');
   const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
+    provider: btn.dataset.provider,
     options: { redirectTo: location.href },
   });
   if (error) $('status').textContent = 'Sign-in could not start. Try again.';
-});
+}));
 $('signout').addEventListener('click', async () => {
   await supabase.auth.signOut();
   location.reload();

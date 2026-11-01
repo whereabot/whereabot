@@ -4,7 +4,7 @@
 
 - **Agent**: any AI agent or script. It calls the relay over MCP or HTTP.
 - **Relay** ([`server/`](../server)): a small Rust service in a container. It checks credentials, pings the phone, and passes the fix back. It holds no location history.
-- **Supabase**: user sign-in (Google, and email for dev) and the agent key table. See [`supabase/`](../supabase).
+- **Supabase**: user sign-in (Apple or Google, and email for dev) and the agent key table. See [`supabase/`](../supabase).
 - **Phone app** ([`app/`](../app)): a Tauri v2 app on Android or iOS. It signs in, keeps a WebSocket open to the relay, and answers pings with a fresh GPS fix.
 
 Live URLs and deploy steps per environment: [infra/README.md](../infra/README.md).

@@ -68,3 +68,15 @@
 .shares li + li {
   margin-top: var(--space-1);
 }
+
+/* Sign in with Apple, black style (Apple HIG); light edge in dark mode. */
+#signin .actions {
+  grid-template-columns: 1fr; /* full-width provider buttons, one per row */
+}
+.btn-apple {
+  background: #000;
+  color: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  .btn-apple { border-color: #fff; }
+}
