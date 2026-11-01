@@ -19,7 +19,7 @@ const REJECTED = { status: 400, body: { error: 'invalid_request' } };
 /** name -> file suffix. first/then: body state or 'details'/'consent' request to wait for. */
 export const CASES = [
   { name: 'loading', query: true, session: true, details: HOLD, first: 'details', desc: 'Checks the request. Status shows Loading with a spinner.' },
-  { name: 'signin', query: true, session: false, first: 'signin', desc: 'Signed out. Shows the Google sign-in button.' },
+  { name: 'signin', query: true, session: false, first: 'signin', desc: 'Signed out. Shows the Apple and Google sign-in buttons.' },
   { name: 'request', query: true, session: true, details: OK, first: 'request', desc: 'Signed in. Shows the app name, the redirect host, Approve and Deny.' },
   { name: 'approving', query: true, session: true, details: OK, consent: HOLD, first: 'request', click: 'approve', then: 'consent', desc: 'Approve pressed. Both buttons are disabled while the answer is sent.' },
   { name: 'error-missing-id', query: false, session: false, first: 'error', desc: 'Opened without authorization_id. Shows the restart message.' },

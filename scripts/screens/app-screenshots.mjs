@@ -38,7 +38,7 @@ export function buildApp(relayUrl) {
 }
 
 export const CASES = [
-  { name: 'signed-out', status: 'Disconnected.', desc: 'Signed out. Shows the Google sign-in button.' },
+  { name: 'signed-out', status: 'Disconnected.', desc: 'Signed out. Shows the Apple and Google sign-in buttons.' },
   { name: 'relay-url-invalid', session: true, relay: 'http://relay.example.test', status: 'Relay URL must start with wss:// (ws:// only for localhost, 10.x or 192.168.x)', desc: 'Relay URL is not secure. Connect is refused.' },
   { name: 'connecting', session: true, tauri: { connect: 'hang' }, status: 'Connecting…', desc: 'Signed in. Opening the connection to the relay.' },
   { name: 'connect-failed', session: true, tauri: { connect: 'reject', connectError: 'relay unreachable' }, status: 'Connect failed: relay unreachable. Retrying…', desc: 'Relay could not be reached. Status shows a retry.' },

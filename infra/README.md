@@ -46,6 +46,7 @@ A push that touches the relay or infra (paths in the workflow) runs [`deploy.yml
 5. In GitHub settings, add required reviewers to the `production` environment. Limit each environment's deployment branches to its branch ([branch map](../docs/operations.md#delivery-is-gitops)).
 6. Add the APNs key: after the first apply creates the secret `whereabouts-<env>-APNS_KEY`, add the `.p8` as its first version with `gcloud secrets versions add`, then redeploy the relay. Until then push is off. Key id, team and topic are the `apns_*` variables in [`modules/whereabouts/push.tf`](modules/whereabouts/push.tf).
 7. Add the VAPID key (Web Push for the browser app): add the base64url private key as the first version of `whereabouts-<env>-VAPID_PRIVATE_KEY`, set the matching public key as the `VITE_VAPID_PUBLIC_KEY` variable of the GitHub environment, then set `web_push_enabled = true` in `envs/<env>/main.tf`. Code: [`modules/whereabouts/web_push.tf`](modules/whereabouts/web_push.tf).
+8. Sign in with Apple: in developer.apple.com, give the Services ID (`apple_services_id`) the Sign in with Apple capability. Add each env's Supabase callback, `https://<project-ref>.supabase.co/auth/v1/callback`, as a return URL and `<project-ref>.supabase.co` as a domain. Put the client secret JWT (from the `.p8` key, expires after 6 months at most) in the `APPLE_CLIENT_SECRET` secret of both environments. While it is empty, Apple sign-in stays off. Code: [`modules/whereabouts/apple-sign-in-variables.tf`](modules/whereabouts/apple-sign-in-variables.tf).
 
 ## Bootstrap (once per env)
 

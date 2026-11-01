@@ -1,6 +1,6 @@
 import { $, setState, setStatus, showView } from "./status-display-dom";
 import { disconnect, start } from "./relay-connection";
-import { listenForAuthRedirect, signInWithGoogle, signInWithPassword, signOut } from "./supabase-sign-in";
+import { listenForAuthRedirect, signInWith, signInWithPassword, signOut } from "./supabase-sign-in";
 import { devLogin } from "./build-config";
 import { initDeviceIdentity } from "./devices/device-identity";
 import { takeOverOldDeviceRow } from "./devices/reinstall-device-takeover";
@@ -31,7 +31,8 @@ async function currentToken() {
 window.addEventListener("DOMContentLoaded", () => {
   void initDeviceIdentity(); // before the first hello; the sign-in round trip is far slower
   $("dev-form").hidden = !devLogin;
-  $("google-sign-in").addEventListener("click", () => void signInWithGoogle());
+  $("apple-sign-in").addEventListener("click", () => void signInWith("apple"));
+  $("google-sign-in").addEventListener("click", () => void signInWith("google"));
   $("dev-form").addEventListener("submit", (e) => {
     e.preventDefault();
     void signInWithPassword(

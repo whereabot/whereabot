@@ -15,7 +15,7 @@ Supabase holds sign-in and settings data. Row-level security lets each user read
 
 | Data | Why |
 |------|-----|
-| Your account: email, name and avatar from Google, sign-in times | Sign-in (Supabase Auth) |
+| Your account: email, name and avatar from Apple or Google, sign-in times | Sign-in (Supabase Auth) |
 | `devices`: device name, platform, app kind, coarse screen size, last seen time | Route a ping to your phones; list them in the app |
 | `push_tokens`, `web_push_subscriptions` | Wake the app when a request arrives |
 | `always_allowed_agents`: agent client id, and the requester for a shared request | Answer an always-allowed agent without a tap |
