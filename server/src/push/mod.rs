@@ -27,11 +27,14 @@ mod fake_share_rpcs;
 mod location_request_push_payload;
 pub mod location_request_wake;
 mod push_config;
+mod push_target_device;
 mod push_token_store;
 #[cfg(test)]
 mod push_wake_tests;
 #[cfg(test)]
 mod shared_request_push_tests;
+#[cfg(test)]
+mod web_only_wake_tests;
 mod web_push;
 
 use agent_grant_name::AgentNames;

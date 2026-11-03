@@ -8,7 +8,10 @@ use uuid::Uuid;
 use web_push_native::{Auth, WebPushBuilder, p256::PublicKey};
 
 use super::web_push_endpoint_allowlist::trusted;
-use crate::supabase_rest_client;
+use crate::{
+    push::push_target_device::{DeviceRow, not_revoked},
+    supabase_rest_client,
+};
 
 /// One `PushSubscription` as the browser gave it (keys base64url).
 #[derive(Deserialize)]
@@ -19,6 +22,9 @@ pub struct Subscription {
     pub endpoint: String,
     p256dh: String,
     auth: String,
+    /// The `devices(revoked_at)` embed; absent from the share RPC, which filters itself.
+    #[serde(default)]
+    devices: Option<DeviceRow>,
 }
 
 impl Subscription {
@@ -57,18 +63,22 @@ impl Subscriptions {
     pub async fn list(&self, bearer: &str, owner: Option<Uuid>) -> Vec<Subscription> {
         let res = match owner {
             Some(owner) => self.http.post(&self.rpc).json(&json!({ "p_owner": owner })),
-            None => self
-                .http
-                .get(format!("{}?select=id,endpoint,p256dh,auth", self.url)),
+            None => self.http.get(format!(
+                "{}?select=id,endpoint,p256dh,auth,devices(revoked_at)",
+                self.url
+            )),
         };
         let res = res
             .header("apikey", &self.anon_key)
             .bearer_auth(bearer)
             .send()
             .await;
-        supabase_rest_client::call("web_push_subscriptions select", res)
+        supabase_rest_client::call::<Vec<Subscription>>("web_push_subscriptions select", res)
             .await
             .unwrap_or_default()
+            .into_iter()
+            .filter(|sub| not_revoked(sub.devices.as_ref()))
+            .collect()
     }
 
     pub async fn delete(&self, bearer: &str, id: Uuid) {
