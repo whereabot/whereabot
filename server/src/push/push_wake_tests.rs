@@ -3,16 +3,24 @@ use std::{sync::Arc, time::Duration};
 use uuid::Uuid;
 
 use super::{fake_apns_and_postgrest::start, location_request_push_payload::Alert};
+use crate::locate_request::LocateRequest;
 
 pub const EXPIRES_MS: u64 = 1_800_000_000_000;
 
-pub fn alert(request_id: Uuid, client_id: &str) -> Alert<'_> {
-    Alert {
-        request_id,
-        client_id,
+pub fn request(request_id: Uuid, client_id: &str) -> LocateRequest {
+    LocateRequest {
+        id: request_id,
+        client_id: client_id.into(),
         expires_ms: EXPIRES_MS,
-        owner: None,
         requester: None,
+        reason: None,
+    }
+}
+
+pub fn alert(request: &LocateRequest) -> Alert<'_> {
+    Alert {
+        request,
+        owner: None,
     }
 }
 
@@ -20,7 +28,8 @@ pub fn alert(request_id: Uuid, client_id: &str) -> Alert<'_> {
 async fn wake_pushes_each_token_once_and_drops_gone_ones() {
     let (push, fake) = start().await;
     let id = Uuid::new_v4();
-    assert_eq!(push.wake("user-jwt", &alert(id, "claude-code")).await, 1);
+    let req = request(id, "claude-code");
+    assert_eq!(push.wake("user-jwt", &alert(&req)).await, 1);
     let pushes = fake.pushes.lock().unwrap();
     assert_eq!(pushes.len(), 2);
     let (_, headers, body) = &pushes[0];
@@ -39,8 +48,9 @@ async fn wake_pushes_each_token_once_and_drops_gone_ones() {
 async fn push_is_actionable_and_names_the_agent() {
     let (push, fake) = start().await;
     let id = Uuid::new_v4();
-    push.wake("jwt", &alert(id, "claude-code")).await;
-    push.wake("jwt", &alert(id, "unknown-client")).await;
+    push.wake("jwt", &alert(&request(id, "claude-code"))).await;
+    let unknown = request(id, "unknown-client");
+    push.wake("jwt", &alert(&unknown)).await;
     let pushes = fake.pushes.lock().unwrap();
     let (named, unnamed) = (&pushes[0].2, &pushes[2].2);
     assert_eq!(named["aps"]["category"], "LOCATION_REQUEST");
@@ -65,8 +75,8 @@ async fn aborted_wake_sends_nothing_and_late_wake_sends_once() {
         let push = push.clone();
         async move {
             let delay = Duration::from_millis(300);
-            push.wake_after(delay, "jwt", &alert(Uuid::new_v4(), "c"))
-                .await
+            let req = request(Uuid::new_v4(), "c");
+            push.wake_after(delay, "jwt", &alert(&req)).await
         }
     });
     tokio::time::sleep(Duration::from_millis(50)).await;
@@ -75,7 +85,7 @@ async fn aborted_wake_sends_nothing_and_late_wake_sends_once() {
     assert!(fake.pushes.lock().unwrap().is_empty());
 
     let delay = Duration::from_millis(10);
-    push.wake_after(delay, "jwt", &alert(Uuid::new_v4(), "c"))
-        .await;
+    let req = request(Uuid::new_v4(), "c");
+    push.wake_after(delay, "jwt", &alert(&req)).await;
     assert_eq!(fake.pushes.lock().unwrap().len(), 2);
 }

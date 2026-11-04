@@ -6,7 +6,8 @@ use uuid::Uuid;
 use super::{
     fake_apns_and_postgrest::{Fake, start},
     fake_share_rpcs::OWNER,
-    push_wake_tests::alert,
+    location_request_push_payload::Alert,
+    push_wake_tests::request,
 };
 use crate::relay_wire_protocol::Requester;
 
@@ -32,8 +33,12 @@ fn sent(fake: &Fake) -> Vec<(String, String, Value)> {
 async fn shared_request_alerts_the_owners_phone_and_names_the_requester() {
     let (push, fake) = start().await;
     let requester = ofek();
-    let mut shared = alert(Uuid::new_v4(), "claude-code");
-    (shared.owner, shared.requester) = (Some(OWNER.parse().unwrap()), Some(&requester));
+    let mut req = request(Uuid::new_v4(), "claude-code");
+    req.requester = Some(requester.clone());
+    let shared = Alert {
+        request: &req,
+        owner: Some(OWNER.parse().unwrap()),
+    };
     push.wake_after(Duration::ZERO, "requester-jwt", &shared)
         .await;
     let pushes = sent(&fake);
@@ -54,8 +59,12 @@ async fn shared_request_alerts_the_owners_phone_and_names_the_requester() {
 async fn always_allowed_for_requester_gets_silent_push_then_checking() {
     let (push, fake) = start().await;
     let requester = ofek();
-    let mut shared = alert(Uuid::new_v4(), "trusted-agent");
-    (shared.owner, shared.requester) = (Some(OWNER.parse().unwrap()), Some(&requester));
+    let mut req = request(Uuid::new_v4(), "trusted-agent");
+    req.requester = Some(requester.clone());
+    let shared = Alert {
+        request: &req,
+        owner: Some(OWNER.parse().unwrap()),
+    };
     push.wake_after(Duration::ZERO, "requester-jwt", &shared)
         .await;
     let pushes = sent(&fake);
@@ -77,9 +86,13 @@ async fn always_allowed_for_requester_gets_silent_push_then_checking() {
 async fn no_active_share_means_no_push_and_no_token_delete() {
     let (push, fake) = start().await;
     let requester = ofek();
-    let mut shared = alert(Uuid::new_v4(), "trusted-agent");
     // Another owner: the RPCs find no share, so no tokens and no always-allow.
-    (shared.owner, shared.requester) = (Some(Uuid::new_v4()), Some(&requester));
+    let mut req = request(Uuid::new_v4(), "trusted-agent");
+    req.requester = Some(requester.clone());
+    let shared = Alert {
+        request: &req,
+        owner: Some(Uuid::new_v4()),
+    };
     push.wake_after(Duration::ZERO, "requester-jwt", &shared)
         .await;
     assert!(sent(&fake).is_empty());

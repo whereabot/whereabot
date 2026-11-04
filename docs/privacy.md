@@ -40,7 +40,7 @@ The relay logs operational events: user id, device id and name, app version, req
 |---------|------|
 | Supabase | Accounts and the tables above |
 | Google Cloud Run | Runs the relay |
-| Apple Push Notification service, Web Push services | Deliver wake-up notifications. A push has the agent name and, for a shared request, the requester's name and email. Never a location. |
+| Apple Push Notification service, Web Push services | Deliver wake-up notifications. A push has the agent name and, for a shared request, the requester's name and email, plus the agent's reason when it gives one. Never a location. |
 | Cloudflare | Serves the landing page, docs and OAuth consent page |
 
 When you self-host, you choose these services, and this page describes your deployment.

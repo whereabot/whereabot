@@ -1,15 +1,18 @@
-//! Test double: one server plays PostgREST (two tokens, `bb22` is dead; `trusted-agent` is
-//! always allowed; sharing RPCs in `fake_share_rpcs`), the grants list, and APNs.
+//! Test double: one server plays PostgREST (tokens: `aa11` on a live app install, `bb22` dead
+//! and unlinked, `cc33` on a revoked device; sharing RPCs in `fake_share_rpcs`), and APNs.
 
 use std::{
-    sync::{Arc, Mutex},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
+    },
     time::Duration,
 };
 
 use super::{
     Push, PushConfig,
     apns_config::ApnsConfig,
-    fake_loopback_server::{grants, serve},
+    fake_loopback_server::{always, grants, serve},
 };
 use axum::{
     Json, Router,
@@ -30,21 +33,19 @@ pub struct Fake {
     /// (device token, apns headers, body) for each push received.
     pub pushes: Mutex<Vec<(String, HeaderMap, Value)>>,
     pub deleted: Mutex<Vec<String>>,
+    /// No token on a live app install: the user only has the web app (or a stale install).
+    pub web_only: AtomicBool,
 }
 
 type Shared = State<Arc<Fake>>;
 
-async fn list() -> Json<Value> {
-    Json(json!([{ "token": "aa11" }, { "token": "bb22" }]))
-}
-
-async fn always(RawQuery(q): RawQuery) -> Json<Value> {
-    let hit = q.unwrap_or_default().contains("client_id=eq.trusted-agent");
-    Json(if hit {
-        json!([{ "client_id": "trusted-agent" }])
-    } else {
-        json!([])
-    })
+async fn list(State(f): Shared) -> Json<Value> {
+    let live = (!f.web_only.load(Ordering::Relaxed)).then(|| json!({ "revoked_at": null }));
+    Json(json!([
+        { "token": "aa11", "devices": live },
+        { "token": "bb22", "devices": null },
+        { "token": "cc33", "devices": { "revoked_at": "2026-11-01T05:08:54Z" } },
+    ]))
 }
 
 async fn drop_token(State(f): Shared, RawQuery(q): RawQuery) {

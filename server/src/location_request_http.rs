@@ -17,6 +17,8 @@ pub struct LocateParams {
     timeout_secs: Option<u64>,
     /// Email or display name of someone who shares with the caller; absent = own phones.
     person: Option<String>,
+    /// Why the agent asks; the owner reads it on the request.
+    reason: Option<String>,
 }
 
 pub async fn locate(
@@ -28,7 +30,15 @@ pub async fn locate(
         return StatusCode::UNAUTHORIZED.into_response();
     };
     let timeout = Duration::from_secs(params.timeout_secs.unwrap_or(60).min(120));
-    match locate_person(&state, &agent, params.person.as_deref(), timeout).await {
+    match locate_person(
+        &state,
+        &agent,
+        params.person.as_deref(),
+        params.reason.as_deref(),
+        timeout,
+    )
+    .await
+    {
         Ok(location) => Json(location).into_response(),
         Err(error) => {
             let retry = error

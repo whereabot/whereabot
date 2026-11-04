@@ -68,11 +68,21 @@ Timings live in code: the [silent window](../server/src/push/mod.rs), the [fix w
 | Shared request, not always allowed | "R's agent X wants to know your location" | Reject · Allow · Always allow | New |
 | Shared request, always allowed, iOS did not wake the app | "R's agent X is checking your location" | Share | New |
 | Browser/PWA (Web Push), not always allowed | "Your agent X wants to know your location" ("R's agent X…" when shared) | none (tap opens `/app/`; the in-app prompt answers) | New |
-| Browser/PWA (Web Push), always allowed | "X is checking your location" ("R's agent X…" when shared), after the silent window | none (tap opens `/app/`) | New |
+| Browser/PWA (Web Push), always allowed | "X is checking your location" ("R's agent X…" when shared), at once, or after the silent window when a native install got the silent push ([steps](always-allow.md#what-the-relay-sends)) | none (tap opens `/app/`) | New |
 
-Web Push goes out with every APNs alert, never with the silent push: a service worker cannot read the location ([`server/src/push/web_push`](../server/src/push/web_push), [`app/public/sw.js`](../app/public/sw.js)). Expired subscriptions (404/410) are deleted.
+Web Push goes out with every APNs alert, never with the silent push: a service worker cannot read the location ([`server/src/push/web_push`](../server/src/push/web_push), [`app/public/sw.js`](../app/public/sw.js)). Expired subscriptions (404/410) are deleted. Subscriptions and APNs tokens of a removed device get no push.
 
 Every outcome is also written to the in-app **Request history**.
+
+
+## The agent's reason
+
+The agent can pass `reason`: one short sentence that says why it needs the location now. The person reads it before they choose.
+
+- The in-app prompt shows it under the question, in quotes, after "The agent says why:". It is the agent's claim, not Whereabot's.
+- The push alert and the local notification add a second line: `Reason: TEXT`.
+- The relay trims it, folds line breaks into spaces, and keeps at most 200 characters ([`location_request_reason.rs`](../server/src/location_request_reason.rs)). A blank reason is dropped.
+- Always-allowed agents get no prompt, so their reason is not shown.
 
 ## Shared requests
 

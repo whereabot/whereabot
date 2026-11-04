@@ -7,7 +7,12 @@ use super::{
     fake_web_push_service::{FakeWeb, start},
 };
 use crate::{
-    push::{apns_sender::Kind, fake_share_rpcs::OWNER, push_wake_tests::alert},
+    push::{
+        apns_sender::Kind,
+        fake_share_rpcs::OWNER,
+        location_request_push_payload::Alert,
+        push_wake_tests::{alert, request},
+    },
     relay_wire_protocol::Requester,
 };
 
@@ -22,7 +27,10 @@ fn shown(fake: &FakeWeb, i: usize) -> Value {
 async fn alert_goes_to_each_subscription_encrypted_and_gone_ones_are_dropped() {
     let (push, fake) = start().await;
     let id = Uuid::new_v4();
-    assert_eq!(push.wake("jwt", &alert(id, "claude-code")).await, 1);
+    assert_eq!(
+        push.wake("jwt", &alert(&request(id, "claude-code"))).await,
+        1
+    );
     {
         let pushes = fake.pushes.lock().unwrap();
         assert_eq!(pushes.len(), 2);
@@ -51,8 +59,12 @@ async fn shared_request_reaches_only_the_owner_and_names_the_requester() {
         name: "Ofek".into(),
         email: None,
     };
-    let mut shared = alert(Uuid::new_v4(), "claude-code");
-    (shared.owner, shared.requester) = (Some(OWNER.parse().unwrap()), Some(&requester));
+    let mut req = request(Uuid::new_v4(), "claude-code");
+    req.requester = Some(requester.clone());
+    let shared = Alert {
+        request: &req,
+        owner: Some(OWNER.parse().unwrap()),
+    };
     assert_eq!(push.wake("requester-jwt", &shared).await, 1);
     assert_eq!(fake.pushes.lock().unwrap()[0].0, "owner");
     let text = "Ofek's agent Claude Code wants to know your location";
@@ -63,7 +75,8 @@ async fn shared_request_reaches_only_the_owner_and_names_the_requester() {
 #[tokio::test]
 async fn silent_wake_ups_never_go_to_browsers() {
     let (push, fake) = start().await;
-    let a = alert(Uuid::new_v4(), "c");
+    let req = request(Uuid::new_v4(), "c");
+    let a = alert(&req);
     assert_eq!(
         push.send_all("jwt", &a, &json!({}), Kind::Background).await,
         0
