@@ -83,6 +83,7 @@ The agent can pass `reason`: one short sentence that says why it needs the locat
 - The push alert and the local notification add a second line: `Reason: TEXT`.
 - The relay trims it, folds line breaks into spaces, and keeps at most 200 characters ([`location_request_reason.rs`](../server/src/location_request_reason.rs)). A blank reason is dropped.
 - Always-allowed agents get no prompt, so their reason is not shown.
+
 ## Shared requests
 
 The agent passes `person` to ask for someone who shares their location with its user. The relay first checks the share; it then runs the same flow above on the **owner's** phones. "Your agent X" reads "R's agent X", where R is the requester. "Always allowed" means the owner always allows agent X **for R**. Extra agent results:
