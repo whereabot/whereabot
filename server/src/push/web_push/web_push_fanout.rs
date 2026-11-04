@@ -18,8 +18,8 @@ pub fn web_body(alert: &Alert<'_>, apns_body: &Value) -> Vec<u8> {
     json!({
         "title": shown["title"],
         "body": shown["body"],
-        "request_id": alert.request_id,
-        "expires_ms": alert.expires_ms,
+        "request_id": alert.request.id,
+        "expires_ms": alert.request.expires_ms,
     })
     .to_string()
     .into_bytes()
@@ -47,7 +47,7 @@ impl Push {
         if subs.is_empty() {
             return 0;
         }
-        let (body, ttl) = (web_body(alert, apns_body), ttl(alert.expires_ms));
+        let (body, ttl) = (web_body(alert, apns_body), ttl(alert.request.expires_ms));
         let mut accepted = 0;
         for sub in &subs {
             match (web.send(sub, &body, ttl).await, sub.id) {
@@ -57,7 +57,7 @@ impl Push {
                 _ => {}
             }
         }
-        tracing::info!(request_id = %alert.request_id, total = subs.len(), accepted, "web push sent");
+        tracing::info!(request_id = %alert.request.id, total = subs.len(), accepted, "web push sent");
         accepted
     }
 }

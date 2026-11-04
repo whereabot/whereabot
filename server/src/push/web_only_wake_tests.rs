@@ -7,7 +7,10 @@ use std::{
 
 use uuid::Uuid;
 
-use super::{fake_apns_and_postgrest::start, push_wake_tests::alert};
+use super::{
+    fake_apns_and_postgrest::start,
+    push_wake_tests::{alert, request},
+};
 
 #[tokio::test]
 async fn always_allowed_without_a_live_app_install_gets_the_alert_at_once() {
@@ -18,7 +21,7 @@ async fn always_allowed_without_a_live_app_install_gets_the_alert_at_once() {
     push.wake_after(
         Duration::ZERO,
         "jwt",
-        &alert(Uuid::new_v4(), "trusted-agent"),
+        &alert(&request(Uuid::new_v4(), "trusted-agent")),
     )
     .await;
     assert!(started.elapsed() < push.silent_window);

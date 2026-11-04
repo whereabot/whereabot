@@ -8,6 +8,7 @@ use crate::{
     Agent, AppState,
     location_request::request_location,
     location_request_error::LocateError,
+    location_request_reason,
     relay_wire_protocol::{Location, Requester},
     shared_person_resolution,
 };
@@ -32,15 +33,18 @@ impl Target {
 }
 
 /// Locates the agent's own phones when `person` is absent or blank, else that person's.
+/// `reason` is the agent's own words; the phone shows them cleaned.
 pub async fn locate_person(
     state: &AppState,
     agent: &Agent,
     person: Option<&str>,
+    reason: Option<&str>,
     timeout: Duration,
 ) -> Result<Location, LocateError> {
     let target = match person.filter(|person| !person.trim().is_empty()) {
         None => Target::own(agent),
         Some(person) => shared_person_resolution::resolve(state, agent, person).await?,
     };
-    request_location(state, agent, target, timeout).await
+    let reason = location_request_reason::clean(reason);
+    request_location(state, agent, target, reason, timeout).await
 }

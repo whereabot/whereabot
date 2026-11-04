@@ -10,6 +10,9 @@ const SEED = [
 ];
 
 const ask = (page) => page.evaluate((a) => { window.__ui.showRequest(a, new AbortController().signal); }, AGENT);
+// The longest reason the relay keeps (200 characters): the worst case for fit.
+const REASON = 'You asked me to book a table for dinner tonight. I need your current location to find kosher restaurants within a ten minute walk that still have a free table for two people at eight in the evening.'.slice(0, 200);
+const askWithReason = (page) => page.evaluate(([a, r]) => { window.__ui.showRequest(a, new AbortController().signal, true, r); }, [AGENT, REASON]);
 
 const history = (page, entries, always) =>
   page.evaluate(([e, al]) => { window.__ui.renderHistory(e, al, () => {}); window.__ui.setScreen('history'); }, [entries, always]);
@@ -36,6 +39,7 @@ const TWINS = [
 
 export const UI_CASES = [
   { name: 'request', session: true, desc: 'An agent asks for the location. Three tiles: Reject, Allow, Always allow.', run: ask },
+  { name: 'request-reason', session: true, desc: 'An agent asks and says why. The reason shows in quotes under the question.', run: askWithReason },
   { name: 'history', session: true, desc: 'Request history with items and always allowed agents.', run: (p) => history(p, SEED, [AGENT, { clientId: 'c3', name: 'Cron agent' }]) },
   { name: 'devices', session: true, desc: 'Devices page: this phone online, others with last seen, each tagged App, Web app (PWA) or Browser, a Computer coming soon row and the add-a-phone hint.', run: (p) => devices(p, { kind: 'ready', devices: DEVICES }) },
   { name: 'devices-old-install', session: true, desc: 'This iPhone at the top, an older App install of it with a one-line hint (no extra button), and a Browser row on the same iPhone without the hint.', run: (p) => devices(p, { kind: 'ready', devices: TWINS }) },

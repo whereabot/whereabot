@@ -50,8 +50,9 @@ async function prompt(ping: Ping, agent: Agent, step: Step) {
   const abort = new AbortController();
   const timer = window.setTimeout(() => abort.abort(), left);
   track(ping.id, abort);
-  void notify(`${agentTitle(agent)} wants to know your location`);
-  const shown = showRequest(agent, abort.signal, !isGeneric(agent.clientId));
+  // Same words as the relay's push alert.
+  void notify(`${agentTitle(agent)} wants to know your location${ping.reason ? `\nReason: ${ping.reason}` : ""}`);
+  const shown = showRequest(agent, abort.signal, !isGeneric(agent.clientId), ping.reason ?? null);
   step(`prompt shown, left=${left}ms, screen=${document.body.dataset.screen}, visible=${document.visibilityState}`);
   const choice = await shown;
   clearTimeout(timer);

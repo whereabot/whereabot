@@ -58,6 +58,8 @@ pub enum ToDevice {
         expires_ms: u64,
         /// Null for the owner's own agent.
         requester: Option<Requester>,
+        /// Why the agent asks, in its own words (cleaned). Null when it gave none.
+        reason: Option<String>,
     },
     /// Another device answered `id`: close the prompt.
     Cancel { id: Uuid },

@@ -39,6 +39,8 @@ Every push body also carries `requester` (same object, or `null`).
 | Not always allowed | `REQUESTER's agent AGENT wants to know your location` (`REQUESTER's agent wants…` without a name) | `LOCATION_REQUEST` |
 | Always allowed, silent push gets no answer | `REQUESTER's agent AGENT is checking your location` | `LOCATION_AUTO` |
 
+The consent alert adds a second line `Reason: TEXT` when the agent gave a reason ([details](request-flow.md#the-agents-reason)).
+
 Always allow on a shared request stores the requester with the agent: see [data and RLS](sharing.md#tables).
 
 ## Tests

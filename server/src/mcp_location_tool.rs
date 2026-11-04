@@ -26,6 +26,10 @@ struct LocationParams {
         description = "Email or display name of someone who shares their location with you (see list_people_sharing_with_me). Omit for your own phones."
     )]
     person: Option<String>,
+    #[schemars(
+        description = "One short sentence, shown to the person on their phone, that says why you need their location now. Example: \"To find coffee shops near you.\" Up to 200 characters."
+    )]
+    reason: Option<String>,
 }
 
 #[derive(Clone)]
@@ -46,7 +50,7 @@ impl Whereabouts {
             idempotent_hint = false,
             open_world_hint = true
         ),
-        description = "Ping the user's phone and return its current GPS location (latitude, longitude, accuracy in meters, capture time). Use when you need to know where the user is right now. Pass `person` to locate someone who shares their location with the user."
+        description = "Ping the user's phone and return its current GPS location (latitude, longitude, accuracy in meters, capture time). Use when you need to know where the user is right now. Pass `person` to locate someone who shares their location with the user. Always pass `reason`: the person sees it and decides with it."
     )]
     async fn get_phone_location(
         &self,
@@ -63,7 +67,8 @@ impl Whereabouts {
                 .unwrap_or(MAX_WAIT_SECS)
                 .clamp(1, MAX_WAIT_SECS),
         );
-        match locate_person(&self.state, agent, params.person.as_deref(), timeout).await {
+        let (person, reason) = (params.person.as_deref(), params.reason.as_deref());
+        match locate_person(&self.state, agent, person, reason, timeout).await {
             Ok(location) => CallToolResult::success(vec![ContentBlock::text(
                 serde_json::to_string(&location).expect("Location serializes"),
             )]),

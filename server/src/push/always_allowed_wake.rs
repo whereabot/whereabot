@@ -16,7 +16,7 @@ impl Push {
         tokio::time::sleep(delay).await;
         if !self
             .always
-            .contains(bearer, alert.client_id, alert.owner)
+            .contains(bearer, &alert.request.client_id, alert.owner)
             .await
         {
             self.wake(bearer, alert).await;
@@ -30,7 +30,7 @@ impl Push {
         if woken > 0 {
             tokio::time::sleep(self.silent_window).await;
         }
-        let name = self.names.name(bearer, alert.client_id).await;
+        let name = self.names.name(bearer, &alert.request.client_id).await;
         let body = checking(alert, name.as_deref());
         self.send_all(bearer, alert, &body, Kind::Alert).await;
     }
