@@ -1,6 +1,7 @@
-//! Shared by the push test doubles: a loopback server and the user's OAuth grants (agent names).
+//! Shared by the push test doubles: a loopback server, the user's OAuth grants (agent names),
+//! and the always-allowed rows (`trusted-agent` only).
 
-use axum::{Json, Router};
+use axum::{Json, Router, extract::RawQuery};
 use serde_json::{Value, json};
 
 pub async fn grants() -> Json<Value> {
@@ -8,6 +9,15 @@ pub async fn grants() -> Json<Value> {
         { "client": { "id": "claude-code", "name": "Claude Code" } },
         { "client": { "id": "trusted-agent", "name": "Trusted Bot" } },
     ]))
+}
+
+pub async fn always(RawQuery(q): RawQuery) -> Json<Value> {
+    let hit = q.unwrap_or_default().contains("client_id=eq.trusted-agent");
+    Json(if hit {
+        json!([{ "client_id": "trusted-agent" }])
+    } else {
+        json!([])
+    })
 }
 
 /// Serves `app` on a free loopback port; returns its base URL.

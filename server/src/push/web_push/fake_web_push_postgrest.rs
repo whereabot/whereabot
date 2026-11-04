@@ -1,4 +1,5 @@
-//! PostgREST side of the Web Push double: own subscriptions `live` and `gone`; the share RPC
+//! PostgREST side of the Web Push double: own subscriptions `live`, `gone`, and `revoked` (its
+//! device was removed, never pushed); the share RPC
 //! gives `OWNER`'s `owner` (no id).
 
 use std::sync::Arc;
@@ -30,9 +31,12 @@ fn sub(f: &FakeWeb, name: &str, id: Option<&str>) -> Value {
 
 async fn own(State(f): Shared) -> Json<Value> {
     let live = "00000000-0000-4000-8000-000000000011";
+    let mut revoked = sub(&f, "revoked", Some("00000000-0000-4000-8000-000000000022"));
+    revoked["devices"] = json!({ "revoked_at": "2026-11-01T05:08:54Z" });
     Json(json!([
         sub(&f, "live", Some(live)),
-        sub(&f, "gone", Some(GONE_ID))
+        sub(&f, "gone", Some(GONE_ID)),
+        revoked
     ]))
 }
 

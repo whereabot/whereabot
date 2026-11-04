@@ -22,10 +22,14 @@ impl Push {
             self.wake(bearer, alert).await;
             return;
         }
-        self.send_all(bearer, alert, &silent(alert), Kind::Background)
+        let woken = self
+            .send_all(bearer, alert, &silent(alert), Kind::Background)
             .await;
+        // No live app install got it (web app only, or a stale install): alert at once.
         // iOS skips silent pushes for force-quit apps and in Low Power Mode, and throttles them.
-        tokio::time::sleep(self.silent_window).await;
+        if woken > 0 {
+            tokio::time::sleep(self.silent_window).await;
+        }
         let name = self.names.name(bearer, alert.client_id).await;
         let body = checking(alert, name.as_deref());
         self.send_all(bearer, alert, &body, Kind::Alert).await;
