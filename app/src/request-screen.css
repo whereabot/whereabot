@@ -26,6 +26,11 @@
     max-height: 2lh;
   }
 }
+/* Fade the bottom edge so cut-off text reads as "more below". Webkit twin: iOS WKWebView. */
+.request-reason[data-more="1"] {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.5lh), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.5lh), transparent);
+}
 .request-reason-label {
   color: var(--color-text-muted);
 }

@@ -17,11 +17,19 @@ export function showRequest(agent: Agent, signal: AbortSignal, canAlways = true,
     const allow = $("allow");
     const always = $("always-allow");
     const before = document.activeElement as HTMLElement | null;
+    const reasonEl = $("req-reason");
+    // Cue marks text hidden below the cap; reaching the bottom clears it.
+    const syncMore = () => {
+      const cut = reasonEl.scrollHeight > reasonEl.clientHeight + 1 && reasonEl.scrollTop + reasonEl.clientHeight < reasonEl.scrollHeight - 1;
+      if (cut) reasonEl.dataset.more = "1";
+      else delete reasonEl.dataset.more;
+    };
     const finish = (choice: Choice | null) => {
       ui.abort();
       always.hidden = false;
     $("req-prefix").hidden = false;
-      $("req-reason").hidden = true;
+      reasonEl.hidden = true;
+      delete reasonEl.dataset.more;
       delete box.dataset.noAlways;
       setScreen("home");
       before?.focus?.();
@@ -31,12 +39,14 @@ export function showRequest(agent: Agent, signal: AbortSignal, canAlways = true,
     $("req-prefix").hidden = !!agent.requesterId; // a shared name already says whose agent it is
     $("req-name").textContent = agent.name;
     $("req-reason-text").textContent = reason ?? "";
-    $("req-reason").hidden = !reason;
+    reasonEl.hidden = !reason;
     $("always-name").textContent = ` ${agent.name}`;
     always.hidden = !canAlways;
     if (canAlways) delete box.dataset.noAlways;
     else box.dataset.noAlways = "1";
     setScreen("request");
+    syncMore();
+    reasonEl.addEventListener("scroll", syncMore, opts);
     announce(`${agentTitle(agent)} wants to know your location.${reason ? ` The agent says why: ${reason}.` : ""} Choose Reject, Allow or Always allow.`);
     $("request-title").focus();
 
