@@ -1,5 +1,7 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use std::sync::Arc;
+
 use tokio::sync::oneshot;
 use uuid::Uuid;
 
@@ -7,10 +9,11 @@ use crate::{
     Agent, AppState,
     devices::location_request_fanout::Fanout,
     locate_outcome_log,
+    locate_request::LocateRequest,
     location_request_error::LocateError,
     location_target::Target,
     pending_location_requests::PendingSlot,
-    push::location_request_wake::{self, Request},
+    push::location_request_wake,
     relay_wire_protocol::{Answer, DeniedReason, Location},
 };
 
@@ -29,31 +32,26 @@ pub async fn request_location(
     let expires_ms = (SystemTime::now() + timeout)
         .duration_since(UNIX_EPOCH)
         .map_or(0, |since| since.as_millis() as u64);
-    let id = Uuid::new_v4();
+    let request = Arc::new(LocateRequest {
+        id: Uuid::new_v4(),
+        client_id: agent.client_id.clone(),
+        expires_ms,
+        requester: target.requester,
+        reason,
+    });
     let (tx, mut rx) = oneshot::channel();
     // Keyed by the owner: only the owner's phones may answer. Dropped on every exit.
-    let _slot = PendingSlot::open(state, agent.user_id, id, (owner, tx))?;
+    let _slot = PendingSlot::open(state, agent.user_id, request.id, (owner, tx))?;
     let connected = !state.devices.senders(owner).await.is_empty();
+    let shared_owner = request.requester.is_some().then_some(owner);
     let wake = location_request_wake::start(
         state.push.as_ref(),
         agent.bearer.as_deref(),
         connected,
-        Request {
-            id,
-            client_id: agent.client_id.clone(),
-            expires_ms,
-            shared: target.requester.clone().map(|r| (owner, r)),
-            reason: reason.clone(),
-        },
+        Arc::clone(&request),
+        shared_owner,
     );
-    let mut fanout = Fanout::new(
-        owner,
-        id,
-        agent.client_id.clone(),
-        expires_ms,
-        target.requester,
-        reason,
-    );
+    let mut fanout = Fanout::new(owner, Arc::clone(&request));
     let mut winner = Uuid::nil();
     let result = loop {
         fanout.send_new(&state.devices).await;
@@ -88,6 +86,6 @@ pub async fn request_location(
     drop(_slot);
     drop(wake);
     fanout.cancel_others(&state.devices, winner).await;
-    locate_outcome_log::log(id, &result);
+    locate_outcome_log::log(request.id, &result);
     result
 }

@@ -13,6 +13,7 @@ mod devices;
 mod list_people_tool;
 mod locate_outcome_log;
 mod locate_rate_limit;
+mod locate_request;
 mod location_request;
 mod location_request_error;
 mod location_request_http;
@@ -38,7 +39,6 @@ mod supabase_rest_client;
 pub use graceful_shutdown::Shutdown;
 use supabase_rest_client::Supabase;
 use supabase_signing_keys::JwksCache;
-
 struct AppState {
     push: Option<Arc<push::Push>>,
     jwks: JwksCache,

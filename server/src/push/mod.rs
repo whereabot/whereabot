@@ -84,7 +84,7 @@ impl Push {
     /// The consent alert ("wants to know"). `bearer` is the agent's Supabase user JWT.
     /// Returns how many pushes APNs accepted.
     pub async fn wake(&self, bearer: &str, alert: &Alert<'_>) -> usize {
-        let name = self.names.name(bearer, alert.client_id).await;
+        let name = self.names.name(bearer, &alert.request.client_id).await;
         let body = payload(alert, name.as_deref());
         self.send_all(bearer, alert, &body, Kind::Alert).await
     }

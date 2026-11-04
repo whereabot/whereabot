@@ -24,14 +24,14 @@ impl Push {
             tokens.retain(|token| token.linked);
         }
         if tokens.is_empty() {
-            tracing::info!(request_id = %alert.request_id, "push skipped: no push token for this user");
+            tracing::info!(request_id = %alert.request.id, "push skipped: no push token for this user");
             return 0;
         }
         let mut accepted = 0;
         let total = tokens.len();
         for token in tokens {
             match apns
-                .send(&token.token, body, kind, alert.expires_ms / 1000)
+                .send(&token.token, body, kind, alert.request.expires_ms / 1000)
                 .await
             {
                 Sent::Ok => accepted += 1,
@@ -43,7 +43,7 @@ impl Push {
                 Sent::Failed => {}
             }
         }
-        tracing::info!(request_id = %alert.request_id, total, accepted, "push sent");
+        tracing::info!(request_id = %alert.request.id, total, accepted, "push sent");
         accepted
     }
 }
