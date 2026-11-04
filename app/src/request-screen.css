@@ -12,6 +12,24 @@
   color: var(--color-accent-text);
 }
 
+/* The agent's own words: quoted, so they never read as Whereabot's. */
+/* Capped with its own scroll, so a long reason never pushes the choice tiles off screen. */
+.request-reason {
+  font-size: var(--text-lg);
+  overflow-wrap: anywhere;
+  max-height: 4lh;
+  overflow-y: auto;
+}
+@media (max-height: 500px) {
+  .request-reason {
+    font-size: var(--text-base);
+    max-height: 2lh;
+  }
+}
+.request-reason-label {
+  color: var(--color-text-muted);
+}
+
 /* Generic agent ids cannot be "always allowed": two tiles. */
 #request[data-no-always="1"] .tiles {
   --tile-columns: 2;

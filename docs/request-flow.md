@@ -74,6 +74,15 @@ Web Push goes out with every APNs alert, never with the silent push: a service w
 
 Every outcome is also written to the in-app **Request history**.
 
+
+## The agent's reason
+
+The agent can pass `reason`: one short sentence that says why it needs the location now. The person reads it before they choose.
+
+- The in-app prompt shows it under the question, in quotes, after "The agent says why:". It is the agent's claim, not Whereabot's.
+- The push alert and the local notification add a second line: `Reason: TEXT`.
+- The relay trims it, folds line breaks into spaces, and keeps at most 200 characters ([`location_request_reason.rs`](../server/src/location_request_reason.rs)). A blank reason is dropped.
+- Always-allowed agents get no prompt, so their reason is not shown.
 ## Shared requests
 
 The agent passes `person` to ask for someone who shares their location with its user. The relay first checks the share; it then runs the same flow above on the **owner's** phones. "Your agent X" reads "R's agent X", where R is the requester. "Always allowed" means the owner always allows agent X **for R**. Extra agent results:

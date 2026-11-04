@@ -13,6 +13,7 @@ pub fn alert(request_id: Uuid, client_id: &str) -> Alert<'_> {
         expires_ms: EXPIRES_MS,
         owner: None,
         requester: None,
+        reason: None,
     }
 }
 
@@ -78,4 +79,16 @@ async fn aborted_wake_sends_nothing_and_late_wake_sends_once() {
     push.wake_after(delay, "jwt", &alert(Uuid::new_v4(), "c"))
         .await;
     assert_eq!(fake.pushes.lock().unwrap().len(), 2);
+}
+
+#[test]
+fn the_alert_shows_the_reason_under_the_question() {
+    let mut alert = alert(Uuid::nil(), "claude-code");
+    alert.reason = Some("To find coffee near you");
+    let body = super::location_request_push_payload::payload(&alert, Some("Claude"));
+    assert_eq!(
+        body["aps"]["alert"]["body"],
+        "Your agent Claude wants to know your location\nReason: To find coffee near you"
+    );
+    assert_eq!(body["reason"], "To find coffee near you");
 }

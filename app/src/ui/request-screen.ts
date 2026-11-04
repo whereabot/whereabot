@@ -6,9 +6,9 @@ export type Choice = "approve" | "always" | "reject";
 
 /**
  * Shows the request screen. Resolves with the user's choice, or null when aborted.
- * `canAlways` false hides "Always" (generic agent ids).
+ * `canAlways` false hides "Always" (generic agent ids). `reason` is the agent's own words, or null.
  */
-export function showRequest(agent: Agent, signal: AbortSignal, canAlways = true): Promise<Choice | null> {
+export function showRequest(agent: Agent, signal: AbortSignal, canAlways = true, reason: string | null = null): Promise<Choice | null> {
   if (signal.aborted) return Promise.resolve(null);
   return new Promise((resolve) => {
     const ui = new AbortController();
@@ -21,6 +21,7 @@ export function showRequest(agent: Agent, signal: AbortSignal, canAlways = true)
       ui.abort();
       always.hidden = false;
     $("req-prefix").hidden = false;
+      $("req-reason").hidden = true;
       delete box.dataset.noAlways;
       setScreen("home");
       before?.focus?.();
@@ -29,12 +30,14 @@ export function showRequest(agent: Agent, signal: AbortSignal, canAlways = true)
 
     $("req-prefix").hidden = !!agent.requesterId; // a shared name already says whose agent it is
     $("req-name").textContent = agent.name;
+    $("req-reason-text").textContent = reason ?? "";
+    $("req-reason").hidden = !reason;
     $("always-name").textContent = ` ${agent.name}`;
     always.hidden = !canAlways;
     if (canAlways) delete box.dataset.noAlways;
     else box.dataset.noAlways = "1";
     setScreen("request");
-    announce(`${agentTitle(agent)} wants to know your location. Choose Reject, Allow or Always allow.`);
+    announce(`${agentTitle(agent)} wants to know your location.${reason ? ` The agent says why: ${reason}.` : ""} Choose Reject, Allow or Always allow.`);
     $("request-title").focus();
 
     allow.addEventListener("click", () => finish("approve"), opts);

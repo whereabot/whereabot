@@ -10,6 +10,7 @@ pub struct Fanout {
     client_id: String,
     expires_ms: u64,
     requester: Option<Requester>,
+    reason: Option<String>,
     sent: Vec<Tx>,
 }
 
@@ -20,6 +21,7 @@ impl Fanout {
         client_id: String,
         expires_ms: u64,
         requester: Option<Requester>,
+        reason: Option<String>,
     ) -> Self {
         Self {
             user,
@@ -27,6 +29,7 @@ impl Fanout {
             client_id,
             expires_ms,
             requester,
+            reason,
             sent: Vec::new(),
         }
     }
@@ -42,6 +45,7 @@ impl Fanout {
                 client_id: self.client_id.clone(),
                 expires_ms: self.expires_ms,
                 requester: self.requester.clone(),
+                reason: self.reason.clone(),
             };
             if device.send(ping).await.is_ok() {
                 self.sent.push(device);

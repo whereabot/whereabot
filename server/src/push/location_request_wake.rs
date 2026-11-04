@@ -16,6 +16,8 @@ pub struct Request {
     pub expires_ms: u64,
     /// The owner and the requester when someone else's agent asks.
     pub shared: Option<(Uuid, Requester)>,
+    /// Why the agent asks; the alert shows it.
+    pub reason: Option<String>,
 }
 
 /// The running wake-up push. Dropping it aborts the push, so a request that ends,
@@ -49,6 +51,7 @@ pub fn start(
             expires_ms: request.expires_ms,
             owner: request.shared.as_ref().map(|(owner, _)| *owner),
             requester: request.shared.as_ref().map(|(_, requester)| requester),
+            reason: request.reason.as_deref(),
         };
         push.wake_after(delay, &bearer, &alert).await;
     })))
@@ -64,6 +67,7 @@ mod tests {
             client_id: "claude-code".into(),
             expires_ms: 1_800_000_000_000,
             shared: None,
+            reason: None,
         }
     }
 

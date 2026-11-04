@@ -19,6 +19,7 @@ pub async fn request_location(
     state: &AppState,
     agent: &Agent,
     target: Target,
+    reason: Option<String>,
     timeout: Duration,
 ) -> Result<Location, LocateError> {
     let owner = target.owner;
@@ -42,6 +43,7 @@ pub async fn request_location(
             client_id: agent.client_id.clone(),
             expires_ms,
             shared: target.requester.clone().map(|r| (owner, r)),
+            reason: reason.clone(),
         },
     );
     let mut fanout = Fanout::new(
@@ -50,6 +52,7 @@ pub async fn request_location(
         agent.client_id.clone(),
         expires_ms,
         target.requester,
+        reason,
     );
     let mut winner = Uuid::nil();
     let result = loop {

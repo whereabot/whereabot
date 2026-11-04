@@ -16,6 +16,8 @@ pub struct Alert<'a> {
     pub owner: Option<Uuid>,
     /// Who asks, when it is not the owner's own agent.
     pub requester: Option<&'a Requester>,
+    /// Why the agent asks, already cleaned.
+    pub reason: Option<&'a str>,
 }
 
 /// Who asks, as the alert names them: "Your agent X", "Ann's agent X", "Ann's agent".
@@ -30,7 +32,10 @@ fn asker(alert: &Alert<'_>, agent_name: Option<&str>) -> String {
 
 /// `agent_name` is the OAuth client name; None says "An agent".
 pub fn payload(alert: &Alert<'_>, agent_name: Option<&str>) -> Value {
-    let text = format!("{} wants to know your location", asker(alert, agent_name));
+    let mut text = format!("{} wants to know your location", asker(alert, agent_name));
+    if let Some(reason) = alert.reason {
+        text.push_str(&format!("\nReason: {reason}"));
+    }
     // The app registers this category with Reject, Allow and Always allow actions.
     with_alert(alert, agent_name, text, "LOCATION_REQUEST")
 }
@@ -57,6 +62,7 @@ pub fn silent(alert: &Alert<'_>) -> Value {
         "client_id": alert.client_id,
         "expires_ms": alert.expires_ms,
         "requester": alert.requester,
+        "reason": alert.reason,
     })
 }
 
@@ -75,5 +81,6 @@ fn with_alert(alert: &Alert<'_>, agent_name: Option<&str>, text: String, categor
         "expires_ms": alert.expires_ms,
         // Always allow on a shared request is stored for this requester only.
         "requester": alert.requester,
+        "reason": alert.reason,
     })
 }

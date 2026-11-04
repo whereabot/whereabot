@@ -16,6 +16,7 @@ mod locate_rate_limit;
 mod location_request;
 mod location_request_error;
 mod location_request_http;
+mod location_request_reason;
 mod location_target;
 mod mcp_http_route;
 mod mcp_location_tool;

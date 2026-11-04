@@ -13,7 +13,7 @@ Layout audit across widths, dark mode and large text: `node scripts/screens/audi
 | [app-devices-empty-mobile.png](app-devices-empty-mobile.png) | Devices page with no devices yet. |
 | [app-devices-error-mobile.png](app-devices-error-mobile.png) | Devices could not be loaded. Shows the reason and Try again. |
 | [app-devices-mobile.png](app-devices-mobile.png) | Devices page: this phone online, others with last seen, each tagged App, Web app (PWA) or Browser, a Computer coming soon row and the add-a-phone hint. |
-| [app-devices-old-install-mobile.png](app-devices-old-install-mobile.png) | The same iPhone listed twice after a reinstall: the older row shows Last seen 3 days ago and a hint to remove it. |
+| [app-devices-old-install-mobile.png](app-devices-old-install-mobile.png) | This iPhone at the top, an older App install of it with a one-line hint (no extra button), and a Browser row on the same iPhone without the hint. |
 | [app-devices-remove-mobile.png](app-devices-remove-mobile.png) | Removing another device asks for confirmation first. |
 | [app-devices-rename-mobile.png](app-devices-rename-mobile.png) | Renaming a device inline: a name field with Save and Cancel. |
 | [app-disconnected-mobile.png](app-disconnected-mobile.png) | Disconnect pressed. Shows Disconnected. |
@@ -27,6 +27,7 @@ Layout audit across widths, dark mode and large text: `node scripts/screens/audi
 | [app-ping-answered-mobile.png](app-ping-answered-mobile.png) | The first locate ping was answered. Get started turns into "It works" and shows the time of the reply. |
 | [app-relay-url-invalid-mobile.png](app-relay-url-invalid-mobile.png) | Relay URL is not secure. Connect is refused. |
 | [app-request-mobile.png](app-request-mobile.png) | An agent asks for the location. Three tiles: Reject, Allow, Always allow. |
+| [app-request-reason-mobile.png](app-request-reason-mobile.png) | An agent asks and says why. The reason shows in quotes under the question. |
 | [app-shared-request-mobile.png](app-shared-request-mobile.png) | A shared request: "Dana's agent Claude wants to know your location" with Reject, Allow, Always allow. |
 | [app-sharing-empty-mobile.png](app-sharing-empty-mobile.png) | Sharing with nobody and nobody sharing: both lists explain themselves. |
 | [app-sharing-error-mobile.png](app-sharing-error-mobile.png) | Sharing lists could not load. Shows the reason and Try again. |
