@@ -63,3 +63,21 @@ async fn mcp_wait_ends_before_the_clients_60_s_abort() {
         "relay waits past 55 s: {expires} vs {now_ms}"
     );
 }
+
+#[tokio::test]
+async fn mcp_wait_never_drops_below_45_s() {
+    let relay = start_relay().await;
+    let deny = |ping: &Value| Some(json!({ "type": "denied", "id": ping["id"] }));
+    let mut pings = connect_scripted(&relay.addr, &relay.phone(USER_A), None, deny).await;
+    tokio::time::sleep(Duration::from_millis(300)).await;
+    let now_ms = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as u64;
+    call(&relay, "get_phone_location", json!({ "timeout_secs": 30 })).await;
+    let expires = pings.recv().await.unwrap()["expires_ms"].as_u64().unwrap();
+    assert!(
+        expires >= now_ms + 45_000,
+        "relay waits under 45 s: {expires} vs {now_ms}"
+    );
+}
