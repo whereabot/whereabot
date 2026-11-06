@@ -64,7 +64,7 @@ The same tag also builds the Android AAB. The workflow uploads it to Play intern
 
 ## Find failed locate requests
 
-The relay logs each request that gives the user no answer at WARN, as `locate request failed` ([`locate_outcome_log.rs`](../server/src/locate_outcome_log.rs)). The line has `outcome`, `elapsed_ms`, `wait_s` and `phone_reached`. A phone answer that comes after the relay stopped waiting logs `late answer` at WARN. On Cloud Run the relay writes JSON lines, so each field is in `jsonPayload`. Every log at WARNING or worse in prod emails `ALERT_EMAIL` ([`alerts.tf`](../infra/envs/prod/alerts.tf)). To find them, filter the relay logs on `severity>=WARNING`. Then filter on `jsonPayload.request_id` to see every step of that request.
+The relay logs each request that gives the user no answer at WARN, as `locate request failed` ([`locate_outcome_log.rs`](../server/src/locate_outcome_log.rs)). The line has `outcome`, `elapsed_ms`, `wait_s` and `phone_reached`. A phone answer that comes after the relay stopped waiting logs `late answer` at WARN. On Cloud Run the relay writes JSON lines, so each field is in `jsonPayload`. Every relay log line (stdout, not the Cloud Run request log) at WARNING or worse in prod emails `ALERT_EMAIL` ([`alerts.tf`](../infra/envs/prod/alerts.tf)). To find them, filter the relay logs on `severity>=WARNING`. Then filter on `jsonPayload.request_id` to see every step of that request.
 
 ## Steps that need a human
 
