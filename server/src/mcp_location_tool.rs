@@ -14,12 +14,15 @@ use crate::{Agent, AppState, location_target::locate_person};
 /// MCP clients (Claude Code among them) abort a tool call after 60 s. A relay that waits the
 /// full 60 s answers after the abort, and the agent sees a bare "timed out" instead of why.
 const MAX_WAIT_SECS: u64 = 55;
+/// A push-woken phone needs about 30 s to connect and get a fix (2026-11-06: an agent's 30 s
+/// wait ended 0.14 s before the fix arrived), so a shorter wait only makes the agent retry.
+const MIN_WAIT_SECS: u64 = 45;
 
 #[derive(Deserialize, schemars::JsonSchema)]
 struct LocationParams {
     #[schemars(
-        range(min = 1, max = 55),
-        description = "Seconds to wait for the phone, including time for the user to open the app. Default and maximum 55, so the answer arrives before MCP clients abort a call at 60 s."
+        range(min = 45, max = 55),
+        description = "Seconds to wait for the phone, including time for the user to open the app. Default and maximum 55, so the answer arrives before MCP clients abort a call at 60 s. Minimum 45: a phone woken by a push needs about 30 s."
     )]
     timeout_secs: Option<u64>,
     #[schemars(
@@ -65,7 +68,7 @@ impl Whereabouts {
             params
                 .timeout_secs
                 .unwrap_or(MAX_WAIT_SECS)
-                .clamp(1, MAX_WAIT_SECS),
+                .clamp(MIN_WAIT_SECS, MAX_WAIT_SECS),
         );
         let (person, reason) = (params.person.as_deref(), params.reason.as_deref());
         match locate_person(&self.state, agent, person, reason, timeout).await {
