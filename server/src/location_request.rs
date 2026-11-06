@@ -28,7 +28,8 @@ pub async fn request_location(
     let owner = target.owner;
     // iOS drops the socket in the background: wait for the app, and resend the
     // ping to each new socket so a reconnect does not lose it.
-    let deadline = tokio::time::Instant::now() + timeout;
+    let started = tokio::time::Instant::now();
+    let deadline = started + timeout;
     let expires_ms = (SystemTime::now() + timeout)
         .duration_since(UNIX_EPOCH)
         .map_or(0, |since| since.as_millis() as u64);
@@ -86,6 +87,7 @@ pub async fn request_location(
     drop(_slot);
     drop(wake);
     fanout.cancel_others(&state.devices, winner).await;
-    locate_outcome_log::log(request.id, &result);
+    let elapsed = started.elapsed();
+    locate_outcome_log::log(request.id, &result, elapsed, timeout, fanout.reached());
     result
 }

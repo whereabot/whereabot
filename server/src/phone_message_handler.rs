@@ -49,15 +49,15 @@ pub async fn handle(state: &AppState, user_id: Uuid, device: Uuid, text: &str) -
 pub fn answer(user_id: Uuid, message: FromDevice) -> Option<(Uuid, Answer)> {
     match message {
         FromDevice::Location(location) => {
-            tracing::info!(%user_id, id = %location.id, "device answered with a fix");
+            tracing::info!(%user_id, request_id = %location.id, "device answered with a fix");
             Some((location.id, Answer::Fix(location)))
         }
         FromDevice::Denied { id, reason } => {
-            tracing::info!(%user_id, %id, ?reason, "device denied");
+            tracing::info!(%user_id, request_id = %id, ?reason, "device denied");
             Some((id, Answer::Denied(reason)))
         }
         FromDevice::Unavailable { id, reason } => {
-            tracing::info!(%user_id, %id, ?reason, "device unavailable");
+            tracing::info!(%user_id, request_id = %id, ?reason, "device unavailable");
             Some((id, Answer::Unavailable(reason)))
         }
         FromDevice::Hello { .. } | FromDevice::Log { .. } => None,
@@ -74,7 +74,11 @@ pub async fn settle(
 ) -> Settled {
     let mut pending = pending_location_requests::lock(state);
     match pending.waiters.get(&id) {
-        None => return Settled::Gone,
+        None => {
+            // Usually the relay stopped waiting just before the phone answered (2026-11-06).
+            tracing::warn!(request_id = %id, %user_id, "late answer: the request already ended, the agent got an error");
+            return Settled::Gone;
+        }
         Some((owner, _)) if *owner != user_id => return Settled::OtherUser,
         Some(_) => {}
     }

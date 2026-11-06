@@ -1,5 +1,5 @@
 # Roles match what infra/modules/whereabouts manages: Cloud Run, registry,
-# relay service accounts, secrets (+ their IAM) and API enablement.
+# relay service accounts, secrets (+ their IAM), API enablement and alerts.
 locals {
   deployer_roles = [
     "roles/run.admin",
@@ -7,6 +7,7 @@ locals {
     "roles/secretmanager.admin",
     "roles/iam.serviceAccountAdmin",
     "roles/serviceusage.serviceUsageAdmin",
+    "roles/monitoring.editor",
   ]
 }
 
