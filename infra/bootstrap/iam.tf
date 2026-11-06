@@ -8,6 +8,8 @@ locals {
     "roles/iam.serviceAccountAdmin",
     "roles/serviceusage.serviceUsageAdmin",
     "roles/monitoring.editor",
+    # Log-match alert policies also need logging.notificationRules.create.
+    "roles/logging.configWriter",
   ]
 }
 
