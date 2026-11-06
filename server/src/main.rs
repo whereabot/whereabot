@@ -4,16 +4,22 @@ use axum::{
     response::Response,
 };
 use tokio::signal::unix::{SignalKind, signal};
-use tracing_subscriber::EnvFilter;
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 use whereabouts_server::{Config, LocateLimits, Shutdown, build};
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
-        )
-        .init();
+    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+    // Cloud Run sets K_SERVICE. There, JSON lines give Cloud Logging a severity to filter and alert on.
+    if std::env::var_os("K_SERVICE").is_some() {
+        let json = tracing_stackdriver::layer();
+        tracing_subscriber::registry()
+            .with(filter)
+            .with(json)
+            .init();
+    } else {
+        tracing_subscriber::fmt().with_env_filter(filter).init();
+    }
     let supabase_url = required("SUPABASE_URL");
     let config = Config {
         issuer: std::env::var("SUPABASE_ISSUER")
