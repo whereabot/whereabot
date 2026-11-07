@@ -39,3 +39,14 @@
 #request[data-no-always="1"] .tiles {
   --tile-columns: 2;
 }
+
+/* Browser build: "Tap still needed" under Always allow (ui/pwa-limits-notice.ts). */
+.tile-note {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-muted);
+}
+.pwa-tradeoff {
+  margin: 0;
+  padding-inline-start: 1.25em;
+}
