@@ -1,4 +1,4 @@
-# Emails the owner when the relay logs a WARNING or worse: a failed locate request, a late
+# Emails the owner when the relay itself logs a WARNING or worse: a failed locate request, a late
 # phone answer, or any other fault (docs/operations.md#find-failed-locate-requests).
 variable "alert_email" {
   description = "Where relay alerts go. deploy.yml sets TF_VAR_alert_email from the ALERT_EMAIL variable; empty = no alerts."
@@ -27,7 +27,9 @@ resource "google_monitoring_alert_policy" "relay_warning" {
   conditions {
     display_name = "relay log at WARNING or worse"
     condition_matched_log {
-      filter = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"whereabouts-relay-prod\" AND severity>=WARNING"
+      # Only the relay's own lines: Cloud Run's request log marks every 4xx (the normal 401
+      # OAuth challenge on /mcp) as WARNING, which alerted on healthy traffic.
+      filter = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"whereabouts-relay-prod\" AND log_id(\"run.googleapis.com/stdout\") AND severity>=WARNING"
     }
   }
   # One email per 5 minutes at most, so a burst of failures does not flood the inbox.
