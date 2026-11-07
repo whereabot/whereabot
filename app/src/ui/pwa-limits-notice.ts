@@ -6,6 +6,9 @@ import { installButton } from "./pwa-install-button";
 const APP_STORE_URL = "https://whereabot.io/#get-app";
 const LIMIT = "In the browser version, Whereabot answers only after you tap the notification and open the app.";
 const ALWAYS = "Always allow cannot answer in the background.";
+// The tradeoff behind Always allow, side by side, so nobody expects no-tap answers from the browser.
+const HERE = "Here (browser version): you still tap the notification each time. Always allow only skips the question after the tap.";
+const APP = "App Store app: Always allow answers on its own, with no tap.";
 const ua = navigator.userAgent;
 // iPadOS 13+ reports a Mac user agent; touch points tell it apart.
 const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
@@ -19,6 +22,7 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLEl
 };
 
 const note = (text: string) => el("p", { className: "muted pwa-limit-note", textContent: text });
+const tradeoff = () => el("ul", { className: "muted pwa-limit-note pwa-tradeoff" }, el("li", { textContent: HERE }), el("li", { textContent: APP }));
 
 /** The full notice: what the browser version cannot do, and where to get the app that can. */
 function limitsBanner() {
@@ -61,6 +65,7 @@ export function initPwaLimitsNotice() {
   if (!standalone) $("notif-banner").before(installBanner());
   $("notif-banner").before(limitsBanner());
   $("perm-why").after(note(LIMIT));
-  $("always-allow").parentElement?.after(note(`${ALWAYS} Open the app to answer.`));
-  $("always-empty").after(note(`${ALWAYS} Open the app to answer.`));
+  $("always-allow").append(el("span", { className: "tile-note", textContent: "Tap still needed" }));
+  $("always-allow").parentElement?.after(tradeoff());
+  $("always-empty").after(tradeoff());
 }
