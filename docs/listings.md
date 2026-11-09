@@ -34,10 +34,11 @@ The listing data lives in two files at the repo root:
 
 ## Publish to the official registry
 
-The registry checks that you own the `io.github.whereabot` namespace. You must be an **Owner** of the `whereabot` GitHub organization. The plain browser sign-in (`mcp-publisher login github`) cannot see organization roles. Sign in with a personal access token that has the `read:org` scope instead:
+The registry checks that you own the `io.whereabot` namespace through the domain. It fetches the public key at `https://whereabot.io/.well-known/mcp-registry-auth` ([`site/.well-known/mcp-registry-auth`](../site/.well-known/mcp-registry-auth)). Sign in with the matching Ed25519 private key `key.pem`. Only the owner holds it:
 
 ```bash
-mcp-publisher login github --token "$TOKEN"
+PRIVATE_KEY="$(openssl pkey -in key.pem -noout -text | grep -A3 "priv:" | tail -n +2 | tr -d ' :\n')"
+mcp-publisher login http --domain whereabot.io --private-key "$PRIVATE_KEY"
 mcp-publisher publish
 ```
 
