@@ -7,9 +7,13 @@
     "stage": "node scripts/stage-docs-source.mjs",
     "reference": "cargo run -q --manifest-path ../server/Cargo.toml --bin print_docs_reference_json > generated-source/reference.json && node scripts/generate-reference-pages.mjs",
     "build": "npm run stage && npm run reference && vitepress build",
-    "preview": "vitepress preview"
+    "preview": "vitepress preview",
+    "lint": "eslint ."
   },
   "devDependencies": {
+    "eslint": "9.39.5",
+    "eslint-config-agent": "3.1.0",
+    "typescript": "6.0.3",
     "vitepress": "1.6.4"
   }
 }
