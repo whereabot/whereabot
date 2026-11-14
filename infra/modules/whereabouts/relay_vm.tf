@@ -59,6 +59,8 @@ resource "google_compute_instance" "relay" {
   # The script runs on every boot. A deploy changes the image here, then deploy.yml resets the VM.
   metadata = {
     google-logging-enabled = "true"
+    enable-oslogin         = "TRUE"
+    block-project-ssh-keys = "TRUE"
     startup-script = templatefile("${path.module}/relay_vm_startup.sh.tftpl", {
       project    = var.gcp_project
       image      = var.image
