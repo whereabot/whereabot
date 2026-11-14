@@ -45,6 +45,12 @@ variable "site_host" {
   type        = string
 }
 
+variable "relay_enabled" {
+  description = "Run the Cloud Run relay. false = no relay service in this environment."
+  type        = bool
+  default     = true
+}
+
 variable "relay_public_url" {
   description = "Canonical relay URL: https://<relay_domain>, or the Cloud Run URI (a service cannot read its own URI)."
   type        = string

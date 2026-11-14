@@ -11,7 +11,7 @@ resource "google_cloud_run_domain_mapping" "relay" {
   }
 
   spec {
-    route_name = google_cloud_run_v2_service.relay.name
+    route_name = google_cloud_run_v2_service.relay[0].name
   }
 
   # Created once by a human owner of the domain (the CI account is not a Search Console

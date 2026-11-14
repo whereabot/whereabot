@@ -34,6 +34,8 @@ module "whereabouts" {
   site_host                = "dev.whereabot.io" # dev Worker, site-cloudflare-deploy.yml on push to dev
   legacy_site_hosts        = ["whereabot.io", "whereabouts.ofek-gabay-he.workers.dev"]
   relay_public_url         = "https://whereabouts-relay-dev-yz6gmxu7na-ew.a.run.app"
+  # Dev relay deleted 2026-11-15 (always-on bill; dev Supabase is gone). true brings it back.
+  relay_enabled = false
 }
 
 variable "gcp_project" {
