@@ -33,6 +33,7 @@ module "whereabouts" {
   image                    = var.image
   apns_enabled             = true
   web_push_enabled         = true
+  relay_vm_enabled         = true
   site_host                = "whereabot.io"
   relay_domain             = "relay.whereabot.io"
   relay_public_url         = "https://relay.whereabot.io"
@@ -71,30 +72,4 @@ variable "google_client_secret" {
 variable "image" {
   description = "Set by .github/workflows/deploy.yml (break-glass: scripts/deploy.sh)."
   type        = string
-}
-
-output "relay_url" {
-  value = module.whereabouts.relay_url
-}
-
-output "supabase_url" {
-  value = module.whereabouts.supabase_url
-}
-
-output "supabase_anon_key" {
-  value     = module.whereabouts.supabase_anon_key
-  sensitive = true
-}
-
-output "supabase_project_ref" {
-  value = module.whereabouts.supabase_project_ref
-}
-
-output "db_url" {
-  value     = module.whereabouts.db_url
-  sensitive = true
-}
-
-output "artifact_repository" {
-  value = module.whereabouts.artifact_repository
 }

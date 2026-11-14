@@ -27,25 +27,16 @@ resource "google_cloud_run_v2_service" "relay" {
         cpu_idle = false # keep CPU on while sockets are open
       }
 
-      env {
-        name  = "SUPABASE_URL"
-        value = "https://${local.ref}.supabase.co"
-      }
-      env {
-        name  = "SUPABASE_ISSUER"
-        value = "https://${local.ref}.supabase.co/auth/v1"
-      }
-      env {
-        name  = "WB_PUBLIC_URL"
-        value = join(",", concat([var.relay_public_url], var.legacy_relay_urls))
-      }
-      env {
-        name  = "RUST_LOG"
-        value = "info"
-      }
-      # Push keys (push.tf, web_push.tf). Each only when enabled: Cloud Run refuses a secret with no version.
+      # Same env as the VM: relay_env.tf.
       dynamic "env" {
-        for_each = merge(local.apns_secret_env, local.web_push_secret_env)
+        for_each = local.relay_env
+        content {
+          name  = env.key
+          value = env.value
+        }
+      }
+      dynamic "env" {
+        for_each = local.relay_secret_env
         content {
           name = env.key
           value_source {
@@ -54,22 +45,6 @@ resource "google_cloud_run_v2_service" "relay" {
               version = "latest"
             }
           }
-        }
-      }
-      env {
-        name = "SUPABASE_ANON_KEY"
-        value_source {
-          secret_key_ref {
-            secret  = google_secret_manager_secret.relay["SUPABASE_ANON_KEY"].secret_id
-            version = "latest"
-          }
-        }
-      }
-      dynamic "env" {
-        for_each = local.apns_env
-        content {
-          name  = env.key
-          value = env.value
         }
       }
 

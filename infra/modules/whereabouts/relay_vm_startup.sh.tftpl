@@ -1,0 +1,44 @@
+#!/bin/bash
+# Boot script of the relay VM (relay_vm.tf, templated by OpenTofu). Container-Optimized OS runs
+# it on every boot. Secret values come from Secret Manager at boot, never from state or metadata.
+set -euo pipefail
+export HOME=/run/relay # COS keeps /root read-only; docker needs a writable config dir
+mkdir -p "$HOME" /var/lib/caddy
+image='${image}'
+
+md() { curl -sf -H 'Metadata-Flavor: Google' "http://metadata.google.internal/computeMetadata/v1/$1"; }
+token=$(md instance/service-accounts/default/token | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+secret() {
+  curl -sf -H "Authorization: Bearer $token" \
+    "https://secretmanager.googleapis.com/v1/projects/${project}/secrets/$1/versions/latest:access" |
+    sed -n 's/.*"data": *"\([^"]*\)".*/\1/p' | base64 -d
+}
+
+%{ for name, value in env ~}
+export ${name}='${value}'
+%{ endfor ~}
+%{ for name, id in secret_env ~}
+${name}=$(secret '${id}')
+export ${name}
+%{ endfor ~}
+# Caddy is the only listener on the outside; K_SERVICE turns on JSON logs (server/src/main.rs).
+export WHEREABOUTS_ADDR=127.0.0.1:8080 K_SERVICE=whereabouts-relay-vm
+
+# Caddy proxies WebSockets as is and sets no read or write timeout on them, so long-lived
+# phone sockets stay open; idle_timeout only closes idle keep-alive HTTP connections.
+cat >"$HOME/Caddyfile" <<CADDY
+${domain} {
+	reverse_proxy 127.0.0.1:8080
+}
+CADDY
+
+docker-credential-gcr configure-docker --registries="$${image%%/*}"
+docker pull "$image"
+docker rm -f relay caddy 2>/dev/null || true
+docker run -d --name relay --restart always --network host \
+%{ for name in concat(keys(env), keys(secret_env)) ~}
+  -e ${name} \
+%{ endfor ~}
+  -e WHEREABOUTS_ADDR -e K_SERVICE "$image"
+docker run -d --name caddy --restart always --network host \
+  -v "$HOME/Caddyfile:/etc/caddy/Caddyfile:ro" -v /var/lib/caddy:/data caddy:2

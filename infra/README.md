@@ -33,6 +33,7 @@ The relay host is a domain mapping (`relay_domain`). Why a human creates it, and
 A push that touches the relay or infra (paths in the workflow) runs [`deploy.yml`](../.github/workflows/deploy.yml) for the branch's environment ([branch map](../docs/operations.md#delivery-is-gitops)): test, build one image tagged with the commit SHA, push it to that environment's registry, then apply. Prod applies wait for a reviewer to approve the `production` environment. Auth to GCP is keyless (Workload Identity Federation). Applies never overlap (concurrency group per env).
 
 - Keep one relay instance. Phone sockets live in memory. See [architecture limits](../docs/architecture.md#limits-today).
+- Prod can also run the relay on a free-tier e2-micro VM. Setup, cutover, rollback and cost: [relay-vm.md](relay-vm.md).
 - Migrations have their own workflow (below).
 - Rollback: revert the commit, or run `deploy` by hand (workflow_dispatch) on the env's branch with `image_sha` set to an older SHA pushed to that env's registry. That skips the build and applies the current `infra/` with the old image.
 - Break-glass (CI down): `scripts/deploy.sh <dev|prod>` builds and applies from your laptop.
