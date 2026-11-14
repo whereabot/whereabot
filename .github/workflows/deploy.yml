@@ -61,3 +61,8 @@ jobs:
       - run: tofu -chdir="$TF_DIR" init -input=false
       - run: tofu -chdir="$TF_DIR" plan -input=false -out=tfplan
       - run: tofu -chdir="$TF_DIR" apply -input=false tfplan
+      # The relay VM (infra/relay-vm.md) runs its image from the boot script: reboot it onto the new one.
+      - name: Roll the relay VM
+        run: |
+          vm="$(tofu -chdir="$TF_DIR" output -raw relay_vm 2>/dev/null || true)"
+          if [ -n "$vm" ]; then gcloud compute instances reset "$vm" --quiet; fi
