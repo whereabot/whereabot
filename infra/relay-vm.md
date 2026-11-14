@@ -11,12 +11,13 @@ Cloud Run with one always-on instance (1 vCPU, 512Mi, CPU always allocated) is a
 - Container-Optimized OS. The boot script runs on every boot. It reads the relay secrets from Secret Manager with the VM's service account, starts the relay container on `127.0.0.1:8080`, then starts Caddy.
 - Caddy is the only outside listener (ports 80 and 443). It gets and renews the Let's Encrypt certificate for `relay_domain` and keeps it on the disk (`/var/lib/caddy`). It proxies WebSockets with no read or write timeout.
 - The VM uses the relay service account that Cloud Run uses, so the secret grants are the same. The env is the same too: [`relay_env.tf`](modules/whereabouts/relay_env.tf).
-- Deploy: [`deploy.yml`](../.github/workflows/deploy.yml) builds the image as before. The apply writes the new image into the boot script, then the workflow resets the VM. Phones reconnect after about a minute, as after a Cloud Run revision swap.
+- Deploy: [`deploy.yml`](../.github/workflows/deploy.yml) builds the image as before. The apply writes the new image into the boot script. When the boot script changed, the workflow resets the VM and waits up to 10 minutes for the boot script's `whereabouts-relay started <image>` line on serial port 1. The boot script prints it only after the relay answers `/health`. No line in time fails the job. Phones reconnect after about a minute, as after a Cloud Run revision swap.
+- Alerts: [`alerts.tf`](envs/prod/alerts.tf) emails the owner for relay log lines at WARNING or worse, from Cloud Run and from the VM (`gce_instance`, log `cos_containers`).
 - Cloud Run stays up beside the VM. DNS picks which one serves `relay.whereabot.io`, so cutover and rollback are a DNS change.
 
 ## One-time setup (human)
 
-1. Re-apply [`bootstrap/`](bootstrap): the deployer gets `roles/compute.admin`, and the relay service accounts get `roles/logging.logWriter`.
+1. Re-apply [`bootstrap/`](bootstrap): the deployer gets `roles/compute.instanceAdmin.v1`, `roles/compute.networkAdmin` and `roles/compute.securityAdmin`, and the prod relay service account gets `roles/logging.logWriter`.
 2. Merge, then promote to `main`. The prod apply creates the IP, firewall and VM. The `default` network must exist (the Compute API creates it in a new project).
 3. Check the relay on the VM before DNS points to it: `gcloud compute ssh whereabouts-relay-prod --zone us-central1-a --command 'curl -sf 127.0.0.1:8080/health'`. Caddy cannot get a certificate yet; that is expected.
 
@@ -40,10 +41,9 @@ The VM stays up during a rollback. To remove it, set `relay_vm_enabled = false`;
 
 - VM, disk and egress up to the free limits: $0. Over 1 GB egress a month: about $0.12 per GB.
 - Pulling the image from the registry in `gcp_region` (europe-west1) is cross-region transfer: cents a month.
-- Check the first bill for the external IP. Google charges for in-use IPv4 addresses on most VMs.
+- The in-use external IPv4 address: $0.005 an hour, about $3.65 a month. The free tier does not clearly cover it.
 - Cloud Run still costs money until a later change removes it after the VM has run well.
 
 ## Not covered yet
 
-- The WARNING email in [`alerts.tf`](envs/prod/alerts.tf) matches Cloud Run logs only. VM logs are in Cloud Logging under the instance.
 - A US region adds round-trip time for users in Europe and Israel.

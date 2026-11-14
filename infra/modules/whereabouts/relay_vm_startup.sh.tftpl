@@ -41,4 +41,9 @@ docker run -d --name relay --restart always --network host \
 %{ endfor ~}
   -e WHEREABOUTS_ADDR -e K_SERVICE "$image"
 docker run -d --name caddy --restart always --network host \
-  -v "$HOME/Caddyfile:/etc/caddy/Caddyfile:ro" -v /var/lib/caddy:/data caddy:2
+  -v "$HOME/Caddyfile:/etc/caddy/Caddyfile:ro" -v /var/lib/caddy:/data caddy:2.11.7
+
+# deploy.yml waits for this serial port line; set -e skips it if the relay never got healthy.
+for _ in $(seq 60); do curl -sf -o /dev/null 127.0.0.1:8080/health && break; sleep 2; done
+curl -sf -o /dev/null 127.0.0.1:8080/health
+echo "whereabouts-relay started $image at $(date +%s)" | tee /dev/ttyS0
