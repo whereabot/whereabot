@@ -1,4 +1,5 @@
 resource "google_cloud_run_v2_service" "relay" {
+  count               = var.relay_enabled ? 1 : 0
   name                = "whereabouts-relay-${var.env}"
   location            = var.gcp_region
   ingress             = "INGRESS_TRAFFIC_ALL"
@@ -66,8 +67,9 @@ resource "google_cloud_run_v2_service" "relay" {
 
 # Public URL. The relay does its own auth.
 resource "google_cloud_run_v2_service_iam_member" "public" {
-  name     = google_cloud_run_v2_service.relay.name
-  location = google_cloud_run_v2_service.relay.location
+  count    = var.relay_enabled ? 1 : 0
+  name     = google_cloud_run_v2_service.relay[0].name
+  location = google_cloud_run_v2_service.relay[0].location
   role     = "roles/run.invoker"
   member   = "allUsers"
 }

@@ -9,7 +9,7 @@ This page describes the whereabot.io deployment. To self-host, replace the proje
 ## Live URLs
 
 - Prod relay: https://relay.whereabot.io (MCP: https://relay.whereabot.io/mcp)
-- Dev relay: https://whereabouts-relay-dev-yz6gmxu7na-ew.a.run.app
+- Dev relay: none (`relay_enabled = false` in [`envs/dev`](envs/dev/main.tf))
 - Landing page, docs and OAuth consent: https://whereabot.io
 - Dev landing page, docs and OAuth consent: https://dev.whereabot.io
 
@@ -64,7 +64,7 @@ The [`site-cloudflare-deploy`](../.github/workflows/site-cloudflare-deploy.yml) 
 
 ### PR previews
 
-The [`site-pr-preview`](../.github/workflows/site-pr-preview.yml) workflow deploys each same-repo PR that touches the site, docs or app to a throwaway Worker `whereabouts-pr-<N>` on workers.dev. The preview uses the dev Supabase and the dev relay. The workflow comments the URL on the PR and deletes the Worker when the PR closes.
+The [`site-pr-preview`](../.github/workflows/site-pr-preview.yml) workflow deploys each same-repo PR that touches the site, docs or app to a throwaway Worker `whereabouts-pr-<N>` on workers.dev. The preview uses the dev Supabase and the dev relay URL (no dev relay runs now). The workflow comments the URL on the PR and deletes the Worker when the PR closes.
 
 - Setup (owner, once): register the account's workers.dev subdomain in the Cloudflare dashboard (Workers, onboarding). Create GitHub environment `preview` with secret `CLOUDFLARE_API_TOKEN`, scoped to Workers Scripts: Edit on that account only. Then set repo variable `SITE_PREVIEW` = `true`. Until then the workflow stays idle.
 - In environment `preview`, also set variables `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the dev Supabase project's values. The build reads them; environment `dev` accepts only the `dev` branch.
