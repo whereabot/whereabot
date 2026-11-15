@@ -44,3 +44,29 @@ resource "google_monitoring_alert_policy" "relay_warning" {
     mime_type = "text/markdown"
   }
 }
+
+# Same alert for the relay VM (infra/relay-vm.md). COS sends container stdout to the cos_containers
+# log; the relay's JSON lines carry their severity. Caddy errors (for example a failed certificate
+# order) also match, which is wanted.
+resource "google_monitoring_alert_policy" "relay_vm_warning" {
+  count                 = length(google_monitoring_notification_channel.owner)
+  display_name          = "Whereabot relay VM: a locate failed or the relay logged a warning"
+  combiner              = "OR"
+  notification_channels = [google_monitoring_notification_channel.owner[0].id]
+  conditions {
+    display_name = "relay VM log at WARNING or worse"
+    condition_matched_log {
+      filter = "resource.type=\"gce_instance\" AND labels.\"compute.googleapis.com/resource_name\"=\"whereabouts-relay-prod\" AND log_id(\"cos_containers\") AND severity>=WARNING"
+    }
+  }
+  alert_strategy {
+    notification_rate_limit {
+      period = "300s"
+    }
+    auto_close = "1800s"
+  }
+  documentation {
+    content   = "Open the log entry, then filter the relay VM logs on its jsonPayload.request_id. Runbook: infra/relay-vm.md."
+    mime_type = "text/markdown"
+  }
+}

@@ -29,3 +29,13 @@ output "artifact_repository" {
   description = "Image prefix for scripts/deploy.sh, without tag."
   value       = "${var.gcp_region}-docker.pkg.dev/${var.gcp_project}/${google_artifact_registry_repository.whereabouts.repository_id}/relay"
 }
+
+output "relay_vm" {
+  description = "Self link of the relay VM, or empty when relay_vm_enabled is false."
+  value       = join("", google_compute_instance.relay[*].self_link)
+}
+
+output "relay_vm_ip" {
+  description = "Static IP of the relay VM, or empty when relay_vm_enabled is false."
+  value       = join("", google_compute_address.relay[*].address)
+}

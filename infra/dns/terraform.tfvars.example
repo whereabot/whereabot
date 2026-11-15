@@ -1,2 +1,4 @@
 # Copy to terraform.tfvars (git-ignored). Value from Google Search Console (Domain property, TXT method).
 google_site_verification = "google-site-verification=REPLACE_ME"
+# Cutover to the relay VM only (infra/relay-vm.md): tofu -chdir=infra/envs/prod output -raw relay_vm_ip
+# relay_vm_ip = "203.0.113.10"

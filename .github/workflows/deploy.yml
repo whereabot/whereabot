@@ -61,3 +61,30 @@ jobs:
       - run: tofu -chdir="$TF_DIR" init -input=false
       - run: tofu -chdir="$TF_DIR" plan -input=false -out=tfplan
       - run: tofu -chdir="$TF_DIR" apply -input=false tfplan
+      # The relay VM (infra/relay-vm.md) runs its image from the boot script. When the apply changed
+      # that script, reset the VM, then wait for the boot script's "started <image>" serial line.
+      - name: Roll the relay VM
+        if: ${{ env.TF_DIR == 'infra/envs/prod' }}
+        run: |
+          vm="$(tofu -chdir="$TF_DIR" output -raw relay_vm)"
+          [ -n "$vm" ] || exit 0
+          actions="$(tofu -chdir="$TF_DIR" show -json tfplan | jq -r '[.resource_changes[]
+            | select(.address == "module.whereabouts.google_compute_instance.relay[0]")
+            | .change.actions[]] | join(",")')"
+          t0="$(date +%s)"
+          case "$actions" in
+            update) gcloud compute instances reset "$vm" --quiet ;;
+            *create*) ;; # a new VM boots with the new script
+            *) echo "boot script unchanged: no reset"; exit 0 ;;
+          esac
+          for _ in $(seq 40); do
+            if gcloud compute instances get-serial-port-output "$vm" --port 1 2>/dev/null |
+              tr -d '\r' | awk -v img="$TF_VAR_image" -v t0="$t0" \
+                '/whereabouts-relay started / && index($0, img) && $NF + 0 >= t0 { ok = 1 }
+                 END { exit !ok }'; then
+              echo "relay VM serves $TF_VAR_image"; exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::relay VM did not report $TF_VAR_image healthy within 10 minutes"
+          exit 1

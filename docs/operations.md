@@ -42,8 +42,8 @@ Cloud Run refuses a revision that mounts a secret with no version. The APNs key 
 
 The live hosts are listed once, in [infra/README.md, Live URLs](../infra/README.md#live-urls).
 
-- **Relay host.** A Cloud Run domain mapping ([`cloud_run_domain_mapping.tf`](../infra/modules/whereabouts/cloud_run_domain_mapping.tf)). Google lets only a verified owner of the domain create a mapping, and the CI service account is not one. A human domain owner creates the mapping once, then imports it into the prod state. The resource ignores `certificate_mode`, because it reads back empty after import and would force a replacement.
-- **DNS records.** In [`infra/dns/`](../infra/dns), applied by a human. The relay CNAME must be DNS only (not proxied). Google issues the certificate and must see the CNAME.
+- **Relay host.** A Cloud Run domain mapping ([`cloud_run_domain_mapping.tf`](../infra/modules/whereabouts/cloud_run_domain_mapping.tf)). Google lets only a verified owner of the domain create a mapping, and the CI service account is not one. A human domain owner creates the mapping once, then imports it into the prod state. The resource ignores `certificate_mode`, because it reads back empty after import and would force a replacement. The prod relay can also move to a VM with Caddy for TLS: the host then gets an A record. Runbook: [infra/relay-vm.md](../infra/relay-vm.md).
+- **DNS records.** In [`infra/dns/`](../infra/dns), applied by a human. The relay record must be DNS only (not proxied). Google (Cloud Run) or Caddy (VM) issues the certificate and must see the record.
 - **Verify, do not trust the dashboard.** A record saved in the Cloudflare dashboard did not persist once. After any DNS change, query a public resolver for the record, then wait until the relay answers over HTTPS. The certificate can take a while after DNS is correct.
 - **Site host.** The site workflow attaches the custom domain to the Worker and owns the apex record.
 
