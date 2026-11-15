@@ -21,7 +21,7 @@ Cloud Run with one always-on instance (1 vCPU, 512Mi, CPU always allocated) is a
 2. Merge, then promote to `main`. The prod apply creates the IP, firewall and VM. The `default` network must exist (the Compute API creates it in a new project).
 3. Check the relay on the VM before DNS points to it. Read the serial port; the boot script prints `whereabouts-relay started` only after `/health` answers: `gcloud compute instances get-serial-port-output whereabouts-relay-prod --zone us-central1-a --project whereabouts-513001 | grep 'whereabouts-relay started'`. Caddy cannot get a certificate yet; that is expected.
 
-SSH is closed on purpose: [`relay_vm_ssh.tf`](modules/whereabouts/relay_vm_ssh.tf) denies tcp:22. For an emergency shell, add a temporary allow for `35.235.240.0/20` on tcp:22 at priority 800 (same target tag), then `gcloud compute ssh whereabouts-relay-prod --zone us-central1-a --project whereabouts-513001 --tunnel-through-iap`. You need `roles/iap.tunnelResourceAccessor` and `roles/compute.osAdminLogin`. Remove the allow when done.
+SSH is closed on purpose: [`relay_vm_ssh.tf`](modules/whereabouts/relay_vm_ssh.tf) denies tcp:22. For an emergency shell, add a temporary allow for `35.235.240.0/20` on tcp:22 at priority 800 (same target tag), then `gcloud compute ssh whereabouts-relay-prod --zone us-central1-a --project whereabouts-513001 --tunnel-through-iap`. You need `roles/iap.tunnelResourceAccessor`, `roles/compute.osAdminLogin`, and `roles/iam.serviceAccountUser` on the relay service account (OS Login asks for it because the VM runs as that account). Remove the allow when done.
 
 ## Cutover
 
