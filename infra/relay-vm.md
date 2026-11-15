@@ -28,7 +28,7 @@ SSH is closed on purpose: [`relay_vm_ssh.tf`](modules/whereabouts/relay_vm_ssh.t
 1. Get the IP: `tofu -chdir=infra/envs/prod output -raw relay_vm_ip`.
 2. In `infra/dns/terraform.tfvars`, set `relay_vm_ip` to it. Apply [`dns/`](dns). The relay record changes from a CNAME to an A record.
 3. Verify with a public resolver: `dig +short relay.whereabot.io @1.1.1.1` shows the IP.
-4. Reset the VM so Caddy asks for the certificate now, not at its next retry: `gcloud compute instances reset whereabouts-relay-prod --zone us-central1-a`.
+4. Reset the VM so Caddy asks for the certificate now, not at its next retry: `gcloud compute instances reset whereabouts-relay-prod --zone us-central1-a --project whereabouts-513001`.
 5. Wait until `curl -sf https://relay.whereabot.io/health` answers. Then send a real locate request from the app.
 6. Change the relay row in [privacy](../docs/privacy.md#services-involved) to Compute Engine.
 
