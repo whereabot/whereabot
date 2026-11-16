@@ -63,6 +63,8 @@ jobs:
       - run: tofu -chdir="$TF_DIR" apply -input=false tfplan
       # The relay VM (infra/relay-vm.md) runs its image from the boot script. When the apply changed
       # that script, reset the VM, then wait for the boot script's "started <image>" serial line.
+      # The image tag is the commit SHA (TF_VAR_image), so every deploy of a new commit changes the
+      # script and resets the VM. Only a deploy of the image the VM already runs skips the reset.
       - name: Roll the relay VM
         if: ${{ env.TF_DIR == 'infra/envs/prod' }}
         run: |
