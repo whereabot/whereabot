@@ -2,7 +2,7 @@
 # Needs: the domain verified in Google Search Console and the CNAME in infra/dns/ (DNS only).
 # A domain owner creates it once (gcloud beta run domain-mappings create) and imports it.
 resource "google_cloud_run_domain_mapping" "relay" {
-  count    = var.relay_domain == null ? 0 : 1
+  count    = var.relay_enabled && var.relay_domain != null ? 1 : 0
   name     = var.relay_domain
   location = var.gcp_region
 
