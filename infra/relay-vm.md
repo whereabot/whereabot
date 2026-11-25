@@ -21,9 +21,13 @@ Cloud Run with one always-on instance (1 vCPU, 512Mi, CPU always allocated) is a
 2. Merge, then promote to `main`. The prod apply creates the IP, firewall and VM. The `default` network must exist (the Compute API creates it in a new project).
 3. Check the relay on the VM before DNS points to it. Read the serial port; the boot script prints `whereabouts-relay started` only after `/health` answers: `gcloud compute instances get-serial-port-output whereabouts-relay-prod --zone us-central1-a --project whereabouts-513001 | grep 'whereabouts-relay started'`. Caddy cannot get a certificate yet; that is expected.
 
+Until cutover, Caddy keeps retrying ACME, with backoff, for a host that still points to Google. Each prod deploy resets the VM and starts new failed orders. If they hit the Let's Encrypt failed-validation limit for the host, the certificate in cutover step 4 can take up to an hour, or Caddy falls back to ZeroSSL. Keep prod deploys few between setup and cutover.
+
 SSH is closed on purpose: [`relay_vm_ssh.tf`](modules/whereabouts/relay_vm_ssh.tf) denies tcp:22. For an emergency shell, add a temporary allow for `35.235.240.0/20` on tcp:22 at priority 800 (same target tag), then `gcloud compute ssh whereabouts-relay-prod --zone us-central1-a --project whereabouts-513001 --tunnel-through-iap`. You need `roles/iap.tunnelResourceAccessor` and `roles/compute.osAdminLogin`. Remove the allow when done.
 
 ## Cutover
+
+Cut over at a quiet hour. From step 2 until step 5 answers, `https://relay.whereabot.io` gives TLS errors: a few minutes as a rule, up to an hour if the failed-validation limit was hit (see above).
 
 1. Get the IP: `tofu -chdir=infra/envs/prod output -raw relay_vm_ip`.
 2. In `infra/dns/terraform.tfvars`, set `relay_vm_ip` to it. Apply [`dns/`](dns). The relay record changes from a CNAME to an A record.
