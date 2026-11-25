@@ -74,7 +74,8 @@ jobs:
           t0="$(date +%s)"
           case "$actions" in
             update) gcloud compute instances reset "$vm" --quiet ;;
-            *create*) ;; # a new VM boots with the new script
+            # A new VM has only this boot in its log, and a fast boot can print before t0 (#81).
+            *create*) t0=0 ;;
             *) echo "boot script unchanged: no reset"; exit 0 ;;
           esac
           for _ in $(seq 40); do
