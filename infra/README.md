@@ -64,10 +64,10 @@ The [`site-cloudflare-deploy`](../.github/workflows/site-cloudflare-deploy.yml) 
 
 ### PR previews
 
-The [`site-pr-preview`](../.github/workflows/site-pr-preview.yml) workflow deploys each same-repo PR that touches the site, docs or app to a throwaway Worker `whereabouts-pr-<N>` on workers.dev. The preview uses the dev Supabase and the dev relay URL (no dev relay runs now). The workflow comments the URL on the PR and deletes the Worker when the PR closes.
+The [`site-pr-preview`](../.github/workflows/site-pr-preview.yml) workflow deploys each same-repo PR that touches the site, docs or app to a throwaway Worker `whereabouts-pr-<N>` on workers.dev. The preview build points at the dev Supabase and the dev relay URL, but neither works now: the dev Supabase project has no DNS and its anon key secret is destroyed, and no dev relay runs ([`envs/dev/main.tf`](envs/dev/main.tf)). So sign-in and the relay do not work in a preview; the static pages do. The workflow comments the URL on the PR and deletes the Worker when the PR closes.
 
 - Setup (owner, once): register the account's workers.dev subdomain in the Cloudflare dashboard (Workers, onboarding). Create GitHub environment `preview` with secret `CLOUDFLARE_API_TOKEN`, scoped to Workers Scripts: Edit on that account only. Then set repo variable `SITE_PREVIEW` = `true`. Until then the workflow stays idle.
-- In environment `preview`, also set variables `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the dev Supabase project's values. The build reads them; environment `dev` accepts only the `dev` branch.
+- In environment `preview`, also set variables `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the dev Supabase project's values (dead now, see above). The build reads them; environment `dev` accepts only the `dev` branch.
 
 ## Release the iOS app
 
