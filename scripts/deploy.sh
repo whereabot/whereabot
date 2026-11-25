@@ -26,5 +26,13 @@ docker buildx build --platform linux/amd64 --tag "$IMAGE" --push "$ROOT/server"
 
 tofu -chdir="$TF_DIR" apply -var "image=$IMAGE"
 
+# The relay VM (infra/relay-vm.md) reads its image only at boot, so reset it to run the new one.
+# ponytail: resets even when the image tag did not change; deploy.yml checks the plan instead.
+VM="$(tofu -chdir="$TF_DIR" output -raw relay_vm 2>/dev/null || true)"
+if [ -n "$VM" ]; then
+  gcloud compute instances reset "$VM" --quiet
+  echo "reset relay VM; check its serial log for: whereabouts-relay started $IMAGE"
+fi
+
 # Migrations deploy via .github/workflows/migrations.yml, not here.
 echo "deployed $ENV at $SHA"
